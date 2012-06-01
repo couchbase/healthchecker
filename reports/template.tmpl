@@ -208,7 +208,7 @@
   #for $counter in sorted($indicator_warn)
     #set $warn_list = $indicator_warn[$counter]
     #for $warn_values in $warn_list
-      <h4>$warn_values["description"] - <strong class="status-warning">$warn_values["cause"]</strong></h4>
+      <h4>$warn_values["description"] - <span class="status-warning">$warn_values["cause"]</span></h4>
       <ul>
       #for $warn_val in sorted($warn_values["value"])
         <li>Symptom in <em>$warn_values["bucket"]</em> bucket on <em>$warn_val["node"]</em> node(s):
