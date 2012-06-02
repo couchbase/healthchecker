@@ -408,11 +408,14 @@ class RebalanceStuck:
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_warn = []
             for node, stats_info in bucket_stats.iteritems():
+                warnings = []
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if int(value) > threshold_val:
-                            symptom = accessor["symptom"].format(int(value), threshold_val)
-                            num_warn.append({"node":node, "value": symptom})
+                            warnings.append(value)
+                if len(warnings) > 0:
+                    symptom = accessor["symptom"].format(len(warnings), threshold_val)
+                    num_warn.append((node, {"value":symptom, "raw":warnings}))
             if len(num_warn) > 0:
                 result[bucket] = {"warn" : num_warn}
         return result
@@ -486,14 +489,34 @@ class TotalDataSize:
 
 class AvailableDiskSpace:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         total = 0
+        space = []
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["status"] != "healthy":
                 continue
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 total += nodeinfo['StorageInfo']['hdd']['free']
-        return util.size_label(total)
+                space.append(nodeinfo['StorageInfo']['hdd']['free'])
+        result["cluster"] = {"value" :util.size_label(total), "raw":space}
+        return result
+
+class LeastDiskSpace:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        least = { "node":None, "space":0 }
+        space = []
+        for node, nodeinfo in stats_buffer.nodes.iteritems():
+            if nodeinfo["status"] != "healthy":
+                continue
+            if nodeinfo["StorageInfo"].has_key("hdd"):
+                if least["space"] == 0 or least["space"] >  nodeinfo['StorageInfo']['hdd']['free']:
+                    least["node"] = node
+                    least["space"] = nodeinfo['StorageInfo']['hdd']['free']
+                space.append((node, nodeinfo['StorageInfo']['hdd']['free']))
+        symptom = accessor["symptom"].format(least["node"], util.size_label(least["space"]))
+        result["cluster"] = {"value" :symptom, "raw" : space}
+        return result
 
 ClusterCapsule = [
     {"name" : "TotalDataSize",
@@ -514,7 +537,15 @@ ClusterCapsule = [
             "name" : "availableDiskSpace",
             "description" : "Available disk space",
             "code" : "AvailableDiskSpace",
-        }
+            "formula" : "Storage['hdd']['free']",
+        },
+        {
+            "name" : "minFreeDiskSpace",
+            "description" : "Node with least available disk space",
+            "code" : "LeastDiskSpace",
+            "symptom" : "'{0}' with free disk space '{1}'",
+            "formula" : "Min(Storage['hdd']['free'])",
+        },
      ],
      "clusterwise" : True,
      "perNode" : False,
@@ -688,8 +719,8 @@ ClusterCapsule = [
             "counter" : "ep_tap_queue_backfillremaining",
             "code" : "RebalanceStuck",
             "threshold" : 1000,
-            "symptom" : "Tap queue backfill remaining '{0}' is higher than threshold '{1}'",
-            "formula" : "ep_tap_queue_backfillremaining > threshold",
+            "symptom" : "There are {0} stats showing tap queue backfill remainings are higher than threshold '{1}'",
+            "formula" : "Total(ep_tap_queue_backfillremaining > threshold)",
         },
         {
             "name" : "tapNack",
@@ -697,11 +728,12 @@ ClusterCapsule = [
             "counter" : "num_tap_nack",
             "code" : "RebalanceStuck",
             "threshold" : 5,
-            "symptom" : "Number of negative tap acks received '{0}' is above threshold '{1}'",
-            "formula" : "num_tap_nack > threshold",
+            "symptom" : "There are {0} stats showing number of negative tap acks received is above threshold '{1}'",
+            "formula" : "Total(num_tap_nack > threshold)",
         },
      ],
      "indicator" : True,
+     "perNode" : True,
     },
     {"name" : "MemoryFragmentation",
      "ingredients" : [
