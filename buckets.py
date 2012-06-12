@@ -107,7 +107,7 @@ class Buckets:
         data = rest.restCmd(methods[cmd], self.rest_cmd,
                             self.user, self.password, opts)
 
-        if cmd in("bucket-get", "bucket-stats", "bucket-node-stats"):
+        if cmd in ("bucket-get", "bucket-stats", "bucket-node-stats"):
             return rest.getJson(data)
         elif cmd == "bucket-list":
             if output == 'json':

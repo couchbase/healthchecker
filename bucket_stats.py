@@ -30,7 +30,7 @@ class OpsRatio:
                 read_ratio = read[2] *100 / total 
                 write_ratio = write[2] * 100 / total
                 del_ratio = delete[2] * 100 /total
-                result.append((read[0], read[1], "{0}:{1}:{2}".format(read_ratio, write_ratio, del_ratio)))
+                result.append((read[0], read[1], "{0}% reads : {1}% writes : {2}% deletes".format(read_ratio, write_ratio, del_ratio)))
 
         return result
 

@@ -20,7 +20,7 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (cluster, user, password, txtfile, htmlfile, verbose) = ('', '', '', 'kpi_report.txt', 'health_report.html', True)
+    (cluster, user, password, txtfile, htmlfile, verbose) = ('', '', '', 'clusterstats.txt', 'health_report.html', True)
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
@@ -61,14 +61,15 @@ def usage(error_msg=''):
 
     print """healthChecker - cluster key performance indicator stats
 
-usage: healthChecker CLUSTER OPTIONS
+usage: healthChecker CLUSTER USERNAME PASSWORD OPTIONS
 
 CLUSTER:
-  --cluster=HOST[:PORT] or -c HOST[:PORT]
-
-OPTIONS:
+  --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
+USERNAME:  
   -u USERNAME, --user=USERNAME      admin username of the cluster
+PASSWORD:
   -p PASSWORD, --password=PASSWORD  admin password of the cluster
+OPTIONS:
   -o FILENAME, --output=FILENAME    Default output filename is 'kpi_report.txt'
   -d --debug
   -v --verbose                      Display detailed node level information

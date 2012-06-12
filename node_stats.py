@@ -78,6 +78,7 @@ class NodeSystemStats:
                            "replicaCurrentItems" : values["systemStats"]["replicaCurrentItems"]})
 
         return result
+
 class ConnectionTrend:
     def run(self, accessor):
         result = {}

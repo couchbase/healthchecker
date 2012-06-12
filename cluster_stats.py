@@ -85,7 +85,7 @@ class OpsRatio:
             for read, write, delete in zip(ops_avg['cmd_get'], ops_avg['cmd_set'], ops_avg['delete_hits']):
                 count = read[1] + write[1] + delete[1]
                 if count == 0:
-                    res.append((read[0], "0:0:0"))
+                    res.append((read[0], "0% reads : 0% writes : 0% deletes"))
                 else:
                     read_ratio = read[1] *100 / count
                     read_total += read_ratio
@@ -93,11 +93,11 @@ class OpsRatio:
                     write_total += write_ratio
                     del_ratio = delete[1] * 100 / count
                     del_total += del_ratio
-                    res.append((read[0], "{0}:{1}:{2}".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))))
+                    res.append((read[0], "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))))
             read_total /= len(ops_avg['cmd_get'])
             write_total /= len(ops_avg['cmd_set'])
             del_total /= len(ops_avg['delete_hits'])
-            res.append(("total", "{0}:{1}:{2}".format(int(read_total+.5), int(write_total+.5), int(del_total+.5))))
+            res.append(("total", "{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5))))
             result[bucket] = res
 
         return result
@@ -189,12 +189,16 @@ class ItemGrowth:
 class NumVbuckt:
     def run(self, accessor):
         result = {}
+        num_node = len(stats_buffer.nodes)
+        if num_node == 0:
+            return result
+        avg_threshold = accessor["threshold"] / num_node
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             num_error = []
             values = stats_info[accessor["scale"]][accessor["counter"]]
             nodeStats = values["nodeStats"]
             for node, vals in nodeStats.iteritems():
-                if vals[-1] < accessor["threshold"]:
+                if vals[-1] < avg_threshold:
                     num_error.append({"node":node, "value": int(vals[-1])})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
@@ -320,7 +324,7 @@ ClusterCapsule = [
      "perNode" : True,
      "perBucket" : True,
      "indicator" : {
-        "cause" : "blah",
+        "cause" : "Cache miss ratio is too high.",
         "impact" : "blah",
         "action" : "blah",
      },
@@ -353,7 +357,7 @@ ClusterCapsule = [
      "perNode" : True,
      "perBucket" : True,
      "indicator" : {
-        "cause" : "blah",
+        "cause" : "Active resident ratio is less than replica resident ratio.",
         "impact" : "blah",
         "action" : "blah",
      },
@@ -423,12 +427,6 @@ ClusterCapsule = [
     {"name" : "RebalancePerformance",
      "ingredients" : [
         {
-            "name" : "rebalanceStuck",
-            "description" : "Check if rebalance is stuck",
-            "counter" : "idle",
-            "code" : "RebalanceStuck",
-        },
-        {
             "name" : "highBackfillRemaing",
             "description" : "Tap queue backfilll remaining is too high",
             "counter" : "ep_tap_queue_backfillremaining",
@@ -437,7 +435,7 @@ ClusterCapsule = [
         },
      ],
      "indicator" : {
-        "cause" : "blah",
+        "cause" : "Tap queue backfill remaining is higher than threshold.",
         "impact" : "blah",
         "action" : "blah",
      }
@@ -487,7 +485,7 @@ ClusterCapsule = [
         },
      ],
      "indicator" : {
-        "cause" : "blah",
+        "cause" : "Severe IO issue possibly caused by memory fragmentation",
         "impact" : "blah",
         "action" : "blah",
      },
@@ -524,7 +522,7 @@ ClusterCapsule = [
         },
      ],
      "indicator" : {
-        "cause" : "blah",
+        "cause" : "Poor engine KPIs",
         "impact" : "blah",
         "action" : "blah",
      },

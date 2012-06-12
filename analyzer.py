@@ -113,8 +113,8 @@ class StatsAnalyzer:
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
-                                            for val in values["error"]:
-                                                bucket_node_status[bucket][val["node"]] = "error"
+                                            for node in val[1]:
+                                                bucket_node_status[bucket][node["node"]] = "error"
                                         elif val[0] == "warn":
                                             indicator_warn[counter["name"]] = {"description" : counter["description"], 
                                                                             "bucket": bucket, 
@@ -134,9 +134,9 @@ class StatsAnalyzer:
                                     node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
 
         if len(indicator_error) > 0:
-            globals["cluster_health"] = "error"
+            globals["cluster_health"] = "Error"
         elif len(indicator_warn) > 0:
-            globals["cluster_health"] = "warning"
+            globals["cluster_health"] = "Warning"
 
     def run_report(self, txtfile, htmlfile, verbose):
         
@@ -177,4 +177,4 @@ class StatsAnalyzer:
         print >> f, Template(file="report-htm.tmpl", searchList=[dict])
         f.close()
 
-        sys.stderr.write("\nThis run finishes successfully. Please find output result at '{0}'".format(htmlfile))
+        sys.stderr.write("\nThe run finished successfully. Please find output result at '{0}'".format(htmlfile))
