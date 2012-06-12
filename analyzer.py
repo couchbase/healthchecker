@@ -177,4 +177,4 @@ class StatsAnalyzer:
         print >> f, Template(file="report-htm.tmpl", searchList=[dict])
         f.close()
 
-        sys.stderr.write("\nThis run finishes successfully. Please find output result at " + htmlfile)
+        sys.stderr.write("\nThis run finishes successfully. Please find output result at '{0}'".format(htmlfile))

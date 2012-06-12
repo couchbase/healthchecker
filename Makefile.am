@@ -1,8 +1,8 @@
 TMP_DIR = ./tmp
 TMP_VER = $(TMP_DIR)/version_num.tmp
 
-PROJECT_NAME = healthChecker
-CHEETAH_LIB = ./cheetah
+PROJECT_NAME = healthchecker
+CHEETAH_LIB = ./Cheetah
 JSON_LIB = ./simplejson
 
 default:
@@ -54,6 +54,6 @@ bdist:
 	cp $(PROJECT_NAME) *.py  $(TMP_DIR)/$(PROJECT_NAME)
 	cp -rf $(CHEETAH_LIB) $(JSON_LIB) report-htm.tmpl LICENSE $(TMP_DIR)/$(PROJECT_NAME)
 	(cd $(TMP_DIR); tar cf - $(PROJECT_NAME)) | gzip -9 > healtherChecker_`cat $(TMP_VER)`-`uname -s`.`uname -m`.tar.gz
-	echo created healtherChecker_`cat $(TMP_VER)`-`uname -s`.`uname -m`.tar.gz
+	echo created healtherchecker_`cat $(TMP_VER)`-`uname -s`.`uname -m`.tar.gz
 	rm -rf $(TMP_DIR)
 
