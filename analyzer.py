@@ -1,3 +1,4 @@
+import os
 import sys
 import datetime
 import logging
@@ -172,9 +173,10 @@ class StatsAnalyzer:
 
         print >> f, util.pretty_print(report)
         f.close()
-        
+
+        mydir = os.path.dirname(sys.argv[0])
         f = open(htmlfile, 'w')
-        print >> f, Template(file="report-htm.tmpl", searchList=[dict])
+        print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
         f.close()
 
         sys.stderr.write("\nThe run finished successfully. Please find output result at '{0}'".format(htmlfile))

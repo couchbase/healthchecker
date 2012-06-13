@@ -36,7 +36,10 @@ class ARRatio:
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
-                    avg = sum(vals) / samplesCount
+                    if samplesCount > 0:
+                        avg = sum(vals) / samplesCount
+                    else:
+                        avg = 0
                     item_avg[counter].append((node, avg))
             res = []
             active_total = replica_total = 0
@@ -61,7 +64,8 @@ class ARRatio:
             if len(num_error) > 0:
                 res.append(("error", num_error))
             result[bucket] = res
-        result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets))
+        if len(stats_buffer.buckets) > 0:
+            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets))
         return result
 
 class OpsRatio:
@@ -78,7 +82,10 @@ class OpsRatio:
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
-                    avg = sum(vals) / samplesCount
+                    if samplesCount > 0:
+                        avg = sum(vals) / samplesCount
+                    else:
+                        avg = 0
                     ops_avg[counter].append((node, avg))
             res = []
             read_total = write_total = del_total = 0
@@ -94,9 +101,12 @@ class OpsRatio:
                     del_ratio = delete[1] * 100 / count
                     del_total += del_ratio
                     res.append((read[0], "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))))
-            read_total /= len(ops_avg['cmd_get'])
-            write_total /= len(ops_avg['cmd_set'])
-            del_total /= len(ops_avg['delete_hits'])
+            if len(ops_avg['cmd_get']) > 0:
+                read_total /= len(ops_avg['cmd_get'])
+            if len(ops_avg['cmd_set']) > 0:
+                write_total /= len(ops_avg['cmd_set'])
+            if len(ops_avg['delete_hits']) > 0:
+                del_total /= len(ops_avg['delete_hits'])
             res.append(("total", "{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5))))
             result[bucket] = res
 
@@ -118,13 +128,17 @@ class CacheMissRatio:
             num_error = []
             for node, vals in nodeStats.iteritems():
                 #a, b = util.linreg(timestamps, vals)
-                value = sum(vals) / samplesCount
+                if samplesCount > 0:
+                    value = sum(vals) / samplesCount
+                else:
+                    value = 0
                 total += value
                 if value > accessor["threshold"]:
                     num_error.append({"node":node, "value":value})
                 trend.append((node, util.pretty_float(value)))
                 data.append(value)
-            total /= len(nodeStats)
+            if len(nodeStats) > 0:
+                total /= len(nodeStats)
             trend.append(("total", util.pretty_float(total)))
             trend.append(("variance", util.two_pass_variance(data)))
             if len(num_error) > 0:
@@ -149,7 +163,10 @@ class MemUsed:
             total = 0
             data = []
             for node, vals in nodeStats.iteritems():
-                avg = sum(vals) / samplesCount
+                if samplesCount > 0:
+                    avg = sum(vals) / samplesCount
+                else:
+                    avg = 0
                 trend.append((node, util.size_label(avg)))
                 data.append(avg)
             #print data
@@ -178,11 +195,17 @@ class ItemGrowth:
                     start_cluster += b
                     end_val = a * timestamps[-1] + b
                     end_cluster += end_val
-                    rate = (end_val * 1.0 / b - 1.0) * 100
+                    if b > 0:
+                        rate = (end_val * 1.0 / b - 1.0) * 100
+                    else:
+                        rate = 0
                     trend.append((node, util.pretty_float(rate) + "%"))
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
-            rate = (end_cluster * 1.0 / start_cluster - 1.0) * 100
+            if start_cluster > 0:
+                rate = (end_cluster * 1.0 / start_cluster - 1.0) * 100
+            else:
+                rate = 0
             result["cluster"] = util.pretty_float(rate) + "%"
         return result
 

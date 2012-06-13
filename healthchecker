@@ -65,7 +65,8 @@ usage: healthChecker CLUSTER USERNAME PASSWORD OPTIONS
 
 CLUSTER:
   --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
-USERNAME:  
+USERNAME:
+
   -u USERNAME, --user=USERNAME      admin username of the cluster
 PASSWORD:
   -p PASSWORD, --password=PASSWORD  admin password of the cluster

@@ -12,7 +12,10 @@ class AvgDiskQueue:
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
             for node, vals in nodeStats.iteritems():
-                avg = sum(vals) / samplesCount
+                if samplesCount > 0:
+                    avg = sum(vals) / samplesCount
+                else:
+                    avg = 0
                 if avg > accessor["threshold"]["high"]:
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
                 elif avg > accessor["threshold"]["low"]:
@@ -81,9 +84,15 @@ class DiskQueueDrainingRate:
             nodeStats = drain_values["nodeStats"]
             samplesCount = drain_values["samplesCount"]
             for node, vals in nodeStats.iteritems():
-                avg = sum(vals) / samplesCount
+                if samplesCount > 0:
+                    avg = sum(vals) / samplesCount
+                else:
+                    avg = 0
                 disk_len_vals = len_values["nodeStats"][node]
-                len_avg = sum(disk_len_vals) / samplesCount
+                if samplesCount > 0:
+                    len_avg = sum(disk_len_vals) / samplesCount
+                else:
+                    len_avg = 0
                 if avg < accessor["threshold"]["drainRate"] and len_avg > accessor["threshold"]["diskLength"]:
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
             if len(disk_queue_avg_error) > 0:
