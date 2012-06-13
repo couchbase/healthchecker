@@ -50,7 +50,7 @@ class ARRatio:
                     ratio = 1.0 * active[1] / replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
                     if ratio < accessor["threshold"]:
-                        num_error.append({"node":active[0], "value": ratio})
+                        num_error.append({"node":active[0], "value": util.pretty_float(ratio)})
                 active_total += active[1]
                 replica_total += replica[1]
             if replica_total == 0:
@@ -59,8 +59,8 @@ class ARRatio:
                 ratio = active_total * 1.0 / replica_total
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
-                if ratio != accessor["threshold"]:
-                    num_error.append({"node":"total", "value": ratio})
+                if ratio < accessor["threshold"]:
+                    num_error.append({"node":"total", "value": util.pretty_float(ratio)})
             if len(num_error) > 0:
                 res.append(("error", num_error))
             result[bucket] = res

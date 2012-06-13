@@ -15,7 +15,7 @@ import util_cli as util
 
 import node_map
 
-log = logging.getLogger('healthChecker')
+log = logging.getLogger('cbhealthchecker')
 log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
@@ -59,9 +59,9 @@ def usage(error_msg=''):
         print "ERROR: %s" % error_msg
         sys.exit(2)
 
-    print """healthChecker - cluster key performance indicator stats
+    print """cbhealthchecker - cluster key performance indicator stats
 
-usage: healthChecker CLUSTER USERNAME PASSWORD OPTIONS
+usage: cbhealthchecker CLUSTER USERNAME PASSWORD OPTIONS
 
 CLUSTER:
   --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
