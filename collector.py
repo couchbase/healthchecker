@@ -183,19 +183,23 @@ class StatsCollector:
             traceback.print_exc()
 
     def get_mc_stats(self, server, bucketlist, nodes):
-        #print util.pretty_print(bucketlist)
         for bucket in bucketlist:
             bucket_name = bucket['name']
             stats_buffer.node_stats[bucket_name] = {}
             for node in nodes:
                 (node_server, node_port) = util.hostport(node['hostname'])
                 self.log.info("  node: %s %s" % (node_server, node['ports']['direct']))
-                stats = {}
-                mc = mc_bin_client.MemcachedClient(node_server, node['ports']['direct'])
-                if bucket["name"] != "Default":
-                    mc.sasl_auth_plain(bucket_name.encode("utf8"), bucket["saslPassword"].encode("utf8"))
-                self.get_mc_stats_per_node(mc, stats)
-                stats_buffer.node_stats[bucket_name][node['hostname']] = stats
+                if node['status'] == 'healthy':
+                    try:
+                        stats = {}
+                        mc = mc_bin_client.MemcachedClient(node_server, node['ports']['direct'])
+                        if bucket["name"] != "Default":
+                            mc.sasl_auth_plain(bucket_name.encode("utf8"), bucket["saslPassword"].encode("utf8"))
+                        self.get_mc_stats_per_node(mc, stats)
+                        stats_buffer.node_stats[bucket_name][node['hostname']] = stats
+                    except Exception, err:
+                        stats_buffer.nodes[node['hostname']]['status'] = 'down'
+                        traceback.print_exc()
 
     def get_ns_stats(self, bucketlist, server, port, user, password, opts):
         for bucket in bucketlist:
@@ -204,12 +208,15 @@ class StatsCollector:
             cmd = 'bucket-node-stats'
             for scale, stat_set in stats_buffer.buckets[bucket_name].iteritems():
                 for stat in stat_set.iterkeys():
-                    sys.stderr.write('.')
-                    self.log.debug("retrieve: %s" % stat)
-                    c = buckets.BucketNodeStats(bucket_name, stat, scale)
+                    try :
+                        sys.stderr.write('.')
+                        self.log.debug("retrieve: %s" % stat)
+                        c = buckets.BucketNodeStats(bucket_name, stat, scale)
 
-                    json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
-                    stats_buffer.buckets[bucket_name][scale][stat] = json
+                        json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
+                        stats_buffer.buckets[bucket_name][scale][stat] = json
+                    except Exception, err:
+                        traceback.print_exc()
             sys.stderr.write('\n')
 
     def collect_data(self,cluster, user, password, opts):

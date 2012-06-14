@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 import logging
+import traceback
 
 import util_cli as util
 import cluster_stats
@@ -51,88 +52,91 @@ class StatsAnalyzer:
             for pill in capsule:
                 self.log.debug(pill['name'])
                 for counter in pill['ingredients']:
-                    result = eval("{0}.{1}().run(counter)".format(package_name, counter['code']))
+                    try:
+                        result = eval("{0}.{1}().run(counter)".format(package_name, counter['code']))
 
-                    self.log.debug(counter)
-                    if pill.has_key("clusterwise") and pill["clusterwise"] :
-                        if isinstance(result, dict):
-                            if result.has_key("cluster"):
-                                cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result["cluster"]}
+                        self.log.debug(counter)
+                        if pill.has_key("clusterwise") and pill["clusterwise"] :
+                            if isinstance(result, dict):
+                                if result.has_key("cluster"):
+                                    cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result["cluster"]}
+                                else:
+                                    cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                             else:
                                 cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
-                        else:
-                            cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
-                    if pill.has_key("perBucket") and pill["perBucket"] :
-                        for bucket, values in result.iteritems():
-                            if bucket == "cluster":
-                                continue
-                            for val in values:
-                                if val[0] == "variance" or val[0] == "error":
+                        if pill.has_key("perBucket") and pill["perBucket"] :
+                            for bucket, values in result.iteritems():
+                                if bucket == "cluster":
                                     continue
-                                elif val[0] == "total":
-                                    bucket_symptoms[bucket].append({"description" : counter["description"], "value" : val[1]})
-                                else:
-                                    if bucket_node_symptoms[bucket].has_key(val[0]) == False:
-                                        bucket_node_symptoms[bucket][val[0]] = []
-                                    bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], "value" : val[1]})
+                                for val in values:
+                                    if val[0] == "variance" or val[0] == "error":
+                                        continue
+                                    elif val[0] == "total":
+                                        bucket_symptoms[bucket].append({"description" : counter["description"], "value" : val[1]})
+                                    else:
+                                        if bucket_node_symptoms[bucket].has_key(val[0]) == False:
+                                            bucket_node_symptoms[bucket][val[0]] = []
+                                        bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], "value" : val[1]})
 
-                    if pill.has_key("perNode") and pill["perNode"] :
-                        node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
-                    if pill.has_key("nodewise") and pill["nodewise"]:
-                        node_list[counter["name"]] = {"description" : counter["description"], "value":result}
+                        if pill.has_key("perNode") and pill["perNode"] :
+                            node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
+                        if pill.has_key("nodewise") and pill["nodewise"]:
+                            node_list[counter["name"]] = {"description" : counter["description"], "value":result}
                     
-                    if pill.has_key("indicator"):
-                        if len(result) > 0:
-                            for bucket,values in result.iteritems():
-                                if type(values) is dict:
-                                    if values.has_key("error"):
-                                        indicator_error[counter["name"]] = {"description" : counter["description"], 
+                        if pill.has_key("indicator"):
+                            if len(result) > 0:
+                                for bucket,values in result.iteritems():
+                                    if type(values) is dict:
+                                        if values.has_key("error"):
+                                            indicator_error[counter["name"]] = {"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":values["error"], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
-                                        for val in values["error"]:
-                                            bucket_node_status[bucket][val["node"]] = "error"
-                                            
-                                    if values.has_key("warn"):
-                                        indicator_warn[counter["name"]] = {"description" : counter["description"],
+                                            for val in values["error"]:
+                                                bucket_node_status[bucket][val["node"]] = "error"
+                                        if values.has_key("warn"):
+                                            indicator_warn[counter["name"]] = {"description" : counter["description"],
                                                                            "bucket": bucket,
                                                                            "value":values["warn"],
                                                                            "cause" : pill["indicator"]["cause"],
                                                                            "impact" : pill["indicator"]["impact"],
                                                                            "action" : pill["indicator"]["action"],
                                                                           }
-                                elif type(values) is list:
-                                    for val in values:
-                                        if val[0] == "error":
-                                            indicator_error[counter["name"]] = {"description" : counter["description"], 
+                                    elif type(values) is list:
+                                        for val in values:
+                                            if val[0] == "error":
+                                                indicator_error[counter["name"]] = {"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
-                                            for node in val[1]:
-                                                bucket_node_status[bucket][node["node"]] = "error"
-                                        elif val[0] == "warn":
-                                            indicator_warn[counter["name"]] = {"description" : counter["description"], 
+                                                for node in val[1]:
+                                                    bucket_node_status[bucket][node["node"]] = "error"
+                                            elif val[0] == "warn":
+                                                indicator_warn[counter["name"]] = {"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
-                    if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
-                        for bucket,values in result.iteritems():
-                            if bucket == "cluster":
-                                continue
-                            for val in values:
-                                if val[0] == "total":
-                                    continue;
-                                if val[0] == "variance" and val[1] != 0:
-                                    node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
+                        if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
+                            for bucket,values in result.iteritems():
+                                if bucket == "cluster":
+                                    continue
+                                for val in values:
+                                    if val[0] == "total":
+                                        continue;
+                                    if val[0] == "variance" and val[1] != 0:
+                                        node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
+                    except Exception, err:
+                        self.log.error("Exception launched when processing counter: {0}".format(counter["name"]))
+                        traceback.print_exc()
 
         if len(indicator_error) > 0:
             globals["cluster_health"] = "Error"
@@ -179,4 +183,4 @@ class StatsAnalyzer:
         print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
         f.close()
 
-        sys.stderr.write("\nThe run finished successfully. Please find output result at '{0}'".format(htmlfile))
+        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.".format(htmlfile, txtfile))
