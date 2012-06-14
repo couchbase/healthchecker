@@ -70,7 +70,7 @@ class StatsAnalyzer:
                                 if val[0] == "variance" or val[0] == "error":
                                     continue
                                 elif val[0] == "total":
-                                    bucket_symptoms[bucket].append({"description" : counter["description"], "value" : values[-1][1]})
+                                    bucket_symptoms[bucket].append({"description" : counter["description"], "value" : val[1]})
                                 else:
                                     if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                         bucket_node_symptoms[bucket][val[0]] = []

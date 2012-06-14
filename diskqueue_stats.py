@@ -131,7 +131,7 @@ DiskQueueCapsule = [
      "indicator" : {
         "cause" : "blah",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
     {"name" : "ReplicationTrend",
@@ -152,7 +152,7 @@ DiskQueueCapsule = [
      "indicator" : {
         "cause" : "blah",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
      {"name" : "DiskQueueDrainingAnalysis",
@@ -186,7 +186,7 @@ DiskQueueCapsule = [
      "indicator" : {
         "cause" : "blah",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      }
     },
 ]

@@ -11,27 +11,19 @@ class NodeList:
 
 class NumNodes:
     def run(self, accessor):
-        result = []
-        result.append(len(stats_buffer.nodes))
-        return result
+        return len(stats_buffer.nodes)
 
 class NumDownNodes:
     def run(self, accessor):
-        result = []
-        result.append(len(filter(lambda (a, b): b["status"]=="down", stats_buffer.nodes.items())))
-        return result
+        return len(filter(lambda (a, b): b["status"]=="down", stats_buffer.nodes.items()))
 
 class NumWarmupNodes:
     def run(self, accessor):
-        result = []
-        result.append(len(filter(lambda (a, b): b["status"]=="warmup", stats_buffer.nodes.items())))
-        return result
+        return len(filter(lambda (a, b): b["status"]=="warmup", stats_buffer.nodes.items()))
 
 class NumFailOverNodes:
     def run(self, accessor):
-        result = []
-        result.append(len(filter(lambda (a, b): b["clusterMembership"]!="active", stats_buffer.nodes.items())))
-        return result
+        return len(filter(lambda (a, b): b["clusterMembership"]!="active", stats_buffer.nodes.items()))
 
 class BucketList:
     def run(self, accessor):
@@ -145,22 +137,22 @@ NodeCapsule = [
         },
         {
             "name" : "numNodes",
-            "description" : "Number of Nodes",
+            "description" : "Number of nodes",
             "code" : "NumNodes",
         },
         {
             "name" : "numDownNodes",
-            "description" : "Number of Down Nodes",
+            "description" : "Number of down nodes",
             "code" : "NumDownNodes",
         },
         {
             "name" : "numWarmupNodes",
-            "description" : "Number of Warmup Nodes",
+            "description" : "Number of warmup nodes",
             "code" : "NumWarmupNodes",
         },
         {
             "name" : "numFailedOverNodes",
-            "description" : "Number of Nodes failed over",
+            "description" : "Number of nodes failed over",
             "code" : "NumFailOverNodes",
         },
       ],
@@ -173,7 +165,7 @@ NodeCapsule = [
     "ingredients" : [
         {
             "name" : "connectionTrend",
-            "description" : "Connection Trend",
+            "description" : "Connection trend",
             "counter" : "curr_connections",
             "scale" : "minute",
             "code" : "ConnectionTrend",
@@ -189,14 +181,14 @@ NodeCapsule = [
      "ingredients" : [
         {
             "name" : "oomErrors",
-            "description" : "OOM Errors",
+            "description" : "OOM errors",
             "counter" : "ep_oom_errors",
             "scale" : "hour",
             "code" : "CalcTrend",
         },
         {
             "name" : "tempOomErrors",
-            "description" : "Temporary OOM Errors",
+            "description" : "Temporary OOM errors",
             "counter" : "ep_tmp_oom_errors",
             "scale" : "hour",
             "code" : "CalcTrend",
@@ -233,29 +225,6 @@ NodeCapsule = [
      ],
      "nodewise" : True,
     },
-    {"name" : "tapPerformance",
-     "ingredients" : [
-        {
-            "name" : "backfillRemaining",
-            "description" : "Number of backfill remaining",
-            "counter" : "ep_tap_queue_backfillremaining",
-            "code" : "NodePerformanceStats",
-        },
-        {
-            "name" : "tapNack",
-            "description" : "Number of nacks",
-            "counter" : "num_tap_nack",
-            "code" : "NodePerformanceStats",
-        },
-        {
-            "name" : "tapIdle",
-            "description" : "Idle tap streams",
-            "counter" : "idle",
-            "code" : "NodePerformanceStats",
-        },
-     ],
-     "perBucket" : True,
-    },
     {"name" : "checkpointPerformance",
      "ingredients" : [
         {
@@ -263,7 +232,7 @@ NodeCapsule = [
             "description" : "Items for open checkpoints",
             "counter" : "num_checkpoint_items",
             "code" : "NodePerformanceStats",
-            "threshold" : 10000,
+            "threshold" : 1000,
         },
      ],
      "perBucket" : True,
@@ -305,7 +274,7 @@ NodeCapsule = [
      "ingredients" : [
         {
             "name" : "averageDocumentSize",
-            "description" : "Average Document Size",
+            "description" : "Average document size",
             "counter" : "item_alloc_sizes",
             "code" : "NodePerformanceStats",
             "unit" : "size",

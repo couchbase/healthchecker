@@ -125,16 +125,16 @@ body {margin-top: 0px;margin-left: 0px;}
 
 <P class="p0"><FONT class="ft0">Couchbase Cluster Health Check Report</FONT></P>
 <P class="p1"><FONT class="ft1">Tool Version: $globals['versions']</FONT></P>
-<P class="p0"><FONT class="ft1">Execution Time: $globals['report_time']</FONT></P>
+<P class="p0"><FONT class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</FONT></P>
 <P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft3">$globals.cluster_health</FONT></P>
 <P class="p3"><FONT class="ft4">Section 1 - Couchbase &#8211; Alerts</FONT></P>
 <P class="p4"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $error_values in $indicator_error.iteritems():
-<P class="p0"><FONT class="ft2"> . </FONT><FONT class="ft3">$error_values["description"]</FONT></P>
+<P class="p0"><FONT class="ft3">$error_values["description"]</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t0">
 <TR class="tr0">
 	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Symptom</FONT><FONT class="ft7">o</FONT></TD>
+	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
 	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
 </TR>
 #for $err_val in $error_values["value"]
@@ -244,11 +244,11 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p13"><FONT class="ft4">Section 3 - Couchbase &#8211; Warning Indicators</FONT></P>
 <P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $warn_values in $indicator_warn.iteritems():
-<P class="p0"><FONT class="ft2"> . </FONT><FONT class="ft3">$warn_values["description"]</FONT></P>
+<P class="p0"><FONT class="ft3">$warn_values["description"]</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t0">
 <TR class="tr0">
 	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Symptom</FONT><FONT class="ft7">o</FONT></TD>
+	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
 	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
 </TR>
 #for $warn_val in $warn_values["value"]

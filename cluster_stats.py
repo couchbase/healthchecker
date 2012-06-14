@@ -16,10 +16,10 @@ class DGMRatio:
             if nodeinfo["StorageInfo"].has_key("ram"):
                 ram_total += nodeinfo['StorageInfo']['ram']['usedByData']
         if ram_total > 0:
-            ratio = hdd_total / ram_total
+            ratio = hdd_total * 1.0 / ram_total
         else:
             ratio = 0
-        return ratio
+        return util.pretty_float(ratio)
 
 class ARRatio:
     def run(self, accessor):
@@ -71,6 +71,7 @@ class ARRatio:
 class OpsRatio:
     def run(self, accessor):
         result = {}
+        read_cluster = write_cluster = del_cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             ops_avg = {
                 "cmd_get": [],
@@ -94,13 +95,17 @@ class OpsRatio:
                 if count == 0:
                     res.append((read[0], "0% reads : 0% writes : 0% deletes"))
                 else:
-                    read_ratio = read[1] *100 / count
+                    read_ratio = read[1] *100.0 / count
                     read_total += read_ratio
-                    write_ratio = write[1] * 100 / count
+                    write_ratio = write[1] * 100.0 / count
                     write_total += write_ratio
-                    del_ratio = delete[1] * 100 / count
+                    del_ratio = delete[1] * 100.0 / count
                     del_total += del_ratio
                     res.append((read[0], "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))))
+                    read_cluster += read[1]
+                    write_cluster += write[1]
+                    del_cluster += delete[1]
+
             if len(ops_avg['cmd_get']) > 0:
                 read_total /= len(ops_avg['cmd_get'])
             if len(ops_avg['cmd_set']) > 0:
@@ -109,7 +114,14 @@ class OpsRatio:
                 del_total /= len(ops_avg['delete_hits'])
             res.append(("total", "{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5))))
             result[bucket] = res
-
+        count = read_cluster + write_cluster + del_cluster
+        if count == 0:
+            read_ratio = write_ratio = del_ratio = 0
+        else:
+            read_ratio = read_cluster * 100.0 / count + .5
+            write_ratio = write_cluster * 100.0 / count + .5
+            del_ratio = del_cluster * 100 / count + .5
+        result["cluster"] = "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio))
         return result
 
 class CacheMissRatio:
@@ -230,6 +242,7 @@ class NumVbuckt:
 class RebalanceStuck:
     def run(self, accessor):
         result = {}
+        err_msg = "{0} value {1} is bigger than threshold {3}"
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
             for node, stats_info in bucket_stats.iteritems():
@@ -237,9 +250,7 @@ class RebalanceStuck:
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
                             if int(value) > accessor["threshold"]:
-                                num_error.append({"node":node, "value": (key, value)})
-                        else:
-                            num_error.append({"node":node, "value": (key, value)})
+                                num_error.append({"node":node, "value": err_msg.format(key, value, accessor["threshold"])})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
         return result
@@ -289,13 +300,11 @@ class EPEnginePerformance:
 
 class TotalDataSize:
     def run(self, accessor):
-        result = []
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 total += nodeinfo['StorageInfo']['hdd']['usedByData']
-        result.append(util.size_label(total))
-        return result
+        return util.size_label(total)
 
 class AvailableDiskSpace:
     def run(self, accessor):
@@ -304,15 +313,14 @@ class AvailableDiskSpace:
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 total += nodeinfo['StorageInfo']['hdd']['free']
-        result.append(util.size_label(total))
-        return result
+        return util.size_label(total)
 
 ClusterCapsule = [
     {"name" : "TotalDataSize",
      "ingredients" : [
         {
             "name" : "totalDataSize",
-            "description" : "Total Data Size across cluster",
+            "description" : "Total data size across cluster",
             "code" : "TotalDataSize",
         }
      ],
@@ -349,7 +357,7 @@ ClusterCapsule = [
      "indicator" : {
         "cause" : "Cache miss ratio is too high.",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
      "nodeDisparate" : True,
     },
@@ -357,7 +365,7 @@ ClusterCapsule = [
      "ingredients" : [
         {
             "name" : "dgm",
-            "description" : "Disk to Memory Ratio",
+            "description" : "Disk to memory ratio",
             "code" : "DGMRatio"
         },
      ],
@@ -369,7 +377,7 @@ ClusterCapsule = [
      "ingredients" : [
         {
             "name" : "activeReplicaResidencyRatio",
-            "description" : "Active and Replica Resident Ratio",
+            "description" : "Active and replica residency ratio",
             "counter" : ["curr_items", "vb_replica_curr_items"],
             "scale" : "minute",
             "code" : "ARRatio",
@@ -382,7 +390,7 @@ ClusterCapsule = [
      "indicator" : {
         "cause" : "Active resident ratio is less than replica resident ratio.",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
     {"name" : "OPSPerformance",
@@ -396,12 +404,13 @@ ClusterCapsule = [
         },
      ],
      "perBucket" : True,
+     "clusterwise" : True,
     },
     {"name" : "GrowthRate",
      "ingredients" : [
         {
             "name" : "dataGrowthRateForItems",
-            "description" : "Data Growth rate for items",
+            "description" : "Data growth rate for items",
             "counter" : "curr_items",
             "scale" : "day",
             "code" : "ItemGrowth",
@@ -432,7 +441,7 @@ ClusterCapsule = [
      "indicator" : {
         "cause" : "blah",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
     {"name" : "MemoryUsage",
@@ -456,11 +465,18 @@ ClusterCapsule = [
             "code" : "RebalanceStuck",
             "threshold" : 1000,
         },
+        {
+            "name" : "tapNack",
+            "description" : "Number of nacks",
+            "counter" : "num_tap_nack",
+            "code" : "RebalanceStuck",
+            "threshold" : 5,
+        },
      ],
      "indicator" : {
         "cause" : "Tap queue backfill remaining is higher than threshold.",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      }
     },
     {"name" : "MemoryFragmentation",
@@ -510,7 +526,7 @@ ClusterCapsule = [
      "indicator" : {
         "cause" : "Severe IO issue possibly caused by memory fragmentation",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
     {"name" : "EPEnginePerformance",
@@ -547,7 +563,7 @@ ClusterCapsule = [
      "indicator" : {
         "cause" : "Poor engine KPIs",
         "impact" : "blah",
-        "action" : "blah",
+        "action" : "Please contact support@couchbase.com",
      },
     },
 ]
