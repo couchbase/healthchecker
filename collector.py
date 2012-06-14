@@ -121,7 +121,6 @@ class StatsCollector:
             bucketlist = buckets.Buckets().runCmd('bucket-get', server, port, user, password, opts)
             for bucket in bucketlist:
                 bucket_name = bucket['name']
-                self.log.info("bucket: %s" % bucket_name)
                 bucketinfo = {}
                 bucketinfo['name'] = bucket_name
                 bucketinfo['bucketType'] = bucket['bucketType']
@@ -185,6 +184,7 @@ class StatsCollector:
     def get_mc_stats(self, server, bucketlist, nodes):
         for bucket in bucketlist:
             bucket_name = bucket['name']
+            self.log.info("bucket: %s" % bucket_name)
             stats_buffer.node_stats[bucket_name] = {}
             for node in nodes:
                 (node_server, node_port) = util.hostport(node['hostname'])

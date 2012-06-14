@@ -49,7 +49,7 @@ class ARRatio:
                 else:
                     ratio = 1.0 * active[1] / replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
-                    if ratio < accessor["threshold"]:
+                    if ratio < accessor["threshold"] and abs(ratio - accessor["threshold"]) > 1e-2:
                         num_error.append({"node":active[0], "value": util.pretty_float(ratio)})
                 active_total += active[1]
                 replica_total += replica[1]
@@ -59,7 +59,7 @@ class ARRatio:
                 ratio = active_total * 1.0 / replica_total
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
-                if ratio < accessor["threshold"]:
+                if ratio < accessor["threshold"] and abs(ratio - accessor["threshold"]) > 1e-2:
                     num_error.append({"node":"total", "value": util.pretty_float(ratio)})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -147,7 +147,44 @@ class CacheMissRatio:
                 total += value
                 if value > accessor["threshold"]:
                     num_error.append({"node":node, "value":value})
-                trend.append((node, util.pretty_float(value)))
+                trend.append((node, util.pretty_float(value) + "%"))
+                data.append(value)
+            if len(nodeStats) > 0:
+                total /= len(nodeStats)
+            trend.append(("total", util.pretty_float(total) + "%"))
+            trend.append(("variance", util.two_pass_variance(data)))
+            if len(num_error) > 0:
+                trend.append(("error", num_error))
+            cluster += total
+            result[bucket] = trend
+        if len(stats_buffer.buckets) > 0:
+            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets)) + "%"
+        return result
+
+class ResidentItemRatio:
+    def run(self, accessor):
+        result = {}
+        cluster = 0
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            values = stats_info[accessor["scale"]][accessor["counter"]]
+            timestamps = values["timestamp"]
+            timestamps = [x - timestamps[0] for x in timestamps]
+            nodeStats = values["nodeStats"]
+            samplesCount = values["samplesCount"]
+            trend = []
+            total = 0
+            data = []
+            num_error = []
+            for node, vals in nodeStats.iteritems():
+                #a, b = util.linreg(timestamps, vals)
+                if samplesCount > 0:
+                    value = sum(vals) / samplesCount
+                else:
+                    value = 0
+                total += value
+                if value < accessor["threshold"]:
+                    num_error.append({"node":node, "value":value})
+                trend.append((node, util.pretty_float(value) + "%"))
                 data.append(value)
             if len(nodeStats) > 0:
                 total /= len(nodeStats)
@@ -158,7 +195,7 @@ class CacheMissRatio:
             cluster += total
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
-            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets))
+            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets)) + "%"
         return result
 
 class MemUsed:
@@ -376,19 +413,35 @@ ClusterCapsule = [
     {"name" : "ActiveReplicaResidentRatio",
      "ingredients" : [
         {
-            "name" : "activeReplicaResidencyRatio",
-            "description" : "Active and replica residency ratio",
+            "name" : "activeReplicaResidentRatio",
+            "description" : "Active to replica resident ratio",
             "counter" : ["curr_items", "vb_replica_curr_items"],
             "scale" : "minute",
             "code" : "ARRatio",
             "threshold" : 1,
+        },
+        {
+            "name" : "activeResidentRatio",
+            "description" : "Active resident ratio",
+            "counter" : "vb_active_resident_items_ratio",
+            "scale" : "minute",
+            "code" : "ResidentItemRatio",
+            "threshold" : 30,
+        },
+        {
+            "name" : "replicaResidentRatio",
+            "description" : "Replica resident ratio",
+            "counter" : "vb_replica_resident_items_ratio",
+            "scale" : "minute",
+            "code" : "ResidentItemRatio",
+            "threshold" : 30,
         },
      ],
      "clusterwise" : True,
      "perNode" : True,
      "perBucket" : True,
      "indicator" : {
-        "cause" : "Active resident ratio is less than replica resident ratio.",
+        "cause" : "blah",
         "impact" : "blah",
         "action" : "Please contact support@couchbase.com",
      },
@@ -524,7 +577,7 @@ ClusterCapsule = [
         },
      ],
      "indicator" : {
-        "cause" : "Severe IO issue possibly caused by memory fragmentation",
+        "cause" : "Severe IO issue possibly caused by fragmentation",
         "impact" : "blah",
         "action" : "Please contact support@couchbase.com",
      },

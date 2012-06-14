@@ -18,6 +18,8 @@ stats = {
         'vb_active_queue_drain' : {},
         'vb_replica_queue_drain' : {},
         'disk_write_queue' : {},
+        'vb_active_resident_items_ratio' : {},
+        'vb_replica_resident_items_ratio' : {},
     },
     "hour" : {
         'disk_write_queue' : {},
