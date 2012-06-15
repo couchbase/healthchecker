@@ -1,3 +1,4 @@
+<!doctype html system>
 <HTML>
 <HEAD><TITLE>sample-report-v2</TITLE>
 <STYLE type="text/css">
@@ -49,7 +50,7 @@ body {margin-top: 0px;margin-left: 0px;}
 .p0{text-align: left;padding-left: 2px;margin-top: 0px;margin-bottom: 0px;}
 .p1{text-align: left;padding-left: 2px;margin-top: 40px;margin-bottom: 0px;}
 .p2{text-align: left;padding-left: 2px;margin-top: 3px;margin-bottom: 0px;}
-.p3{text-align: left;padding-left: 2px;margin-top: 85px;margin-bottom: 0px;}
+.p3{text-align: left;padding-left: 2px;margin-top: 35px;margin-bottom: 0px;}
 .p4{text-align: left;padding-left: 2px;margin-top: 34px;margin-bottom: 0px;}
 .p5{text-align: justify;padding-left: 74px;margin-top: 0px;margin-bottom: 0px;}
 .p6{text-align: justify;padding-left: 26px;margin-top: 0px;margin-bottom: 0px;}
@@ -57,14 +58,15 @@ body {margin-top: 0px;margin-left: 0px;}
 .p8{text-align: left;padding-left: 74px;padding-right: 306px;margin-top: 0px;margin-bottom: 0px;text-indent: -47px;}
 .p9{text-align: left;padding-left: 74px;padding-right: 302px;margin-top: 0px;margin-bottom: 0px;}
 .p10{text-align: left;margin-top: 0px;margin-bottom: 0px;}
-.p11{text-align: left;margin-top: 70px;margin-bottom: 0px;}
+.p11{text-align: left;margin-top: 35px;margin-bottom: 0px;}
 .p12{text-align: left;margin-top: 38px;margin-bottom: 0px;}
-.p13{text-align: left;margin-top: 50px;margin-bottom: 0px;}
+.p13{text-align: left;margin-top: 30px;margin-bottom: 0px;}
 .p14{text-align: left;margin-top: 34px;margin-bottom: 0px;}
 .p15{text-align: justify;margin-top: 0px;margin-bottom: 0px;}
 .p16{text-align: justify;padding-left: 24px;margin-top: 6px;margin-bottom: 0px;}
 .p17{text-align: justify;padding-left: 24px;margin-top: 0px;margin-bottom: 0px;}
 .p18{text-align: justify;padding-left: 48px;padding-right: 27px;margin-top: 0px;margin-bottom: 0px;text-indent: -24px;}
+.p20{text-align: left;padding-left: 2px;margin-top: 30px;margin-bottom: 0px;}
 
 .td0{text-align: left;padding-left: 0px;padding-right: 0px;width: 15px;vertical-align: bottom;}
 .td1{text-align: left;padding-left: 9px;padding-right: 0px;width: 251px;vertical-align: bottom;}
@@ -96,7 +98,7 @@ body {margin-top: 0px;margin-left: 0px;}
 .td27{border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;line-height: 17px;width: 318px;vertical-align: bottom;}
 .td28{border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;line-height: 17px;width: 265px;vertical-align: bottom;}
 
-.tr0{height: 54px;}
+.tr0{height: 25px;}
 .tr1{height: 19px;}
 .tr2{height: 21px;}
 .tr3{height: 20px;}
@@ -130,7 +132,7 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p3"><FONT class="ft4">Section 1 - Couchbase &#8211; Alerts</FONT></P>
 <P class="p4"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $error_values in $indicator_error.iteritems():
-<P class="p0"><FONT class="ft3">$error_values["description"]</FONT></P>
+<P class="p20"><FONT class="ft3">$error_values["description"]</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t0">
 <TR class="tr0">
 	<TD class="td0">&#8226;</TD>
@@ -140,7 +142,7 @@ body {margin-top: 0px;margin-left: 0px;}
 #for $err_val in $error_values["value"]
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft6">$error_values["bucket"] : </FONT></TD>
+	<TD class="td3"><FONT class="ft6">$error_values["bucket"] - </FONT></TD>
 	<TD class="td4"><FONT class="ft9">$err_val["node"]</FONT></TD>
 </TR>
 <TR class="tr1">
@@ -167,15 +169,15 @@ body {margin-top: 0px;margin-left: 0px;}
 </TABLE>
 #end for
 <P class="p4"><FONT class="ft4">Section 2 - Couchbase Cluster Overview</FONT></P>
-<P class="p7"><FONT class="ft14">&#8226; </FONT><FONT class="ft3">Node list</FONT></P>
+<P class="p11"><FONT class="ft5">Node list</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t1">
-<TR class="tr2">
+<TR class="tr6">
 	<TD class="td5"><FONT class="ft15">Node IP</FONT></TD>
 	<TD class="td6"><FONT class="ft15">Couchbase Server Version</FONT></TD>
 	<TD class="td7"><FONT class="ft15">Status</FONT></TD>
 </TR>
 #for $node in $node_list["nodeList"]["value"]
-<TR class="tr3">
+<TR class="tr6">
 	<TD class="td8">$node["ip"]</TD>
 	<TD class="td9">$node["version"]</TD>
 	<TD class="td10">$node["status"]</TD>
@@ -186,11 +188,8 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of down nodes: $node_list["numDownNodes"]["value"] </FONT></P>
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of warmingup nodes: $node_list["numWarmupNodes"]["value"] </FONT></P>
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of failed over nodes: $node_list["numFailedOverNodes"]["value"] </FONT></P>
-</DIV>
-<DIV id="page_2">
-
-<P class="p10"><FONT class="ft5">Cluster-wide metrics</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t2">
+<P class="p11"><FONT class="ft5">Cluster-wide metrics</FONT></P>
+<TABLE cellpadding=0 cellspacing=0 class="t1">
 #for $key, $value in $cluster_symptoms.iteritems()
 <TR class="tr4">
 	<TD class="td11">$value["description"]</TD>
@@ -200,46 +199,34 @@ body {margin-top: 0px;margin-left: 0px;}
 </TABLE>
 <P class="p11"><FONT class="ft5">Bucket metrics</FONT></P>
 #for $bucket in $bucket_list
-<P class="p10"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
-<P class="p12"><FONT class="ft2">Status &#8211; Attention needed</FONT></P>
+<P class="p12"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
+<P class="p10"><FONT class="ft2">Status &#8211; Attention needed</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t3">
 #for $symptom in $bucket_symptoms[$bucket]
 <TR class="tr6">
 	<TD class="td18">&nbsp;</TD>
-	<TD class="td19">$symptom["description"]</TD>
+	<TD class="td11">$symptom["description"]</TD>
 	<TD class="td12">$symptom["value"]</TD>
 </TR>
 #end for
-</TR>
 </TABLE>
-</DIV>
-<DIV id="page_3">
-<TABLE cellpadding=0 cellspacing=0 class="t4">
 #for $node, $node_values in $bucket_node_symptoms[$bucket].iteritems()
-<TR class="tr7">
-	<TD class="td26"><FONT class="ft8">IP address: </FONT>$node</TD>
-	<TD class="td24">&nbsp;</TD>
-</TR>
-<TR class="tr2">
+<P class="p12"><FONT class="ft2">IP address: $node</FONT></P>
 #if $bucket_node_status[$bucket].has_key($node)
-	<TD class="td26"><FONT class="ft8">Status &#8211; Error</FONT></TD>
+<P class="p10"><FONT class="ft2">Status &#8211;  $bucket_node_status[$bucket][$node]</FONT></P>
 #else
-	<TD class="td26"><FONT class="ft8">Status &#8211; OK</FONT></TD>
+<P class="p10"><FONT class="ft2">Status &#8211; OK</FONT></P>
 #end if
-	<TD class="td24">&nbsp;</TD>
-</TR>
-<TR class="tr5">
-	<TD class="td27">&nbsp;</TD>
-	<TD class="td28">&nbsp;</TD>
-</TR>
+<TABLE cellpadding=0 cellspacing=0 class="t3">
 #for $node_value in $node_values
-<TR class="tr3">
-	<TD class="td13">$node_value["description"]</TD>
-	<TD class="td14">$node_value["value"]</TD>
+<TR class="tr6">
+	<TD class="td18">&nbsp;</TD>
+	<TD class="td11">$node_value["description"]</TD>
+	<TD class="td12">$node_value["value"]</TD>
 </TR>
-#end for
 #end for
 </TABLE>
+#end for
 #end for
 <P class="p13"><FONT class="ft4">Section 3 - Couchbase &#8211; Warning Indicators</FONT></P>
 <P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
