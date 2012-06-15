@@ -20,17 +20,16 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (cluster, user, password, txtfile, htmlfile, verbose) = ('', '', '', 'clusterstats.txt', 'health_report.html', True)
+    (cluster, user, password, txtfile, htmlfile, verbose) = ('', '', '', 'clusterstats.txt', 'health_report.html', False)
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
-                                      'c:dvp:u:t:h:', [
+                                      'c:dvp:u:o:', [
                 'cluster=',
                 'debug',
                 'verbose',
                 'password=',
                 'user=',
-                'txt=',
                 'html=',
                 ])
     except getopt.GetoptError, err:
@@ -45,10 +44,10 @@ def parse_opt():
             password = arg
         if opt in ('-d', '--debug'):
             log.setLevel(logging.DEBUG)
-        if opt in ('-t', '--txt'):
-            txtfile = arg
-        if opt in ('-h', '--html'):
+        if opt in ('-o', '--output'):
             htmlfile = arg
+        if opt in ('-v', '--verbose'):
+            verbose = True
 
     if not cluster: 
         usage()

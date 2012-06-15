@@ -210,6 +210,7 @@ body {margin-top: 0px;margin-left: 0px;}
 </TR>
 #end for
 </TABLE>
+#if $verbose
 #for $node, $node_values in $bucket_node_symptoms[$bucket].iteritems()
 <P class="p12"><FONT class="ft2">IP address: $node</FONT></P>
 #if $bucket_node_status[$bucket].has_key($node)
@@ -227,6 +228,7 @@ body {margin-top: 0px;margin-left: 0px;}
 #end for
 </TABLE>
 #end for
+#end if
 #end for
 <P class="p13"><FONT class="ft4">Section 3 - Couchbase &#8211; Warning Indicators</FONT></P>
 <P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
