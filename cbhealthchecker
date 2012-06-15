@@ -20,11 +20,12 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (cluster, user, password, txtfile, htmlfile, verbose) = ('', '', '', 'clusterstats.txt', 'health_report.html', False)
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False)
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
-                                      'c:dvp:u:o:', [
+                                      'b:c:dvp:u:o:', [
+                'bucket=',
                 'cluster=',
                 'debug',
                 'verbose',
@@ -36,6 +37,8 @@ def parse_opt():
         usage(err)
 
     for (opt, arg) in opts:
+        if opt in ('-b', '--bucket'):
+            bucket = arg
         if opt in ('-c', '--cluster'):
             cluster = arg
         if opt in ('-u', '--user'):
@@ -51,7 +54,7 @@ def parse_opt():
 
     if not cluster: 
         usage()
-    return (cluster, user, password, txtfile, htmlfile, verbose, opts)
+    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, opts)
 
 def usage(error_msg=''):
     if error_msg:
@@ -66,21 +69,22 @@ CLUSTER:
   --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
 USERNAME:
 
-  -u USERNAME, --user=USERNAME      admin username of the cluster
+  -u USERNAME, --user=USERNAME       admin username of the cluster
 PASSWORD:
-  -p PASSWORD, --password=PASSWORD  admin password of the cluster
+  -p PASSWORD, --password=PASSWORD   admin password of the cluster
 OPTIONS:
-  -o FILENAME, --output=FILENAME    Default output filename is 'kpi_report.txt'
+  -b BUCKETNAME, --bucket=BUCKETNAME Specific bucket name. Default is all buckets
+  -o FILENAME, --output=FILENAME     Default output filename is 'kpi_report.txt'
   -d --debug
-  -v --verbose                      Display detailed node level information
+  -v --verbose                       Display detailed node level information
 """
     sys.exit(2)
 
 def main():
-    (cluster, user, password, txtfile, htmlfile, verbose, opts) = parse_opt()
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose, opts) = parse_opt()
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
-    retriever.collect_data(cluster, user, password, opts)
+    retriever.collect_data(bucket, cluster, user, password, opts)
 
     #analyze the snapshot and historic data
     performer = analyzer.StatsAnalyzer(log)

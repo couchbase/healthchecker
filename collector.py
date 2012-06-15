@@ -116,35 +116,36 @@ class StatsCollector:
             traceback.print_exc()
             sys.exit(1)
 
-    def get_bucketlist(self, server, port, user, password, opts):
+    def get_bucketlist(self, server, port, user, password, bucketname, opts):
         try:
             bucketlist = buckets.Buckets().runCmd('bucket-get', server, port, user, password, opts)
             for bucket in bucketlist:
                 bucket_name = bucket['name']
-                bucketinfo = {}
-                bucketinfo['name'] = bucket_name
-                bucketinfo['bucketType'] = bucket['bucketType']
-                bucketinfo['authType'] = bucket['authType']
-                bucketinfo['saslPassword'] = bucket['saslPassword']
-                bucketinfo['numReplica'] = bucket['replicaNumber']
-                bucketinfo['ramQuota'] = bucket['quota']['ram']
-                bucketinfo['master'] = server
+                if bucketname == 'all' or bucket_name == bucketname:
+                    bucketinfo = {}
+                    bucketinfo['name'] = bucket_name
+                    bucketinfo['bucketType'] = bucket['bucketType']
+                    bucketinfo['authType'] = bucket['authType']
+                    bucketinfo['saslPassword'] = bucket['saslPassword']
+                    bucketinfo['numReplica'] = bucket['replicaNumber']
+                    bucketinfo['ramQuota'] = bucket['quota']['ram']
+                    bucketinfo['master'] = server
 
-                bucketStats = bucket['basicStats']
-                bucketinfo['bucketStats'] = {}
-                bucketinfo['bucketStats']['diskUsed'] = bucketStats['diskUsed']
-                bucketinfo['bucketStats']['memUsed'] = bucketStats['memUsed']
-                bucketinfo['bucketStats']['diskFetches'] = bucketStats['diskFetches']
-                bucketinfo['bucketStats']['quotaPercentUsed'] = bucketStats['quotaPercentUsed']
-                bucketinfo['bucketStats']['opsPerSec'] = bucketStats['opsPerSec']
-                bucketinfo['bucketStats']['itemCount'] = bucketStats['itemCount']
+                    bucketStats = bucket['basicStats']
+                    bucketinfo['bucketStats'] = {}
+                    bucketinfo['bucketStats']['diskUsed'] = bucketStats['diskUsed']
+                    bucketinfo['bucketStats']['memUsed'] = bucketStats['memUsed']
+                    bucketinfo['bucketStats']['diskFetches'] = bucketStats['diskFetches']
+                    bucketinfo['bucketStats']['quotaPercentUsed'] = bucketStats['quotaPercentUsed']
+                    bucketinfo['bucketStats']['opsPerSec'] = bucketStats['opsPerSec']
+                    bucketinfo['bucketStats']['itemCount'] = bucketStats['itemCount']
 
-                stats_buffer.bucket_info[bucket_name] = bucketinfo
+                    stats_buffer.bucket_info[bucket_name] = bucketinfo
 
-                # get bucket related stats
-                c = buckets.BucketStats(bucket_name)
-                json = c.runCmd('bucket-stats', server, port, user, password, opts)
-                stats_buffer.buckets_summary[bucket_name] = json
+                    # get bucket related stats
+                    c = buckets.BucketStats(bucket_name)
+                    json = c.runCmd('bucket-stats', server, port, user, password, opts)
+                    stats_buffer.buckets_summary[bucket_name] = json
             return bucketlist
         except Exception, err:
             traceback.print_exc()
@@ -181,45 +182,47 @@ class StatsCollector:
         except Exception, err:
             traceback.print_exc()
 
-    def get_mc_stats(self, server, bucketlist, nodes):
+    def get_mc_stats(self, server, bucketlist, nodes, bucketname):
         for bucket in bucketlist:
             bucket_name = bucket['name']
-            self.log.info("bucket: %s" % bucket_name)
-            stats_buffer.node_stats[bucket_name] = {}
-            for node in nodes:
-                (node_server, node_port) = util.hostport(node['hostname'])
-                self.log.info("  node: %s %s" % (node_server, node['ports']['direct']))
-                if node['status'] == 'healthy':
-                    try:
-                        stats = {}
-                        mc = mc_bin_client.MemcachedClient(node_server, node['ports']['direct'])
-                        if bucket["name"] != "Default":
-                            mc.sasl_auth_plain(bucket_name.encode("utf8"), bucket["saslPassword"].encode("utf8"))
-                        self.get_mc_stats_per_node(mc, stats)
-                        stats_buffer.node_stats[bucket_name][node['hostname']] = stats
-                    except Exception, err:
-                        stats_buffer.nodes[node['hostname']]['status'] = 'down'
-                        traceback.print_exc()
+            if bucketname == 'all' or bucket_name == bucketname:
+                self.log.info("bucket: %s" % bucket_name)
+                stats_buffer.node_stats[bucket_name] = {}
+                for node in nodes:
+                    (node_server, node_port) = util.hostport(node['hostname'])
+                    self.log.info("  node: %s %s" % (node_server, node['ports']['direct']))
+                    if node['status'] == 'healthy':
+                        try:
+                            stats = {}
+                            mc = mc_bin_client.MemcachedClient(node_server, node['ports']['direct'])
+                            if bucket["name"] != "Default":
+                                mc.sasl_auth_plain(bucket_name.encode("utf8"), bucket["saslPassword"].encode("utf8"))
+                            self.get_mc_stats_per_node(mc, stats)
+                            stats_buffer.node_stats[bucket_name][node['hostname']] = stats
+                        except Exception, err:
+                            stats_buffer.nodes[node['hostname']]['status'] = 'down'
+                            traceback.print_exc()
 
-    def get_ns_stats(self, bucketlist, server, port, user, password, opts):
+    def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, opts):
         for bucket in bucketlist:
             bucket_name = bucket['name']
-            stats_buffer.buckets[bucket_name] = copy.deepcopy(stats_buffer.stats)
-            cmd = 'bucket-node-stats'
-            for scale, stat_set in stats_buffer.buckets[bucket_name].iteritems():
-                for stat in stat_set.iterkeys():
-                    try :
-                        sys.stderr.write('.')
-                        self.log.debug("retrieve: %s" % stat)
-                        c = buckets.BucketNodeStats(bucket_name, stat, scale)
+            if bucketname == 'all' or bucket_name == bucketname:
+                stats_buffer.buckets[bucket_name] = copy.deepcopy(stats_buffer.stats)
+                cmd = 'bucket-node-stats'
+                for scale, stat_set in stats_buffer.buckets[bucket_name].iteritems():
+                    for stat in stat_set.iterkeys():
+                        try :
+                            sys.stderr.write('.')
+                            self.log.debug("retrieve: %s" % stat)
+                            c = buckets.BucketNodeStats(bucket_name, stat, scale)
 
-                        json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
-                        stats_buffer.buckets[bucket_name][scale][stat] = json
-                    except Exception, err:
-                        traceback.print_exc()
-            sys.stderr.write('\n')
+                            json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
+                            stats_buffer.buckets[bucket_name][scale][stat] = json
+                        except Exception, err:
+                            traceback.print_exc()
+                sys.stderr.write('\n')
 
-    def collect_data(self,cluster, user, password, opts):
+    def collect_data(self, bucketname, cluster, user, password, opts):
         server, port = util.hostport(cluster)
 
         #get node list info
@@ -227,14 +230,14 @@ class StatsCollector:
         self.log.debug(util.pretty_print(stats_buffer.nodes))
 
         #get bucket list
-        bucketlist = self.get_bucketlist(server, port, user, password, opts)
+        bucketlist = self.get_bucketlist(server, port, user, password, bucketname, opts)
         self.log.debug(util.pretty_print(stats_buffer.bucket_info))
 
         #get stats from ep-engine
-        self.get_mc_stats(server, bucketlist, nodes)
+        self.get_mc_stats(server, bucketlist, nodes, bucketname)
         self.log.debug(util.pretty_print(stats_buffer.node_stats))
 
         #get stats from ns-server
-        self.get_ns_stats(bucketlist, server, port, user, password, opts)
+        self.get_ns_stats(bucketlist, server, port, user, password, bucketname, opts)
         self.log.debug(util.pretty_print(stats_buffer.buckets))
 
