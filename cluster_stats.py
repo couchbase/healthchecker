@@ -393,7 +393,7 @@ ClusterCapsule = [
      "perBucket" : True,
      "indicator" : {
         "cause" : "Cache miss ratio is too high.",
-        "impact" : "blah",
+        "impact" : "It will result in too many background fetches from disk and lead to poor IO performance",
         "action" : "Please contact support@couchbase.com",
      },
      "nodeDisparate" : True,
@@ -434,7 +434,7 @@ ClusterCapsule = [
             "counter" : "vb_replica_resident_items_ratio",
             "scale" : "minute",
             "code" : "ResidentItemRatio",
-            "threshold" : 30,
+            "threshold" : 20,
         },
      ],
      "clusterwise" : True,
@@ -442,7 +442,7 @@ ClusterCapsule = [
      "perBucket" : True,
      "indicator" : {
         "cause" : "blah",
-        "impact" : "blah",
+        "impact" : "Failovers will slow down nodes severely because backfills from disk will be required and result in eviction of active items",
         "action" : "Please contact support@couchbase.com",
      },
     },
@@ -493,8 +493,8 @@ ClusterCapsule = [
      ],
      "indicator" : {
         "cause" : "blah",
-        "impact" : "blah",
-        "action" : "Please contact support@couchbase.com",
+        "impact" : "Data is missing",
+        "action" : "Run rebalance o recreate missing vBuckets",
      },
     },
     {"name" : "MemoryUsage",

@@ -26,7 +26,7 @@ globals = {
 }
 
 node_list = {}
-bucket_list = []
+bucket_list = {}
 cluster_symptoms = {}
 bucket_symptoms = {}
 bucket_node_symptoms = {}
@@ -43,7 +43,7 @@ class StatsAnalyzer:
     def run_analysis(self):
 
         for bucket in stats_buffer.buckets.iterkeys():
-            bucket_list.append(bucket)
+            bucket_list[bucket] = "OK"
             bucket_symptoms[bucket] = []
             bucket_node_symptoms[bucket] = {}
             bucket_node_status[bucket] = {}
@@ -82,7 +82,15 @@ class StatsAnalyzer:
                             node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                         if pill.has_key("nodewise") and pill["nodewise"]:
                             node_list[counter["name"]] = {"description" : counter["description"], "value":result}
-                    
+                        if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
+                            for bucket,values in result.iteritems():
+                                if bucket == "cluster":
+                                    continue
+                                for val in values:
+                                    if val[0] == "total":
+                                        continue;
+                                    if val[0] == "variance" and val[1] != 0:
+                                        node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
                         if pill.has_key("indicator"):
                             if len(result) > 0:
                                 for bucket,values in result.iteritems():
@@ -96,7 +104,8 @@ class StatsAnalyzer:
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
                                             for val in values["error"]:
-                                                bucket_node_status[bucket][val["node"]] = "error"
+                                                bucket_node_status[bucket][val["node"]] = "Error"
+                                                bucket_list[bucket] = "Error"
                                         if values.has_key("warn"):
                                             indicator_warn[counter["name"]] = {"description" : counter["description"],
                                                                            "bucket": bucket,
@@ -105,6 +114,11 @@ class StatsAnalyzer:
                                                                            "impact" : pill["indicator"]["impact"],
                                                                            "action" : pill["indicator"]["action"],
                                                                           }
+                                            for val in values["warn"]:
+                                                if bucket_node_status[bucket].has_key(node["node"]) == False:
+                                                    bucket_node_status[bucket][node["node"]] = "Warning"
+                                                if bucket_list[bucket] == "OK":
+                                                    bucket_list[bucket] = "Warning"
                                     elif type(values) is list:
                                         for val in values:
                                             if val[0] == "error":
@@ -116,7 +130,8 @@ class StatsAnalyzer:
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
                                                 for node in val[1]:
-                                                    bucket_node_status[bucket][node["node"]] = "error"
+                                                    bucket_node_status[bucket][node["node"]] = "Error"
+                                                    bucket_list[bucket] = "Error"
                                             elif val[0] == "warn":
                                                 indicator_warn[counter["name"]] = {"description" : counter["description"], 
                                                                             "bucket": bucket, 
@@ -125,15 +140,11 @@ class StatsAnalyzer:
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
                                                                            }
-                        if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
-                            for bucket,values in result.iteritems():
-                                if bucket == "cluster":
-                                    continue
-                                for val in values:
-                                    if val[0] == "total":
-                                        continue;
-                                    if val[0] == "variance" and val[1] != 0:
-                                        node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
+                                                for node in val[1]:
+                                                    if bucket_node_status[bucket].has_key(node["node"]) == False:
+                                                        bucket_node_status[bucket][node["node"]] = "Warning"
+                                                    if bucket_list[bucket] == "OK":
+                                                        bucket_list[bucket] = "Warning"
                     except Exception, err:
                         self.log.error("Exception launched when processing counter: {0}".format(counter["name"]))
                         traceback.print_exc()
@@ -142,6 +153,8 @@ class StatsAnalyzer:
             globals["cluster_health"] = "Error"
         elif len(indicator_warn) > 0:
             globals["cluster_health"] = "Warning"
+        else:
+            globals["cluster_health"] = "OK"
 
     def run_report(self, txtfile, htmlfile, verbose):
         

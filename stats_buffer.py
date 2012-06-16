@@ -24,6 +24,7 @@ stats = {
     "hour" : {
         'disk_write_queue' : {},
         'ep_cache_miss_rate' : {},
+        'curr_items' : {},
         'ep_tap_total_total_backlog_size' : { },
         'ep_oom_errors' : {},
         'ep_tmp_oom_errors' : {},

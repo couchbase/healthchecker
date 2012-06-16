@@ -46,6 +46,9 @@ body {margin-top: 0px;margin-left: 0px;}
 .ft22{font: 16px 'Arial';margin-left: 4px;line-height: 18px;}
 .ft23{font: 10px 'Symbol';line-height: 4px;}
 .ft24{font: 16px 'Arial';margin-left: 18px;line-height: 36px;}
+.ft30{font: 16px 'Arial';line-height: 18px;background-color:#FF0000}
+.ft31{font: 16px 'Arial';line-height: 18px;background-color:#FFFF00}
+.ft32{font: 16px 'Arial';line-height: 18px;background-color:#00FF00}
 
 .p0{text-align: left;padding-left: 2px;margin-top: 0px;margin-bottom: 0px;}
 .p1{text-align: left;padding-left: 2px;margin-top: 40px;margin-bottom: 0px;}
@@ -128,7 +131,13 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p0"><FONT class="ft0">Couchbase Cluster Health Check Report</FONT></P>
 <P class="p1"><FONT class="ft1">Tool Version: $globals['versions']</FONT></P>
 <P class="p0"><FONT class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</FONT></P>
-<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft3">$globals.cluster_health</FONT></P>
+#if $globals.cluster_health == "Error"
+<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft30">Immediate action needed</FONT></P>
+#elif $globals.cluster_health == "Warning"
+<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft31">Attention needed</FONT></P>
+#else
+<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft32">OK</FONT></P>
+#end if
 <P class="p3"><FONT class="ft4">Section 1 - Couchbase &#8211; Alerts</FONT></P>
 <P class="p4"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $error_values in $indicator_error.iteritems():
@@ -178,7 +187,7 @@ body {margin-top: 0px;margin-left: 0px;}
 </TR>
 #for $node in $node_list["nodeList"]["value"]
 <TR class="tr6">
-	<TD class="td8">$node["ip"]</TD>
+	<TD class="td8">$node["host"]</TD>
 	<TD class="td9">$node["version"]</TD>
 	<TD class="td10">$node["status"]</TD>
 </TR>
@@ -198,9 +207,15 @@ body {margin-top: 0px;margin-left: 0px;}
 #end for
 </TABLE>
 <P class="p11"><FONT class="ft5">Bucket metrics</FONT></P>
-#for $bucket in $bucket_list
-<P class="p12"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
-<P class="p10"><FONT class="ft2">Status &#8211; Attention needed</FONT></P>
+#for $bucket, $status in $bucket_list.iteritems():
+<P class="p2"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
+#if $status == "Error"
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft30">Immediate action needed</FONT></P>
+#elif $status == "Warning"
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft31">Attention needed</FONT></P>
+#else
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
+#end if
 <TABLE cellpadding=0 cellspacing=0 class="t3">
 #for $symptom in $bucket_symptoms[$bucket]
 <TR class="tr6">
@@ -215,8 +230,15 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p12"><FONT class="ft2">IP address: $node</FONT></P>
 #if $bucket_node_status[$bucket].has_key($node)
 <P class="p10"><FONT class="ft2">Status &#8211;  $bucket_node_status[$bucket][$node]</FONT></P>
+#if $bucket_node_status[$bucket][$node] == "Error"
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft30">Immediate action needed</FONT></P>
+#elif $bucket_node_status[$bucket][$node] == "Warning"
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft31">Attention needed</FONT></P>
 #else
-<P class="p10"><FONT class="ft2">Status &#8211; OK</FONT></P>
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
+#end if
+#else
+<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
 #end if
 <TABLE cellpadding=0 cellspacing=0 class="t3">
 #for $node_value in $node_values

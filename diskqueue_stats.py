@@ -49,27 +49,61 @@ class DiskQueueTrend:
                 result[bucket] = {"warn" : trend_warn}
         return result
 
-class TapQueueTrend:
+class ReplicationTrend:
     def run(self, accessor):
         result = {}
+        cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            trend_error = []
-            trend_warn = []
-            values = stats_info[accessor["scale"]][accessor["counter"]]
-            timestamps = values["timestamp"]
-            timestamps = [x - timestamps[0] for x in timestamps]
-            nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
-            for node, vals in nodeStats.iteritems():
-                a, b = util.linreg(timestamps, vals)
-                if a > accessor["threshold"]["high"]:
-                    trend_error.append({"node":node, "level":"red", "value":a})
-                elif a > accessor["threshold"]["low"]:
-                    trend_warn.append({"node":node, "level":"yellow", "value":a})
-            if len(trend_error) > 0:
-                result[bucket] = {"error" : trend_error}
-            if len(trend_warn) > 0:
-                result[bucket] = {"warn" : trend_warn}
+            item_avg = {
+                "curr_items": [],
+                "ep_tap_total_total_backlog_size": [],
+            }
+            num_error = []
+            num_warn = []
+            for counter in accessor["counter"]:
+                values = stats_info[accessor["scale"]][counter]
+                nodeStats = values["nodeStats"]
+                samplesCount = values["samplesCount"]
+                for node, vals in nodeStats.iteritems():
+                    if samplesCount > 0:
+                        avg = sum(vals) / samplesCount
+                    else:
+                        avg = 0
+                    item_avg[counter].append((node, avg))
+            res = []
+            active_total = replica_total = 0
+            for active, replica in zip(item_avg['curr_items'], item_avg['ep_tap_total_total_backlog_size']):
+                if active[1] == 0:
+                    res.append((active[0], 0))
+                else:
+                    ratio = 100.0 * replica[1] / active[1] 
+                    delta = active[1] - replica[1]
+                    res.append((active[0], util.pretty_float(ratio)))
+                    if (ratio > accessor["threshold"]["percentage"]["high"] or 
+                       delta > accessor["threshold"]["number"]["high"]):
+                        num_error.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
+                    elif (ratio > accessor["threshold"]["percentage"]["low"] or
+                         delta > accessor["threshold"]["number"]["low"]):
+                        num_warn.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
+                active_total += active[1]
+                replica_total += replica[1]
+            if active_total == 0:
+                res.append(("total", 0))
+            else:
+                ratio = replica_total * 100.0 / active_total
+                cluster += ratio
+                res.append(("total", util.pretty_float(ratio)))
+                if ratio > accessor["threshold"]["percentage"]["high"]:
+                    num_error.append({"node":"total", "value": util.pretty_float(ratio)})
+                elif ratio  > accessor["threshold"]["percentage"]["low"]:
+                    num_warn.append({"node":"total", "value": util.pretty_float(ratio)})
+            if len(num_error) > 0:
+                res.append(("error", num_error))
+            if len(num_warn) > 0:
+                res.append(("warn", num_warn))
+            result[bucket] = res
+        if len(stats_buffer.buckets) > 0:
+            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets))
         return result
 
 class DiskQueueDrainingRate:
@@ -129,8 +163,8 @@ DiskQueueCapsule = [
         },
      ],
      "indicator" : {
-        "cause" : "blah",
-        "impact" : "blah",
+        "cause" : "Disk write queue backed up",
+        "impact" : "Data will be lost if the node goes down",
         "action" : "Please contact support@couchbase.com",
      },
     },
@@ -139,20 +173,26 @@ DiskQueueCapsule = [
         {
             "name" : "replicationTrend",
             "description" : "Replication severely behind - ",
-            "counter" : "ep_tap_total_total_backlog_size",
-            "pernode" : True,
+            "counter" : ["curr_items", "ep_tap_total_total_backlog_size"],
             "scale" : "hour",
-            "code" : "TapQueueTrend",
+            "code" : "ReplicationTrend",
             "threshold" : {
-                "low" : 0,
-                "high" : 0.2
+                "percentage" : {
+                    "low" : 10.0,
+                    "high" : 30.0,
+                 },
+                "number" : {
+                    "low" : 50000,
+                    "high" : 100000,
+                },
             },
         }
      ],
+     "pernode" : True,
      "indicator" : {
-        "cause" : "blah",
-        "impact" : "blah",
-        "action" : "Please contact support@couchbase.com",
+        "cause" : "Ratio of items in the replication queue and active items greater than threshold",
+        "impact" : "If the nodes fails over, data will be missing on the replica",
+        "action" : "Do not failover the node",
      },
     },
      {"name" : "DiskQueueDrainingAnalysis",

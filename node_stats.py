@@ -6,7 +6,7 @@ class NodeList:
     def run(self, accessor):
         result = []
         for node, node_info in stats_buffer.nodes.iteritems():
-            result.append({"ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
+            result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
         return result
 
 class NumNodes:
