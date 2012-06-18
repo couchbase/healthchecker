@@ -2,8 +2,12 @@ import stats_buffer
 import util_cli as util
 
 class AvgDiskQueue:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("DiskQueueDiagnosis"):
+            threshold_val = threshold["DiskQueueDiagnosis"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             #print bucket, stats_info
             disk_queue_avg_error = []
@@ -16,9 +20,9 @@ class AvgDiskQueue:
                     avg = sum(vals) / samplesCount
                 else:
                     avg = 0
-                if avg > accessor["threshold"]["high"]:
+                if avg > threshold_val["high"]:
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
-                elif avg > accessor["threshold"]["low"]:
+                elif avg > threshold_val["low"]:
                     disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":avg})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}
@@ -27,8 +31,12 @@ class AvgDiskQueue:
         return result
 
 class DiskQueueTrend:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("DiskQueueDiagnosis"):
+            threshold_val = threshold["DiskQueueDiagnosis"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             trend_error = []
             trend_warn = []
@@ -39,9 +47,9 @@ class DiskQueueTrend:
             samplesCount = values["samplesCount"]
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
-                if a > accessor["threshold"]["high"]:
+                if a > threshold_val["high"]:
                     trend_error.append({"node":node, "level":"red", "value":a})
-                elif a > accessor["threshold"]["low"]:
+                elif a > threshold_val["low"]:
                     trend_warn.append({"node":node, "level":"yellow", "value":a})
             if len(trend_error) > 0:
                 result[bucket] = {"error" : trend_error}
@@ -50,9 +58,13 @@ class DiskQueueTrend:
         return result
 
 class ReplicationTrend:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         cluster = 0
+        if threshold.has_key("ReplicationTrend"):
+            threshold_val = threshold["ReplicationTrend"]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             item_avg = {
                 "curr_items": [],
@@ -79,11 +91,11 @@ class ReplicationTrend:
                     ratio = 100.0 * replica[1] / active[1] 
                     delta = active[1] - replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
-                    if (ratio > accessor["threshold"]["percentage"]["high"] or 
-                       delta > accessor["threshold"]["number"]["high"]):
+                    if (ratio > threshold_val["percentage"]["high"] or 
+                       delta > threshold_val["number"]["high"]):
                         num_error.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
-                    elif (ratio > accessor["threshold"]["percentage"]["low"] or
-                         delta > accessor["threshold"]["number"]["low"]):
+                    elif (ratio > threshold_val["percentage"]["low"] or
+                         delta > threshold_val["number"]["low"]):
                         num_warn.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
                 active_total += active[1]
                 replica_total += replica[1]
@@ -93,9 +105,9 @@ class ReplicationTrend:
                 ratio = replica_total * 100.0 / active_total
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
-                if ratio > accessor["threshold"]["percentage"]["high"]:
+                if ratio > threshold_val["percentage"]["high"]:
                     num_error.append({"node":"total", "value": util.pretty_float(ratio)})
-                elif ratio  > accessor["threshold"]["percentage"]["low"]:
+                elif ratio  > threshold_val["percentage"]["low"]:
                     num_warn.append({"node":"total", "value": util.pretty_float(ratio)})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -107,8 +119,12 @@ class ReplicationTrend:
         return result
 
 class DiskQueueDrainingRate:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("DiskQueueDrainingAnalysis"):
+            threshold_val = threshold["DiskQueueDrainingAnalysis"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             #print bucket, stats_info
             disk_queue_avg_error = []
@@ -127,7 +143,7 @@ class DiskQueueDrainingRate:
                     len_avg = sum(disk_len_vals) / samplesCount
                 else:
                     len_avg = 0
-                if avg < accessor["threshold"]["drainRate"] and len_avg > accessor["threshold"]["diskLength"]:
+                if avg < threshold_val["drainRate"] and len_avg > threshold_val["diskLength"]:
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}

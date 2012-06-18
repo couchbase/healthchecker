@@ -3,30 +3,30 @@ import stats_buffer
 import util_cli as util
 
 class NodeList:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         for node, node_info in stats_buffer.nodes.iteritems():
             result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
         return result
 
 class NumNodes:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         return len(stats_buffer.nodes)
 
 class NumDownNodes:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         return len(filter(lambda (a, b): b["status"]=="down", stats_buffer.nodes.items()))
 
 class NumWarmupNodes:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         return len(filter(lambda (a, b): b["status"]=="warmup", stats_buffer.nodes.items()))
 
 class NumFailOverNodes:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         return len(filter(lambda (a, b): b["clusterMembership"]!="active", stats_buffer.nodes.items()))
 
 class BucketList:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         for bucket in stats_buffer.bucket_info.keys():
             result.append({"name": bucket})
@@ -34,7 +34,7 @@ class BucketList:
         return result
 
 class NodeStorageStats:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         for node, values in stats_buffer.nodes.iteritems():
             if values["StorageInfo"].has_key("hdd"):
@@ -57,7 +57,7 @@ class NodeStorageStats:
         return result
 
 class NodeSystemStats:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         for node, values in stats_buffer.nodes.iteritems():
             result.append({"ip": values["host"],
@@ -72,7 +72,7 @@ class NodeSystemStats:
         return result
 
 class ConnectionTrend:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = stats_info[accessor["scale"]][accessor["counter"]]
@@ -88,7 +88,7 @@ class ConnectionTrend:
         return result
 
 class CalcTrend:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = stats_info[accessor["scale"]][accessor["counter"]]
@@ -104,8 +104,14 @@ class CalcTrend:
         return result
 
 class NodePerformanceStats:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key(accessor["name"]):
+            threshold_val = threshold[accessor["name"]]
+        elif accessor.has_key("threshold"):
+            threshold_val = accessor["threshold"]
+        else:
+            threshold_val = None
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             stats = []
             for node, stats_info in bucket_stats.iteritems():
@@ -113,7 +119,7 @@ class NodePerformanceStats:
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
-                            if int(value) > accessor["threshold"]:
+                            if int(value) > threshold_val:
                                 stats.append((node, (key, value)))
                         else:
                             if accessor.has_key("unit"):
@@ -170,7 +176,7 @@ NodeCapsule = [
             "scale" : "minute",
             "code" : "ConnectionTrend",
             "threshold" : {
-                "high" : 10000,
+                "high" : 1000,
             },
         },
      ],

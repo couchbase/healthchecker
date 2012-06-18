@@ -9,14 +9,15 @@ import cluster_stats
 import diskqueue_stats
 import node_stats
 import stats_buffer
+import threshold
 
 from Cheetah.Template import Template
 
 capsules = [
-    (node_stats.NodeCapsule, "node_stats"),
-    (cluster_stats.ClusterCapsule, "cluster_stats"),
-    #(bucket_stats.BucketCapsule, "bucket_stats"),
-    (diskqueue_stats.DiskQueueCapsule, "diskqueue_stats"),
+    (node_stats.NodeCapsule, "node_stats", "NodeCapsule"),
+    (cluster_stats.ClusterCapsule, "cluster_stats", "ClusterCapsule"),
+    #(bucket_stats.BucketCapsule, "bucket_stats", "BucketCapsule"),
+    (diskqueue_stats.DiskQueueCapsule, "diskqueue_stats", "DiskQueueCapsule"),
 ]
 
 globals = {
@@ -48,13 +49,12 @@ class StatsAnalyzer:
             bucket_node_symptoms[bucket] = {}
             bucket_node_status[bucket] = {}
 
-        for capsule, package_name in capsules:
+        for capsule, package_name, capsule_name in capsules:
             for pill in capsule:
                 self.log.debug(pill['name'])
                 for counter in pill['ingredients']:
                     try:
-                        result = eval("{0}.{1}().run(counter)".format(package_name, counter['code']))
-
+                        result = eval("{0}.{1}().run(counter, threshold.{2})".format(package_name, counter['code'], capsule_name))
                         self.log.debug(counter)
                         if pill.has_key("clusterwise") and pill["clusterwise"] :
                             if isinstance(result, dict):

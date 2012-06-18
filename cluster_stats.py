@@ -6,7 +6,7 @@ class BucketSummary:
         return  stats_buffer.bucket_info
 
 class DGMRatio:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         hdd_total = 0
         ram_total = 0
@@ -22,9 +22,13 @@ class DGMRatio:
         return util.pretty_float(ratio)
 
 class ARRatio:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         cluster = 0
+        if threshold.has_key("ActiveReplicaResidentRatio"):
+            threshold_val = threshold["ActiveReplicaResidentRatio"]["activeReplicaResidentRatio"]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             item_avg = {
                 "curr_items": [],
@@ -49,7 +53,7 @@ class ARRatio:
                 else:
                     ratio = 1.0 * active[1] / replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
-                    if ratio < accessor["threshold"] and abs(ratio - accessor["threshold"]) > 1e-2:
+                    if ratio < threshold_val and abs(ratio - threshold_val) > 1e-2:
                         num_error.append({"node":active[0], "value": util.pretty_float(ratio)})
                 active_total += active[1]
                 replica_total += replica[1]
@@ -59,7 +63,7 @@ class ARRatio:
                 ratio = active_total * 1.0 / replica_total
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
-                if ratio < accessor["threshold"] and abs(ratio - accessor["threshold"]) > 1e-2:
+                if ratio < threshold_val and abs(ratio - threshold_val) > 1e-2:
                     num_error.append({"node":"total", "value": util.pretty_float(ratio)})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -69,7 +73,7 @@ class ARRatio:
         return result
 
 class OpsRatio:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         read_cluster = write_cluster = del_cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
@@ -125,9 +129,12 @@ class OpsRatio:
         return result
 
 class CacheMissRatio:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         cluster = 0
+        thresholdval = accessor["threshold"]
+        if threshold.has_key("CacheMissRatio"):
+            thresholdval = threshold["CacheMissRatio"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = stats_info[accessor["scale"]][accessor["counter"]]
             timestamps = values["timestamp"]
@@ -145,7 +152,7 @@ class CacheMissRatio:
                 else:
                     value = 0
                 total += value
-                if value > accessor["threshold"]:
+                if value > thresholdval:
                     num_error.append({"node":node, "value":value})
                 trend.append((node, util.pretty_float(value) + "%"))
                 data.append(value)
@@ -162,9 +169,13 @@ class CacheMissRatio:
         return result
 
 class ResidentItemRatio:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         cluster = 0
+        if threshold.has_key("ActiveReplicaResidentRatio"):
+            threshold_val = threshold["ActiveReplicaResidentRatio"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = stats_info[accessor["scale"]][accessor["counter"]]
             timestamps = values["timestamp"]
@@ -182,7 +193,7 @@ class ResidentItemRatio:
                 else:
                     value = 0
                 total += value
-                if value < accessor["threshold"]:
+                if value < threshold_val:
                     num_error.append({"node":node, "value":value})
                 trend.append((node, util.pretty_float(value) + "%"))
                 data.append(value)
@@ -199,7 +210,7 @@ class ResidentItemRatio:
         return result
 
 class MemUsed:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
@@ -224,7 +235,7 @@ class MemUsed:
         return result
 
 class ItemGrowth:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         start_cluster = 0
         end_cluster = 0
@@ -259,12 +270,16 @@ class ItemGrowth:
         return result
 
 class NumVbuckt:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("VBucketNumber"):
+            threshold_val = threshold["VBucketNumber"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         num_node = len(stats_buffer.nodes)
         if num_node == 0:
             return result
-        avg_threshold = accessor["threshold"] / num_node
+        avg_threshold = threshold_val / num_node
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             num_error = []
             values = stats_info[accessor["scale"]][accessor["counter"]]
@@ -277,31 +292,38 @@ class NumVbuckt:
         return result
 
 class RebalanceStuck:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
         err_msg = "{0} value {1} is bigger than threshold {3}"
+        if threshold.has_key("RebalancePerformance"):
+            threshold_val = threshold["RebalancePerformance"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
-                        if accessor.has_key("threshold"):
-                            if int(value) > accessor["threshold"]:
-                                num_error.append({"node":node, "value": err_msg.format(key, value, accessor["threshold"])})
+                        if int(value) > threshold_val:
+                            num_error.append({"node":node, "value": err_msg.format(key, value, accessor["threshold"])})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
         return result
 
 class MemoryFramentation:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("MemoryFragmentation"):
+            threshold_val = threshold["MemoryFragmentation"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
-                            if int(value) > accessor["threshold"]:
+                            if int(value) > threshold_val:
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
                                         num_error.append({"node":node, "value": (key, util.time_label(value))})
@@ -316,27 +338,31 @@ class MemoryFramentation:
         return result
 
 class EPEnginePerformance:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = {}
+        if threshold.has_key("EPEnginePerformance"):
+            threshold_val = threshold["EPEnginePerformance"][accessor["name"]]
+        else:
+            threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
-                            if accessor["counter"] == "flusherState" and value != accessor["threshold"]:
+                            if accessor["counter"] == "flusherState" and value != threshold_val:
                                 num_error.append({"node":node, "value": (key, value)})
-                            elif accessor["counter"] == "flusherCompleted" and value == accessor["threshold"]:
+                            elif accessor["counter"] == "flusherCompleted" and value == threshold_val:
                                 num_error.append({"node":node, "value": (key, value)})
                             else:
-                                if value > accessor["threshold"]:
+                                if value > threshold_val:
                                      num_error.append({"node":node, "value": (key, value)})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
         return result
 
 class TotalDataSize:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["StorageInfo"].has_key("hdd"):
@@ -344,7 +370,7 @@ class TotalDataSize:
         return util.size_label(total)
 
 class AvailableDiskSpace:
-    def run(self, accessor):
+    def run(self, accessor, threshold=None):
         result = []
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
