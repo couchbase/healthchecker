@@ -178,6 +178,7 @@ NodeCapsule = [
             "threshold" : {
                 "high" : 1000,
             },
+            "symptom" : "Number of connections '{0}' reaches connection maximum '{1}'",
         },
      ],
      "nodewise" : True,
@@ -239,6 +240,7 @@ NodeCapsule = [
             "counter" : "num_checkpoint_items",
             "code" : "NodePerformanceStats",
             "threshold" : 1000,
+            "symptom" : "Number of items in a checkpoint '{0}' reaches threshold '{1}'",
         },
      ],
      "perBucket" : True,

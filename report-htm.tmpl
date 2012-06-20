@@ -46,7 +46,7 @@ body {margin-top: 0px;margin-left: 0px;}
 .ft22{font: 16px 'Arial';margin-left: 4px;line-height: 18px;}
 .ft23{font: 10px 'Symbol';line-height: 4px;}
 .ft24{font: 16px 'Arial';margin-left: 18px;line-height: 36px;}
-.ft30{font: 16px 'Arial';line-height: 18px;background-color:#FF0000}
+.ft30{font: 16px 'Arial';line-height: 18px;background-color:#FF0000;color:#FFFFFF}
 .ft31{font: 16px 'Arial';line-height: 18px;background-color:#FFFF00}
 .ft32{font: 16px 'Arial';line-height: 18px;background-color:#00FF00}
 
@@ -84,6 +84,8 @@ body {margin-top: 0px;margin-left: 0px;}
 .td10{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 89px;vertical-align: bottom;}
 .td11{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
 .td12{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;}
+.tdr{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;background-color:#FF0000;color:#FFFFFF}
+.tdy{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;background-color:#FFFF00}
 .td13{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
 .td14{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;}
 .td15{border-left: #000000 1pt solid;border-right: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
@@ -138,7 +140,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #else
 <P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft32">OK</FONT></P>
 #end if
-<P class="p3"><FONT class="ft4">Section 1 - Couchbase &#8211; Alerts</FONT></P>
+#if $indicator_error_exist
+<P class="p3"><FONT class="ft4">Couchbase &#8211; Alerts</FONT></P>
 <P class="p4"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $error_values in $indicator_error.iteritems():
 <P class="p20"><FONT class="ft3">$error_values["description"]</FONT></P>
@@ -151,8 +154,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #for $err_val in $error_values["value"]
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft6">$error_values["bucket"] - </FONT></TD>
-	<TD class="td4"><FONT class="ft9">$err_val["node"]</FONT></TD>
+	<TD class="td3" colspan=2><FONT class="ft6">Bucket : $error_values["bucket"] , </FONT>
+	<FONT class="ft9">Node : $err_val["node"]</FONT></TD>
 </TR>
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
@@ -177,7 +180,8 @@ body {margin-top: 0px;margin-left: 0px;}
 </TR>
 </TABLE>
 #end for
-<P class="p4"><FONT class="ft4">Section 2 - Couchbase Cluster Overview</FONT></P>
+#end if
+<P class="p4"><FONT class="ft4">Couchbase Cluster Overview</FONT></P>
 <P class="p11"><FONT class="ft5">Node list</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t1">
 <TR class="tr6">
@@ -195,8 +199,7 @@ body {margin-top: 0px;margin-left: 0px;}
 </TABLE>
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Total number of nodes in the cluster: $node_list["numNodes"]["value"] </FONT></P>
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of down nodes: $node_list["numDownNodes"]["value"] </FONT></P>
-<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of warmingup nodes: $node_list["numWarmupNodes"]["value"] </FONT></P>
-<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of failed over nodes: $node_list["numFailedOverNodes"]["value"] </FONT></P>
+<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of warming up nodes: $node_list["numWarmupNodes"]["value"] </FONT></P>
 <P class="p11"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t1">
 #for $key, $value in $cluster_symptoms.iteritems()
@@ -221,7 +224,13 @@ body {margin-top: 0px;margin-left: 0px;}
 <TR class="tr6">
 	<TD class="td18">&nbsp;</TD>
 	<TD class="td11">$symptom["description"]</TD>
+#if $symptom["status"] == "Error"
+	<TD class="tdr">$symptom["value"]</TD>
+#elif $symptom["status"] == "Warning"
+	<TD class="tdy">$symptom["value"]</TD>
+#else
 	<TD class="td12">$symptom["value"]</TD>
+#end if
 </TR>
 #end for
 </TABLE>
@@ -245,14 +254,21 @@ body {margin-top: 0px;margin-left: 0px;}
 <TR class="tr6">
 	<TD class="td18">&nbsp;</TD>
 	<TD class="td11">$node_value["description"]</TD>
+#if $node_value["status"] == "Error"
+	<TD class="tdr">$node_value["value"]</TD>
+#elif $node_value["status"] == "Warning"
+	<TD class="tdy">$node_value["value"]</TD>
+#else
 	<TD class="td12">$node_value["value"]</TD>
+#end if
 </TR>
 #end for
 </TABLE>
 #end for
 #end if
 #end for
-<P class="p13"><FONT class="ft4">Section 3 - Couchbase &#8211; Warning Indicators</FONT></P>
+#if $indicator_warn_exist
+<P class="p13"><FONT class="ft4">Couchbase &#8211; Warning Indicators</FONT></P>
 <P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 #for $counter, $warn_values in $indicator_warn.iteritems():
 <P class="p0"><FONT class="ft3">$warn_values["description"]</FONT></P>
@@ -265,8 +281,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #for $warn_val in $warn_values["value"]
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft9">$warn_values["bucket"] : </FONT></TD>
-	<TD class="td4"><FONT class="ft9">$warn_val["node"]</FONT></TD>
+	<TD class="td3" colspan="2"><FONT class="ft9">Bucket : $warn_values["bucket"] , </FONT>
+       <FONT class="ft9">Node : $warn_val["node"]</FONT></TD>
 </TR>
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
@@ -291,6 +307,7 @@ body {margin-top: 0px;margin-left: 0px;}
 </TR>
 </TABLE>
 #end for
+#end if
 </DIV>
 </body>
 </HTML>

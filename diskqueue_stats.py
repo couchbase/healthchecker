@@ -21,9 +21,11 @@ class AvgDiskQueue:
                 else:
                     avg = 0
                 if avg > threshold_val["high"]:
-                    disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
+                    symptom = accessor["symptom"].format(avg, threshold_val["high"])
+                    disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
                 elif avg > threshold_val["low"]:
-                    disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":avg})
+                    symptom = accessor["symptom"].format(avg, threshold_val["low"])
+                    disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}
             if len(disk_queue_avg_warn) > 0:
@@ -48,9 +50,11 @@ class DiskQueueTrend:
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 if a > threshold_val["high"]:
-                    trend_error.append({"node":node, "level":"red", "value":a})
+                    symptom = accessor["symptom"].format(a, threshold_val["high"])
+                    trend_error.append({"node":node, "level":"red", "value":symptom})
                 elif a > threshold_val["low"]:
-                    trend_warn.append({"node":node, "level":"yellow", "value":a})
+                    symptom = accessor["symptom"].format(avg, threshold_val["low"])
+                    trend_warn.append({"node":node, "level":"yellow", "value":symptom})
             if len(trend_error) > 0:
                 result[bucket] = {"error" : trend_error}
             if len(trend_warn) > 0:
@@ -91,12 +95,18 @@ class ReplicationTrend:
                     ratio = 100.0 * replica[1] / active[1] 
                     delta = active[1] - replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
-                    if (ratio > threshold_val["percentage"]["high"] or 
-                       delta > threshold_val["number"]["high"]):
-                        num_error.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
-                    elif (ratio > threshold_val["percentage"]["low"] or
-                         delta > threshold_val["number"]["low"]):
-                        num_warn.append({"node":active[0], "value": (util.pretty_float(ratio), int(delta))})
+                    if ratio > threshold_val["percentage"]["high"]:
+                        symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["high"])
+                        num_error.append({"node":active[0], "value": symptom})
+                    elif delta > threshold_val["number"]["high"]:
+                        symptom = accessor["symptom"].format(delta, threshold_val["number"]["high"])
+                        num_error.append({"node":active[0], "value": symptom})
+                    elif ratio > threshold_val["percentage"]["low"]:
+                        symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["low"])
+                        num_warn.append({"node":active[0], "value": symptom})
+                    elif delta > threshold_val["number"]["low"]:
+                        symptom = accessor["symptom"].format(delta, threshold_val["number"]["low"])
+                        num_warn.append({"node":active[0], "value": symptom})
                 active_total += active[1]
                 replica_total += replica[1]
             if active_total == 0:
@@ -106,9 +116,11 @@ class ReplicationTrend:
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
                 if ratio > threshold_val["percentage"]["high"]:
-                    num_error.append({"node":"total", "value": util.pretty_float(ratio)})
+                    symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["high"])
+                    num_error.append({"node":"total", "value": symptom})
                 elif ratio  > threshold_val["percentage"]["low"]:
-                    num_warn.append({"node":"total", "value": util.pretty_float(ratio)})
+                    symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["low"])
+                    num_warn.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
             if len(num_warn) > 0:
@@ -144,7 +156,8 @@ class DiskQueueDrainingRate:
                 else:
                     len_avg = 0
                 if avg < threshold_val["drainRate"] and len_avg > threshold_val["diskLength"]:
-                    disk_queue_avg_error.append({"node":node, "level":"red", "value":avg})
+                    symptom = accessor["symptom"].format(avg, threshold_val["drainRate"], len_avg, threshold_val["diskLength"])
+                    disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}
         return result
@@ -155,7 +168,7 @@ DiskQueueCapsule = [
      "ingredients" : [
         {
             "name" : "avgDiskQueueLength",
-            "description" : "Persistence severely behind - averge disk queue length is above threshold",
+            "description" : "Persistence severely behind",
             "counter" : "disk_write_queue",
             "pernode" : True,
             "scale" : "minute",
@@ -164,6 +177,7 @@ DiskQueueCapsule = [
                 "low" : 50000000,
                 "high" : 1000000000
             },
+            "symptom" : "Disk write queue length '{0}' has reached '{1}' items"
         },
         {
             "name" : "diskQueueTrend",
@@ -176,6 +190,7 @@ DiskQueueCapsule = [
                 "low" : 0,
                 "high" : 0.25
             },
+            "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'"
         },
      ],
      "indicator" : {
@@ -202,6 +217,7 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
+            "symptom" : "Number of remaining items for replication '{0}' is above threshold '{1}'"
         }
      ],
      "pernode" : True,
@@ -216,7 +232,7 @@ DiskQueueCapsule = [
      "ingredients" : [
         {
             "name" : "activeDiskQueueDrainRate",
-            "description" : "Persistence severely behind - active disk queue draining rate is below threshold",
+            "description" : "Persistence severely behind ",
             "counter" : ["vb_active_queue_drain", "disk_write_queue"],
             "pernode" : True,
             "scale" : "minute",
@@ -225,10 +241,11 @@ DiskQueueCapsule = [
                 "drainRate" : 0,
                 "diskLength" : 100000,
             },
+            "symptom" : "Active disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
         },
         {
             "name" : "replicaDiskQueueDrainRate",
-            "description" : "Persistence severely behind - replica disk queue draining rate is below threshold",
+            "description" : "Replication severely behind ",
             "counter" : ["vb_replica_queue_drain", "disk_write_queue"],
             "pernode" : True,
             "scale" : "minute",
@@ -237,11 +254,12 @@ DiskQueueCapsule = [
                 "drainRate" : 0,
                 "diskLength" : 100000,
             },
+            "symptom" : "Replica disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
         },
      ],
      "indicator" : {
-        "cause" : "blah",
-        "impact" : "blah",
+        "cause" : "To be defined",
+        "impact" : "To be defined",
         "action" : "Please contact support@couchbase.com",
      }
     },

@@ -68,15 +68,23 @@ class StatsAnalyzer:
                             for bucket, values in result.iteritems():
                                 if bucket == "cluster":
                                     continue
+                                status = "OK"
+                                for val in values:
+                                    if val[0] == "error":
+                                        status = "Error"
+                                        break
+                                    elif val[0] == "warn":
+                                        status = "Warning"
+                                        break
                                 for val in values:
                                     if val[0] == "variance" or val[0] == "error":
                                         continue
                                     elif val[0] == "total":
-                                        bucket_symptoms[bucket].append({"description" : counter["description"], "value" : val[1]})
+                                        bucket_symptoms[bucket].append({"description":counter["description"], "value":val[1], "status":status})
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                             bucket_node_symptoms[bucket][val[0]] = []
-                                        bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], "value" : val[1]})
+                                        bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], "value" : val[1], "status":status})
 
                         if pill.has_key("perNode") and pill["perNode"] :
                             node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
@@ -168,7 +176,9 @@ class StatsAnalyzer:
             "node_list" : node_list,
             "bucket_list" : bucket_list,
             "indicator_warn" : indicator_warn,
+            "indicator_warn_exist" : len(indicator_warn) > 0,
             "indicator_error" : indicator_error,
+            "indicator_error_exist" : len(indicator_error) > 0,
             "verbose" : verbose,
         }
         

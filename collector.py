@@ -133,12 +133,8 @@ class StatsCollector:
 
                     bucketStats = bucket['basicStats']
                     bucketinfo['bucketStats'] = {}
-                    bucketinfo['bucketStats']['diskUsed'] = bucketStats['diskUsed']
-                    bucketinfo['bucketStats']['memUsed'] = bucketStats['memUsed']
-                    bucketinfo['bucketStats']['diskFetches'] = bucketStats['diskFetches']
-                    bucketinfo['bucketStats']['quotaPercentUsed'] = bucketStats['quotaPercentUsed']
-                    bucketinfo['bucketStats']['opsPerSec'] = bucketStats['opsPerSec']
-                    bucketinfo['bucketStats']['itemCount'] = bucketStats['itemCount']
+                    for key in bucketStats.iterkeys():
+                        bucketinfo['bucketStats'][key] = bucketStats[key]
 
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
 

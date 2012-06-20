@@ -9,9 +9,6 @@ buckets = {}
 stats = {
     "minute" : {
         'disk_write_queue' : {},
-        'cmd_get' : {},
-        'cmd_set' : {},
-        'delete_hits' : {},
         'curr_items' : {},
         'vb_replica_curr_items' : {},
         'curr_connections' : {},
@@ -34,5 +31,10 @@ stats = {
     },
     "day" : {
         'curr_items' : {},
+    },
+    "week" : {
+        'cmd_get' : {},
+        'cmd_set' : {},
+        'delete_hits' : {},
     },
 }
