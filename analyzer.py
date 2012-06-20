@@ -206,4 +206,4 @@ class StatsAnalyzer:
         print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
         f.close()
 
-        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.".format(htmlfile, txtfile))
+        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.\n".format(htmlfile, txtfile))

@@ -43,7 +43,7 @@ DiskQueueCapsule = {
                 "high" : 1000000000
             },
         "diskQueueTrend" : {
-                "low" : 0,
+                "low" : 0.01,
                 "high" : 0.25
             },
     },

@@ -21,10 +21,10 @@ class AvgDiskQueue:
                 else:
                     avg = 0
                 if avg > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(avg, threshold_val["high"])
+                    symptom = accessor["symptom"].format(int(avg), threshold_val["high"])
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
                 elif avg > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(avg, threshold_val["low"])
+                    symptom = accessor["symptom"].format(int(avg), threshold_val["low"])
                     disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}
@@ -50,10 +50,10 @@ class DiskQueueTrend:
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 if a > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(a, threshold_val["high"])
+                    symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["high"])
                     trend_error.append({"node":node, "level":"red", "value":symptom})
                 elif a > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(avg, threshold_val["low"])
+                    symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["low"])
                     trend_warn.append({"node":node, "level":"yellow", "value":symptom})
             if len(trend_error) > 0:
                 result[bucket] = {"error" : trend_error}
@@ -96,16 +96,16 @@ class ReplicationTrend:
                     delta = active[1] - replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
                     if ratio > threshold_val["percentage"]["high"]:
-                        symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["high"])
+                        symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
                     elif delta > threshold_val["number"]["high"]:
-                        symptom = accessor["symptom"].format(delta, threshold_val["number"]["high"])
+                        symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
                     elif ratio > threshold_val["percentage"]["low"]:
-                        symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["low"])
+                        symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
                     elif delta > threshold_val["number"]["low"]:
-                        symptom = accessor["symptom"].format(delta, threshold_val["number"]["low"])
+                        symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
                 active_total += active[1]
                 replica_total += replica[1]
@@ -116,10 +116,10 @@ class ReplicationTrend:
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio)))
                 if ratio > threshold_val["percentage"]["high"]:
-                    symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["high"])
+                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                     num_error.append({"node":"total", "value": symptom})
                 elif ratio  > threshold_val["percentage"]["low"]:
-                    symptom = accessor["symptom"].format(ratio, threshold_val["percentage"]["low"])
+                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                     num_warn.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -156,7 +156,7 @@ class DiskQueueDrainingRate:
                 else:
                     len_avg = 0
                 if avg < threshold_val["drainRate"] and len_avg > threshold_val["diskLength"]:
-                    symptom = accessor["symptom"].format(avg, threshold_val["drainRate"], len_avg, threshold_val["diskLength"])
+                    symptom = accessor["symptom"].format(util.pretty_float(avg), threshold_val["drainRate"], int(len_avg), threshold_val["diskLength"])
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
             if len(disk_queue_avg_error) > 0:
                 result[bucket] = {"error" : disk_queue_avg_error}
@@ -187,7 +187,7 @@ DiskQueueCapsule = [
             "scale" : "hour",
             "code" : "DiskQueueTrend",
             "threshold" : {
-                "low" : 0,
+                "low" : 0.01,
                 "high" : 0.25
             },
             "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'"

@@ -24,10 +24,11 @@ def parse_opt():
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
-                                      'b:c:dvp:u:o:', [
+                                      'b:c:dh?vp:u:o:', [
                 'bucket=',
                 'cluster=',
                 'debug',
+                'help',
                 'verbose',
                 'password=',
                 'user=',
@@ -37,6 +38,9 @@ def parse_opt():
         usage(err)
 
     for (opt, arg) in opts:
+        if opt in ('-h', '-?', '--help'):
+            usage()
+            sys.exit(0)
         if opt in ('-b', '--bucket'):
             bucket = arg
         if opt in ('-c', '--cluster'):
@@ -74,8 +78,9 @@ PASSWORD:
   -p PASSWORD, --password=PASSWORD   admin password of the cluster
 OPTIONS:
   -b BUCKETNAME, --bucket=BUCKETNAME Specific bucket name. Default is all buckets
-  -o FILENAME, --output=FILENAME     Default output filename is 'kpi_report.txt'
+  -o FILENAME, --output=FILENAME     Default output filename is 'health_report.html'
   -d --debug
+  -h --help                          Show this help message and exit
   -v --verbose                       Display detailed node level information
 """
     sys.exit(2)

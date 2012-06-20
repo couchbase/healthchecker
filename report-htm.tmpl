@@ -21,7 +21,7 @@ body {margin-top: 0px;margin-left: 0px;}
 
 
 
-.ft0{font: 35px 'Arial';color: #17365d;line-height: 40px;}
+.ft0{font: 25px 'Arial';color: #17365d;line-height: 30px;}
 .ft1{font: italic 19px 'Arial';color: #345a8a;line-height: 23px;}
 .ft2{font: bold 16px 'Arial';line-height: 19px;}
 .ft3{font: 16px 'Arial';line-height: 18px;}
@@ -151,7 +151,7 @@ body {margin-top: 0px;margin-left: 0px;}
 	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
 	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
 </TR>
-#for $err_val in $error_values["value"]
+#for $err_val in sorted($error_values["value"])
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
 	<TD class="td3" colspan=2><FONT class="ft6">Bucket : $error_values["bucket"] , </FONT>
@@ -159,8 +159,8 @@ body {margin-top: 0px;margin-left: 0px;}
 </TR>
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft6">Value : </FONT></TD>
-	<TD class="td4"><FONT class="ft9">$err_val["value"]</FONT></TD>
+	<TD class="td3"><FONT class="ft6">Value :  </FONT></TD>
+	<TD class="td4"><FONT class="ft9"> $err_val["value"]</FONT></TD>
 </TR>
 #end for
 <TR class="tr0">
@@ -189,7 +189,7 @@ body {margin-top: 0px;margin-left: 0px;}
 	<TD class="td6"><FONT class="ft15">Couchbase Server Version</FONT></TD>
 	<TD class="td7"><FONT class="ft15">Status</FONT></TD>
 </TR>
-#for $node in $node_list["nodeList"]["value"]
+#for $node in sorted($node_list["nodeList"]["value"])
 <TR class="tr6">
 	<TD class="td8">$node["host"]</TD>
 	<TD class="td9">$node["version"]</TD>
@@ -202,7 +202,8 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of warming up nodes: $node_list["numWarmupNodes"]["value"] </FONT></P>
 <P class="p11"><FONT class="ft5">Cluster-wide metrics</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t1">
-#for $key, $value in $cluster_symptoms.iteritems()
+#for $key in sorted($cluster_symptoms.keys())
+#set $value = $cluster_symptoms[$key]
 <TR class="tr4">
 	<TD class="td11">$value["description"]</TD>
 	<TD class="td12">$value["value"]</TD>
@@ -210,7 +211,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #end for
 </TABLE>
 <P class="p11"><FONT class="ft5">Bucket metrics</FONT></P>
-#for $bucket, $status in $bucket_list.iteritems():
+#for $bucket in sorted($bucket_list.keys())
+#set $status = $bucket_list[$bucket]
 <P class="p2"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
 #if $status == "Error"
 <P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft30">Immediate action needed</FONT></P>
@@ -220,7 +222,7 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
 #end if
 <TABLE cellpadding=0 cellspacing=0 class="t3">
-#for $symptom in $bucket_symptoms[$bucket]
+#for $symptom in sorted($bucket_symptoms[$bucket])
 <TR class="tr6">
 	<TD class="td18">&nbsp;</TD>
 	<TD class="td11">$symptom["description"]</TD>
@@ -235,7 +237,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #end for
 </TABLE>
 #if $verbose
-#for $node, $node_values in $bucket_node_symptoms[$bucket].iteritems()
+#for $node in sorted($bucket_node_symptoms[$bucket])
+#set $node_values = $bucket_node_symptoms[$bucket][$node]
 <P class="p12"><FONT class="ft2">IP address: $node</FONT></P>
 #if $bucket_node_status[$bucket].has_key($node)
 <P class="p10"><FONT class="ft2">Status &#8211;  $bucket_node_status[$bucket][$node]</FONT></P>
@@ -250,7 +253,7 @@ body {margin-top: 0px;margin-left: 0px;}
 <P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
 #end if
 <TABLE cellpadding=0 cellspacing=0 class="t3">
-#for $node_value in $node_values
+#for $node_value in sorted($node_values)
 <TR class="tr6">
 	<TD class="td18">&nbsp;</TD>
 	<TD class="td11">$node_value["description"]</TD>
@@ -270,7 +273,8 @@ body {margin-top: 0px;margin-left: 0px;}
 #if $indicator_warn_exist
 <P class="p13"><FONT class="ft4">Couchbase &#8211; Warning Indicators</FONT></P>
 <P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
-#for $counter, $warn_values in $indicator_warn.iteritems():
+#for $counter in sorted($indicator_warn)
+#set $warn_values = $indicator_warn[$counter]
 <P class="p0"><FONT class="ft3">$warn_values["description"]</FONT></P>
 <TABLE cellpadding=0 cellspacing=0 class="t0">
 <TR class="tr0">
@@ -278,7 +282,7 @@ body {margin-top: 0px;margin-left: 0px;}
 	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
 	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
 </TR>
-#for $warn_val in $warn_values["value"]
+#for $warn_val in sorted($warn_values["value"])
 <TR class="tr1">
 	<TD class="td0">&nbsp;</TD>
 	<TD class="td3" colspan="2"><FONT class="ft9">Bucket : $warn_values["bucket"] , </FONT>
