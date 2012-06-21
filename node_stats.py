@@ -18,7 +18,7 @@ class NumNodes:
 
 class NumDownNodes:
     def run(self, accessor, threshold=None):
-        return len(filter(lambda (a, b): b["status"]=="down", stats_buffer.nodes.items()))
+        return len(filter(lambda (a, b): b["status"]=="down" or b["status"]=="unhealthy", stats_buffer.nodes.items()))
 
 class NumWarmupNodes:
     def run(self, accessor, threshold=None):
