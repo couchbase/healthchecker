@@ -11,6 +11,8 @@ class DGMRatio:
         hdd_total = 0
         ram_total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
+            if nodeinfo["status"] != "healthy":
+                continue
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 hdd_total += nodeinfo['StorageInfo']['hdd']['usedByData']
             if nodeinfo["StorageInfo"].has_key("ram"):
@@ -49,20 +51,28 @@ class ARRatio:
             active_total = replica_total = 0
             for active, replica in zip(item_avg['curr_items'], item_avg['vb_replica_curr_items']):
                 if replica[1] == 0:
-                    res.append((active[0], "No replica"))
+                    if active[1] == 0:
+                        res.append((active[0], "No active items"))
+                    else:
+                        res.append((active[0], "No replica"))
                 else:
                     ratio = 100.0 * active[1] / replica[1]
                     res.append((active[0], util.pretty_float(ratio) + "%"))
                 active_total += active[1]
                 replica_total += replica[1]
-            if replica_total == 0:
-                res.append(("total", "no replica"))
+            if active_total == 0:
+                res.append(("total", "no active items"))
+            elif replica_total == 0:
+                res.append(("total", "no replica items"))
+                if stats_buffer.bucket_info[bucket]["bucketType"] != 'memcached':
+                    num_error.append({"node":"total", "value": "No replica items"})
             else:
                 ratio = active_total * 100.0 / replica_total
                 cluster += ratio
                 res.append(("total", util.pretty_float(ratio) + "%"))
-                if ratio < threshold_val and abs(ratio - threshold_val) > 1e-2:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio) + "%", util.pretty_float(thresholdval) + "%")
+                delta = abs(100 - ratio)
+                if delta > threshold_val:
+                    symptom = accessor["symptom"].format(util.pretty_float(delta), util.pretty_float(threshold_val))
                     num_error.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -343,6 +353,7 @@ class MemoryFramentation:
                                 else:
                                     symptom = accessor["symptom"].format(value, threshold_val)
                                     num_error.append({"node":node, "value": symptom})
+
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
         return result
@@ -376,6 +387,8 @@ class TotalDataSize:
     def run(self, accessor, threshold=None):
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
+            if nodeinfo["status"] != "healthy":
+                continue
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 total += nodeinfo['StorageInfo']['hdd']['usedByData']
         return util.size_label(total)
@@ -385,6 +398,8 @@ class AvailableDiskSpace:
         result = []
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
+            if nodeinfo["status"] != "healthy":
+                continue
             if nodeinfo["StorageInfo"].has_key("hdd"):
                 total += nodeinfo['StorageInfo']['hdd']['free']
         return util.size_label(total)
@@ -456,8 +471,8 @@ ClusterCapsule = [
             "counter" : ["curr_items", "vb_replica_curr_items"],
             "scale" : "minute",
             "code" : "ARRatio",
-            "threshold" : 1,
-            "symptom" : "Active to replica resident ratio '{0}' is not equal to '{1}'",
+            "threshold" : 5,
+            "symptom" : "Active to replica resident ratio difference'{0}%' is bigger than '{1}%'",
         },
         {
             "name" : "activeResidentRatio",
@@ -590,7 +605,7 @@ ClusterCapsule = [
         },
         {
             "name" : "diskDelete",
-            "description" : "Averge disk delete time",
+            "description" : "Average disk delete time",
             "counter" : "disk_del",
             "code" : "MemoryFramentation",
             "unit" : "time",
@@ -599,7 +614,7 @@ ClusterCapsule = [
         },
         {
             "name" : "diskUpdate",
-            "description" : "Averge disk update time",
+            "description" : "Average disk update time",
             "counter" : "disk_update",
             "code" : "MemoryFramentation",
             "unit" : "time",
@@ -608,7 +623,7 @@ ClusterCapsule = [
         },
         {
             "name" : "diskInsert",
-            "description" : "Averge disk insert time",
+            "description" : "Average disk insert time",
             "type" : "python",
             "counter" : "disk_insert",
             "code" : "MemoryFramentation",
@@ -618,7 +633,7 @@ ClusterCapsule = [
         },
         {
             "name" : "diskCommit",
-            "description" : "Averge disk commit time",
+            "description" : "Average disk commit time",
             "counter" : "disk_commit",
             "code" : "MemoryFramentation",
             "unit" : "time",
@@ -660,11 +675,11 @@ ClusterCapsule = [
         },
         {
             "name" : "avgItemWaitTime",
-            "description" : "Averge item waited time",
+            "description" : "Average item waited time",
             "counter" : "ep_bg_wait_avg",
             "code" : "EPEnginePerformance",
             "threshold" : 100,
-            "symptom" : "Averge wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
+            "symptom" : "Average wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
         },
      ],
      "indicator" : {

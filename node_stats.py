@@ -6,7 +6,10 @@ class NodeList:
     def run(self, accessor, threshold=None):
         result = []
         for node, node_info in stats_buffer.nodes.iteritems():
-            result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
+            if node_info['status'] == "healthy":
+                result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
+            else:
+                result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :"N/A", "os": "N/A", "status" :node_info['status']})
         return result
 
 class NumNodes:
@@ -23,13 +26,13 @@ class NumWarmupNodes:
 
 class NumFailOverNodes:
     def run(self, accessor, threshold=None):
-        return len(filter(lambda (a, b): b["clusterMembership"]!="active", stats_buffer.nodes.items()))
+        return len(filter(lambda (a, b): b.has_key("clusterMembership") and b["clusterMembership"]!="active", stats_buffer.nodes.items()))
 
 class BucketList:
     def run(self, accessor, threshold=None):
         result = []
-        for bucket in stats_buffer.bucket_info.keys():
-            result.append({"name": bucket})
+        for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
+            result.append({"name": bucket, "type": bucketinfo["bucketType"]})
 
         return result
 
@@ -37,6 +40,8 @@ class NodeStorageStats:
     def run(self, accessor, threshold=None):
         result = []
         for node, values in stats_buffer.nodes.iteritems():
+            if values["status"] != "healthy":
+                continue
             if values["StorageInfo"].has_key("hdd"):
                 result.append({"ip": values["host"],
                            "port": values["port"],
@@ -60,6 +65,8 @@ class NodeSystemStats:
     def run(self, accessor, threshold=None):
         result = []
         for node, values in stats_buffer.nodes.iteritems():
+            if values["status"] != "healthy":
+                continue
             result.append({"ip": values["host"],
                            "port": values["port"],
                            "cpuUtilization" :util.pretty_float(values["systemStats"]["cpu_utilization_rate"]),
@@ -115,7 +122,9 @@ class NodePerformanceStats:
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             stats = []
             for node, stats_info in bucket_stats.iteritems():
-
+                if accessor["counter"] not in stats_info.keys():
+                    stats.append((node, "N/A"))
+                    continue
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
@@ -129,7 +138,6 @@ class NodePerformanceStats:
                                     stats.append((node, util.size_label(int(value))))
                             else:
                                 stats.append((node, (key,value)))
-
             result[bucket] = stats
         return result
 
@@ -249,28 +257,28 @@ NodeCapsule = [
      "ingredients" : [
         {
             "name" : "diskCommit",
-            "description" : "Averge disk commit time",
+            "description" : "Average disk commit time",
             "counter" : "disk_commit",
             "code" : "NodePerformanceStats",
             "unit" : "time",
         },
         {
             "name" : "diskUpdate",
-            "description" : "Averge disk update time",
+            "description" : "Average disk update time",
             "counter" : "disk_update",
             "code" : "NodePerformanceStats",
             "unit" : "time",
         },
         {
             "name" : "diskInsert",
-            "description" : "Averge disk insert time",
+            "description" : "Average disk insert time",
             "counter" : "disk_insert",
             "code" : "NodePerformanceStats",
             "unit" : "time",
         },
         {
             "name" : "diskDelete",
-            "description" : "Averge disk delete time",
+            "description" : "Average disk delete time",
             "counter" : "disk_del",
             "code" : "NodePerformanceStats",
             "unit" : "time",
@@ -347,7 +355,7 @@ NodeCapsule = [
         },
         {
             "name" : "avgItemWaitTime",
-            "description" : "Averge item waited time",
+            "description" : "Average item waited time",
             "counter" : "ep_bg_wait_avg",
             "code" : "NodePerformanceStats",
             "unit" : "time",

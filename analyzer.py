@@ -104,24 +104,28 @@ class StatsAnalyzer:
                                 for bucket,values in result.iteritems():
                                     if type(values) is dict:
                                         if values.has_key("error"):
-                                            indicator_error[counter["name"]] = {"description" : counter["description"], 
+                                            if indicator_error.has_key(counter["name"]) == False:
+                                                indicator_error[counter["name"]] = []
+                                            indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":values["error"], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
-                                                                           }
+                                                                           })
                                             for val in values["error"]:
                                                 bucket_node_status[bucket][val["node"]] = "Error"
                                                 bucket_list[bucket] = "Error"
                                         if values.has_key("warn"):
-                                            indicator_warn[counter["name"]] = {"description" : counter["description"],
+                                            if indicator_warn.has_key(counter["name"]) == False:
+                                                indicator_warn[counter["name"]] = []
+                                            indicator_warn[counter["name"]].append({"description" : counter["description"],
                                                                            "bucket": bucket,
                                                                            "value":values["warn"],
                                                                            "cause" : pill["indicator"]["cause"],
                                                                            "impact" : pill["indicator"]["impact"],
                                                                            "action" : pill["indicator"]["action"],
-                                                                          }
+                                                                          })
                                             for val in values["warn"]:
                                                 if bucket_node_status[bucket].has_key(node["node"]) == False:
                                                     bucket_node_status[bucket][node["node"]] = "Warning"
@@ -130,24 +134,28 @@ class StatsAnalyzer:
                                     elif type(values) is list:
                                         for val in values:
                                             if val[0] == "error":
-                                                indicator_error[counter["name"]] = {"description" : counter["description"], 
+                                                if indicator_error.has_key(counter["name"]) == False:
+                                                    indicator_error[counter["name"]] = []
+                                                indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
-                                                                           }
+                                                                           })
                                                 for node in val[1]:
                                                     bucket_node_status[bucket][node["node"]] = "Error"
                                                     bucket_list[bucket] = "Error"
                                             elif val[0] == "warn":
-                                                indicator_warn[counter["name"]] = {"description" : counter["description"], 
+                                                if indicator_warn.has_key(counter["name"]) == False:
+                                                    indicator_warn[counter["name"]] = []
+                                                indicator_warn[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : pill["indicator"]["cause"],
                                                                             "impact" : pill["indicator"]["impact"],
                                                                             "action" : pill["indicator"]["action"],
-                                                                           }
+                                                                           })
                                                 for node in val[1]:
                                                     if bucket_node_status[bucket].has_key(node["node"]) == False:
                                                         bucket_node_status[bucket][node["node"]] = "Warning"
