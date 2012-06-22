@@ -4,7 +4,7 @@
 ClusterCapsule = {
     "CacheMissRatio" :  2,
     "ActiveReplicaResidentRatio" : {
-        "activeReplicaResidentRatio" : 5,
+        "activeReplicaResidentRatio" : 4,
         "activeResidentRatio" : 30,
         "replicaResidentRatio" : 20,
     },

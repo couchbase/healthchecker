@@ -189,7 +189,12 @@ class StatsAnalyzer:
             "indicator_error_exist" : len(indicator_error) > 0,
             "verbose" : verbose,
         }
-        
+
+        # read the current version number
+        f = open('VERSION.txt', 'r')
+        globals["versions"] = f.readline()
+        f.close()
+
         f = open(txtfile, 'w')
         report = {}
         report["Report Time"] = globals["report_time"].strftime("%Y-%m-%d %H:%M:%S")

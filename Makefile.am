@@ -53,6 +53,7 @@ bdist:
 	mkdir -p $(TMP_DIR)/$(PROJECT_NAME)/simplejson
 	cp $(PROJECT_NAME) *.py  $(TMP_DIR)/$(PROJECT_NAME)
 	cp -rf $(CHEETAH_LIB) $(JSON_LIB) report-htm.tmpl LICENSE $(TMP_DIR)/$(PROJECT_NAME)
-	(cd $(TMP_DIR); tar cf - $(PROJECT_NAME)) | gzip -9 > $(PROJECT_NAME)`cat $(TMP_VER)`-`uname -s`.`uname -m`.tar.gz
+	cp $(TMP_VER) $(TMP_DIR)/$(PROJECT_NAME)/VERSION.txt
+	(cd $(TMP_DIR); tar cf - $(PROJECT_NAME)) | gzip -9 > $(PROJECT_NAME)-`cat $(TMP_VER)`.tar.gz
 	rm -rf $(TMP_DIR)
 
