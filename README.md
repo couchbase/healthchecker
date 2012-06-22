@@ -6,10 +6,12 @@ We use this tool to collect cluster wide couchbase stats and generate health ana
 Build
 -------
 
-After you clone the project from git://github.com/couchbase/healthchecker.git, run the following command:
+After you clone the project from `git://github.com/couchbase/healthchecker.git`, run the following command:
+
     config/autorun.sh
 
 To build the package, run
+
     make bdist
 
 
