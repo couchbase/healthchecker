@@ -191,9 +191,12 @@ class StatsAnalyzer:
         }
 
         # read the current version number
-        f = open('VERSION.txt', 'r')
-        globals["versions"] = f.readline()
-        f.close()
+        try:
+            f = open('VERSION.txt', 'r')
+            globals["versions"] = f.readline()
+            f.close()
+        except Exception:
+            self.log.debug("Version.txt doesn't exist")
 
         f = open(txtfile, 'w')
         report = {}
