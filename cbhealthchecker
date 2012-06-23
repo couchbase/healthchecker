@@ -20,11 +20,11 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False)
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False, '')
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
-                                      'b:c:dh?vp:u:o:', [
+                                      'b:c:dh?vp:u:o:i:', [
                 'bucket=',
                 'cluster=',
                 'debug',
@@ -33,6 +33,7 @@ def parse_opt():
                 'password=',
                 'user=',
                 'html=',
+                'input=',
                 ])
     except getopt.GetoptError, err:
         usage(err)
@@ -55,10 +56,12 @@ def parse_opt():
             htmlfile = arg
         if opt in ('-v', '--verbose'):
             verbose = True
+        if opt in ('-i', '--input'):
+            inputfile = arg
 
-    if not cluster: 
+    if not cluster and not inputfile: 
         usage()
-    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, opts)
+    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile, opts)
 
 def usage(error_msg=''):
     if error_msg:
@@ -78,6 +81,7 @@ PASSWORD:
   -p PASSWORD, --password=PASSWORD   admin password of the cluster
 OPTIONS:
   -b BUCKETNAME, --bucket=BUCKETNAME Specific bucket name. Default is all buckets
+  -i FILENAME, --input=FILENAME      Construct report out of input JSON file
   -o FILENAME, --output=FILENAME     Default output filename is 'health_report.html'
   -d --debug
   -h --help                          Show this help message and exit
@@ -86,10 +90,10 @@ OPTIONS:
     sys.exit(2)
 
 def main():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose, opts) = parse_opt()
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile, opts) = parse_opt()
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
-    retriever.collect_data(bucket, cluster, user, password, opts)
+    retriever.collect_data(bucket, cluster, user, password, inputfile, opts)
 
     #analyze the snapshot and historic data
     performer = analyzer.StatsAnalyzer(log)

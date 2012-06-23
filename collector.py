@@ -26,6 +26,11 @@ class StatsCollector:
         kstart, kend = [int(x) for x in ka[-1].split(',')]
         return ((k, kstart, kend), int(v))
 
+    def write_file(self, filename, info):
+        f = open(filename, 'w')
+        print >> f, util.pretty_print(info)
+        f.close()
+
     def retrieve_node_stats(self, nodeInfo, nodeStats):
         nodeStats['portDirect'] = nodeInfo['ports']['direct']
         nodeStats['portProxy'] = nodeInfo['ports']['proxy']
@@ -98,7 +103,6 @@ class StatsCollector:
         try:
             opts.append(("-o", "return"))
             nodes = listservers.ListServers().runCmd('host-list', server, port, user, password, opts)
-
             for node in nodes:
                 (node_server, node_port) = util.hostport(node['hostname'])
                 node_stats = {"host" : node_server,
@@ -218,22 +222,41 @@ class StatsCollector:
                             traceback.print_exc()
                 sys.stderr.write('\n')
 
-    def collect_data(self, bucketname, cluster, user, password, opts):
-        server, port = util.hostport(cluster)
+    def collect_data(self, bucketname, cluster, user, password, inputfile, opts):
+        if not inputfile:
+            server, port = util.hostport(cluster)
 
-        #get node list info
-        nodes = self.get_hostlist(server, port, user, password, opts)
-        self.log.debug(util.pretty_print(stats_buffer.nodes))
+            #get node list info
+            nodes = self.get_hostlist(server, port, user, password, opts)
+            self.log.debug(util.pretty_print(stats_buffer.nodes))
 
-        #get bucket list
-        bucketlist = self.get_bucketlist(server, port, user, password, bucketname, opts)
-        self.log.debug(util.pretty_print(stats_buffer.bucket_info))
+            #get bucket list
+            bucketlist = self.get_bucketlist(server, port, user, password, bucketname, opts)
+            self.log.debug(util.pretty_print(stats_buffer.bucket_info))
+            self.log.debug(util.pretty_print(stats_buffer.buckets_summary))
 
-        #get stats from ep-engine
-        self.get_mc_stats(server, bucketlist, nodes, bucketname)
-        self.log.debug(util.pretty_print(stats_buffer.node_stats))
+            #get stats from ep-engine
+            self.get_mc_stats(server, bucketlist, nodes, bucketname)
+            self.log.debug(util.pretty_print(stats_buffer.node_stats))
+        
+            #get stats from ns-server
+            self.get_ns_stats(bucketlist, server, port, user, password, bucketname, opts)
+            self.log.debug(util.pretty_print(stats_buffer.buckets))
 
-        #get stats from ns-server
-        self.get_ns_stats(bucketlist, server, port, user, password, bucketname, opts)
-        self.log.debug(util.pretty_print(stats_buffer.buckets))
-
+            collected_data = {}
+            collected_data["nodes"] = stats_buffer.nodes
+            collected_data["bucket_info"] = stats_buffer.bucket_info
+            collected_data["buckets_summary"] = stats_buffer.buckets_summary
+            collected_data["node_stats"] = stats_buffer.node_stats
+            collected_data["buckets"] = stats_buffer.buckets
+            self.write_file("stats.json", collected_data)
+        else:
+            import json
+            json_data=open(inputfile)
+            collected_data = json.load(json_data)
+            json_data.close()
+            stats_buffer.nodes = collected_data["nodes"]
+            stats_buffer.bucket_info = collected_data["bucket_info"]
+            stats_buffer.buckets_summary = collected_data["buckets_summary"]
+            stats_buffer.node_stats = collected_data["node_stats"]
+            stats_buffer.buckets = collected_data["buckets"]

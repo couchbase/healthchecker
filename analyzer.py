@@ -3,6 +3,7 @@ import sys
 import datetime
 import logging
 import traceback
+import string
 
 import util_cli as util
 import cluster_stats
@@ -193,10 +194,10 @@ class StatsAnalyzer:
         # read the current version number
         try:
             f = open('VERSION.txt', 'r')
-            globals["versions"] = f.readline()
+            globals["versions"] = string.strip(f.read())
             f.close()
         except Exception:
-            self.log.debug("Version.txt doesn't exist")
+            pass
 
         f = open(txtfile, 'w')
         report = {}
