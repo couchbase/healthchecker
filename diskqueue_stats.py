@@ -193,11 +193,7 @@ DiskQueueCapsule = [
             "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'"
         },
      ],
-     "indicator" : {
-        "cause" : "Disk write queue backed up",
-        "impact" : "Data will be lost if the node goes down",
-        "action" : "Please contact support@couchbase.com",
-     },
+     "indicator" : True,
     },
     {"name" : "ReplicationTrend",
      "ingredients" : [
@@ -221,11 +217,7 @@ DiskQueueCapsule = [
         }
      ],
      "pernode" : True,
-     "indicator" : {
-        "cause" : "Ratio of items in the replication queue and active items greater than threshold",
-        "impact" : "If the nodes fails over, data will be missing on the replica",
-        "action" : "Do not failover the node",
-     },
+     "indicator" : True,
     },
      {"name" : "DiskQueueDrainingAnalysis",
      "description" : "",
@@ -257,10 +249,6 @@ DiskQueueCapsule = [
             "symptom" : "Replica disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
         },
      ],
-     "indicator" : {
-        "cause" : "To be defined",
-        "impact" : "To be defined",
-        "action" : "Please contact support@couchbase.com",
-     }
+     "indicator" : True,
     },
 ]

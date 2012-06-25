@@ -444,11 +444,7 @@ ClusterCapsule = [
      "clusterwise" : True,
      "perNode" : True,
      "perBucket" : True,
-     "indicator" : {
-        "cause" : "To be defined",
-        "impact" : "It will result in too many background fetches from disk and lead to poor IO performance",
-        "action" : "Please contact support@couchbase.com",
-     },
+     "indicator" : True,
      "nodeDisparate" : True,
     },
     {"name" : "DGM",
@@ -496,11 +492,7 @@ ClusterCapsule = [
      "clusterwise" : True,
      "perNode" : True,
      "perBucket" : True,
-     "indicator" : {
-        "cause" : "To be defined",
-        "impact" : "Failovers will slow down nodes severely because backfills from disk will be required and result in eviction of active items",
-        "action" : "Please contact support@couchbase.com",
-     },
+     "indicator" : True,
     },
     {"name" : "OPSPerformance",
      "ingredients" : [
@@ -549,11 +541,7 @@ ClusterCapsule = [
             "symptom" : "Number of replica vBuckets '{0}' is less than '{1}'", 
         },
      ],
-     "indicator" : {
-        "cause" : "To be defined",
-        "impact" : "Data is missing",
-        "action" : "Run rebalance o recreate missing vBuckets",
-     },
+     "indicator" : True,
     },
     {"name" : "MemoryUsage",
      "ingredients" : [
@@ -586,11 +574,7 @@ ClusterCapsule = [
             "symptom" : "Number of negative tap acks received '{0}' is above threshold '{1}'",
         },
      ],
-     "indicator" : {
-        "cause" : "Tap queue backfill remaining is higher than threshold.",
-        "impact" : "To be defined",
-        "action" : "Please contact support@couchbase.com",
-     }
+     "indicator" : True,
     },
     {"name" : "MemoryFragmentation",
      "ingredients" : [
@@ -641,11 +625,7 @@ ClusterCapsule = [
             "symptom" : "Average disk commit time '{0}' is slower than '{1}'",
         },
      ],
-     "indicator" : {
-        "cause" : "Severe IO issue possibly caused by fragmentation",
-        "impact" : "To be defined",
-        "action" : "Please contact support@couchbase.com",
-     },
+     "indicator" : True,
     },
     {"name" : "EPEnginePerformance",
      "ingredients" : [
@@ -682,10 +662,6 @@ ClusterCapsule = [
             "symptom" : "Average wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
         },
      ],
-     "indicator" : {
-        "cause" : "Poor engine KPIs",
-        "impact" : "To be defined",
-        "action" : "Please contact support@couchbase.com",
-     },
+     "indicator" : True,
     },
 ]

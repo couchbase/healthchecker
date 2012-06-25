@@ -11,6 +11,7 @@ import diskqueue_stats
 import node_stats
 import stats_buffer
 import threshold
+import prescription
 
 from Cheetah.Template import Template
 
@@ -100,8 +101,15 @@ class StatsAnalyzer:
                                         continue;
                                     if val[0] == "variance" and val[1] != 0:
                                         node_disparate[counter["name"]] = {"description" : counter["description"], "bucket": bucket, "value":values}
-                        if pill.has_key("indicator"):
+                        if pill.has_key("indicator") and pill["indicator"]:
                             if len(result) > 0:
+                                cause = impact = action = "To be defined"
+                                try:
+                                    cause = prescription.Capsules[pill['name']]["cause"]
+                                    impact = prescription.Capsules[pill['name']]["impact"]
+                                    action = prescription.Capsules[pill['name']]["action"]
+                                except Exception, e:
+                                    print e
                                 for bucket,values in result.iteritems():
                                     if type(values) is dict:
                                         if values.has_key("error"):
@@ -110,9 +118,9 @@ class StatsAnalyzer:
                                             indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":values["error"], 
-                                                                            "cause" : pill["indicator"]["cause"],
-                                                                            "impact" : pill["indicator"]["impact"],
-                                                                            "action" : pill["indicator"]["action"],
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
                                                                            })
                                             for val in values["error"]:
                                                 bucket_node_status[bucket][val["node"]] = "Error"
@@ -123,9 +131,9 @@ class StatsAnalyzer:
                                             indicator_warn[counter["name"]].append({"description" : counter["description"],
                                                                            "bucket": bucket,
                                                                            "value":values["warn"],
-                                                                           "cause" : pill["indicator"]["cause"],
-                                                                           "impact" : pill["indicator"]["impact"],
-                                                                           "action" : pill["indicator"]["action"],
+                                                                           "cause" : cause,
+                                                                           "impact" : impact,
+                                                                           "action" : action,
                                                                           })
                                             for val in values["warn"]:
                                                 if bucket_node_status[bucket].has_key(node["node"]) == False:
@@ -140,9 +148,9 @@ class StatsAnalyzer:
                                                 indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
-                                                                            "cause" : pill["indicator"]["cause"],
-                                                                            "impact" : pill["indicator"]["impact"],
-                                                                            "action" : pill["indicator"]["action"],
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
                                                                            })
                                                 for node in val[1]:
                                                     bucket_node_status[bucket][node["node"]] = "Error"
@@ -153,9 +161,9 @@ class StatsAnalyzer:
                                                 indicator_warn[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
-                                                                            "cause" : pill["indicator"]["cause"],
-                                                                            "impact" : pill["indicator"]["impact"],
-                                                                            "action" : pill["indicator"]["action"],
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
                                                                            })
                                                 for node in val[1]:
                                                     if bucket_node_status[bucket].has_key(node["node"]) == False:
