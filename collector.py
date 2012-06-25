@@ -188,6 +188,9 @@ class StatsCollector:
             if bucketname == 'all' or bucket_name == bucketname:
                 self.log.info("bucket: %s" % bucket_name)
                 stats_buffer.node_stats[bucket_name] = {}
+                if stats_buffer.bucket_info[bucket_name]["bucketType"] == 'memcached':
+                    self.log.info("Skip memcached bucket: %s" % bucket_name)
+                    continue
                 for node in nodes:
                     (node_server, node_port) = util.hostport(node['hostname'])
                     self.log.info("  node: %s %s" % (node_server, node['ports']['direct']))
