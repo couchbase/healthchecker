@@ -338,7 +338,7 @@ class MemoryFramentation:
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
-                        if accessor.has_key("threshold"):
+                        if accessor.has_key("threshold") and not isinstance(value, dict):
                             if int(value) > threshold_val:
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":

@@ -176,6 +176,7 @@ class StatsCollector:
                             for lbl,v in dd[k]:
                                 ccount += v * lbl
                             stats[k] = ccount / totals[k]
+                            stats["timging_"+k] = node_stats
                     else:
                         for key, val in node_stats.items():
                             stats[key] = val

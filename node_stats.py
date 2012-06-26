@@ -126,6 +126,8 @@ class NodePerformanceStats:
                     stats.append((node, "N/A"))
                     continue
                 for key, value in stats_info.iteritems():
+                    if isinstance(value, dict):
+                        continue
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
                             if int(value) > threshold_val:
