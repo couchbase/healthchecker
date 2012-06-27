@@ -141,16 +141,11 @@
         <th>Health Status</th>
       </tr>
     </thead>
-#for $bucket in sorted($bucket_list.keys())
+    #for $bucket in sorted($bucket_list.keys())
+      #set $bucket_status_class = 'status-' + $bucket_list[$bucket].lower()
       <tr>
         <td>$bucket</td>
-  #if $bucket_list[$bucket] == "Error"
-        <td class="status-error">Immediate action needed</td>
-  #elif $bucket_list[$bucket] == "Warning"
-        <td class="status-warning">Attention needed</td>
-  #else
-        <td class="status-ok">OK</td>
-  #end if
+        <td class="$bucket_status_class">$bucket_list[$bucket]</td>
       </tr>
 #end for
     </table>
@@ -163,11 +158,12 @@
         <th>Cluster Status</th>
       </tr>
     </thead>
-#for $node in sorted($node_list["nodeList"]["value"])
+      #for $node in sorted($node_list["nodeList"]["value"])
+      #set $node_status_class = 'status-' + $node["status"].lower()
       <tr>
         <td>$node["host"]</td>
         <td>$node["version"]</td>
-        <td>$node["status"]</td>
+        <td class="$node_status_class">$node["status"]</td>
       </tr>
 #end for
     </table>
