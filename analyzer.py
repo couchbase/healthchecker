@@ -68,6 +68,8 @@ class StatsAnalyzer:
                                 cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                             if debug and counter.has_key("formula"):
                                 cluster_symptoms[counter["name"]]["formula"] = counter["formula"]
+                            else:
+                                cluster_symptoms[counter["name"]]["formula"] = "N/A"
                         if pill.has_key("perBucket") and pill["perBucket"] :
                             for bucket, values in result.iteritems():
                                 if bucket == "cluster":
@@ -90,7 +92,10 @@ class StatsAnalyzer:
                                                                             "status":status, 
                                                                             "formula":counter["formula"]})
                                         else:
-                                            bucket_symptoms[bucket].append({"description":counter["description"], "value":val[1], "status":status})
+                                            bucket_symptoms[bucket].append({"description":counter["description"], 
+                                                                            "value":val[1], 
+                                                                            "status":status,
+                                                                            "formula":"N/A"})
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                             bucket_node_symptoms[bucket][val[0]] = []
@@ -102,7 +107,8 @@ class StatsAnalyzer:
                                         else:
                                             bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
                                                                                          "value" : val[1], 
-                                                                                         "status":status})
+                                                                                         "status":status,
+                                                                                         "formula":"N/A"})
                         if pill.has_key("perNode") and pill["perNode"] :
                             if debug and counter.has_key("formula"):
                                 node_symptoms[counter["name"]] = {"description" : counter["description"], 
@@ -151,6 +157,7 @@ class StatsAnalyzer:
                                                                             "cause" : cause,
                                                                             "impact" : impact,
                                                                             "action" : action,
+                                                                            "formula": "N/A",
                                                                            })
                                             for val in values["error"]:
                                                 bucket_node_status[bucket][val["node"]] = "Error"
@@ -174,6 +181,7 @@ class StatsAnalyzer:
                                                                            "cause" : cause,
                                                                            "impact" : impact,
                                                                            "action" : action,
+                                                                           "formula": "N/A",
                                                                           })
                                             for val in values["warn"]:
                                                 if bucket_node_status[bucket].has_key(node["node"]) == False:
@@ -201,6 +209,7 @@ class StatsAnalyzer:
                                                                             "cause" : cause,
                                                                             "impact" : impact,
                                                                             "action" : action,
+                                                                            "formula" : "N/A",
                                                                            })
                                                 for node in val[1]:
                                                     bucket_node_status[bucket][node["node"]] = "Error"
@@ -224,6 +233,7 @@ class StatsAnalyzer:
                                                                             "cause" : cause,
                                                                             "impact" : impact,
                                                                             "action" : action,
+                                                                            "formula" : "N/A",
                                                                            })
                                                 for node in val[1]:
                                                     if bucket_node_status[bucket].has_key(node["node"]) == False:
