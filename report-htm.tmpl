@@ -1,334 +1,273 @@
-<!doctype html system>
-<HTML>
-<HEAD><TITLE>sample-report-v2</TITLE>
-<STYLE type="text/css">
+<!doctype html>
+<html>
+  <head>
+    <title>Couchbase Cluster Health Check Report</title>
+    <!-- shared styles -->
+    <style media="all">
+      body {font-family: Helvetica, Arial, sans-serif;}
+      h1 {color: #A30A0A;}
+      h2 {color: #345a8a;}
+      h3 {color: #4f81bd;}
+      ul ul {list-style: none}
 
-body {margin-top: 0px;margin-left: 0px;}
+      /** Couchbase sepcific styles **/
+      .status-error {background: #f00;color:#fff;}
+      .status-warning {background: #ff0;}
+      .status-ok {background: #0f0;}
+    </style>
+    <!-- print only styles -->
+    <style media="print">
+      /* --------------------------------------------------------------
+      Based on Hartija & Priss CSS Print  Frameworks
+      -------------------------------------------------------------- */
 
-#page_1 {position:relative; overflow: hidden;margin-top: 96px;margin-left: 94px;margin-bottom: 73px;width: 620px;background-image: url(sample-report-v2_images/sample-report-v21.jpg);background-position: 0px 48px;background-size: 604px 704px;background-repeat: no-repeat;}
+      body {
+      width:100% !important;
+      margin:0 !important;
+      padding:0 !important;
+      line-height: 1.4;
+      word-spacing:1.1pt;
+      letter-spacing:0.2pt;
+      color: #000;
+      background: none;
+      font-size: 12pt;
+      }
 
+      /*Headings */
+      h1{font-size:19pt;}
+      h2{font-size:17pt;}
+      h3{font-size:15pt;}
+      h4,h5,h6{font-size:12pt;}
 
+      code { font: 10pt Courier, monospace; }
+      blockquote { margin: 1.3em; padding: 1em;  font-size: 10pt; }
+      hr { background-color: #ccc; }
 
-#page_2 {position:relative; overflow: hidden;margin-top: 128px;margin-left: 96px;margin-bottom: 107px;width: 607px;background-image: url(sample-report-v2_images/sample-report-v22.jpg);background-position: 60px 362px;background-size: 128px 362px;background-repeat: no-repeat;}
+      /* Images */
+      img { float: left; margin: 1em 1.5em 1.5em 0; }
+      a img { border: none; }
 
+      /* Links */
+      a:link, a:visited { background: transparent; font-weight: 700; text-decoration: underline;color:#333; }
+      a:link[href^="http://"]:after, a[href^="http://"]:visited:after { content: " (" attr(href) ") "; font-size: 90%; }
+      a[href^="http://"] {color:#000; }
 
+      /* Table */
+      table { border-collapse: collapse; margin: 1px; text-align:left; page-break-inside: avoid;}
+      th { border: 1px solid #333;  font-weight: bold; }
+      td { border: 1px solid #333; }
+      th,td { padding: 4px 10px 4px 10px; }
+      tfoot { font-style: italic; }
+      caption { background: #fff; margin-bottom:2em; text-align:left; }
+      thead {display: table-header-group;}
+      tr {page-break-inside: avoid;}
 
-#page_3 {position:relative; overflow: hidden;margin-top: 63px;margin-left: 120px;margin-bottom: 71px;width: 583px;background-image: url(sample-report-v2_images/sample-report-v23.jpg);background-position: 84px 148px;background-size: 43px 726px;background-repeat: no-repeat;}
+      article {page-break-after: always}
+    </style>
+    <!-- screen only styles -->
+    <style type="text/css" media="screen">
+      body {margin:10%;padding:0;font:16px 'Arial';background:#FCFDFB}
 
+      h1 {padding-left: 2px;margin-top: 0px;margin-bottom: 0px;font-size:25px;line-height:30px}
+      h2 {font: bold 21px 'Arial';line-height: 24px;}
+      h3 {font: bold 17px 'Arial';line-height: 19px;}
+      ul {line-height:28px}
+      th {background:#F8F7F2}
+      td {background:#FFF}
+      td, th {padding:7px;border: 1pt solid black;}
 
+      .ft1{font: italic 19px 'Arial';color: #345a8a;line-height: 15px;}
+      .ft15{font-weight: bold;line-height: 17px;white-space: nowrap;}
 
-#page_4 {position:relative; overflow: hidden;margin-top: 63px;margin-left: 96px;margin-bottom: 335px;width: 607px;background-image: url(sample-report-v2_images/sample-report-v24.jpg);background-position: 108px 206px;background-size: 23px 19px;background-repeat: no-repeat;}
+      .p0{padding-left: 2px;margin-top: 0px;margin-bottom: 0px;}
+      .p1{padding-left: 2px;margin-top: 40px;margin-bottom: 0px;}
+      .p2{padding-left: 2px;margin-top: 3px;margin-bottom: 0px;}
+      .p10{margin-top: 0px;margin-bottom: 0px;}
+      .p12{margin-top: 38px;margin-bottom: 0px;}
 
+      .t1, .t3{border-collapse: collapse;}
+      .t1{margin-left: 26px;margin-top: 51px;}
+    </style>
+</head>
 
+<body>
+  <h1>Couchbase Cluster Health Check Report</h1>
+  <p class="p1"><span class="ft1">Tool Version: $globals['versions']</span></p>
+  <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
+  <p class="p2">
+    <strong>Overall cluster health:</strong>
+    #if $globals.cluster_health == "Error"
+    <span class="status-error">Immediate action needed</span>
+    #elif $globals.cluster_health == "Warning"
+    <span class="status-warning">Attention needed</span>
+    #else
+    <span class="status-ok">OK</span>
+    #end if
+  </p>
 
-.ft0{font: 25px 'Arial';color: #17365d;line-height: 30px;}
-.ft1{font: italic 19px 'Arial';color: #345a8a;line-height: 15px;}
-.ft2{font: bold 16px 'Arial';line-height: 19px;}
-.ft3{font: 16px 'Arial';line-height: 18px;}
-.ft4{font: bold 21px 'Arial';color: #345a8a;line-height: 24px;}
-.ft5{font: bold 17px 'Arial';color: #4f81bd;line-height: 19px;}
-.ft6{font: 16px 'Arial';line-height: 18px;white-space: nowrap;}
-.ft7{font: 13px 'Courier New';line-height: 16px;white-space: nowrap;position: relative; bottom: -18px;}
-.ft8{font: bold 16px 'Arial';line-height: 19px;white-space: nowrap;}
-.ft9{font: 15px 'Arial';line-height: 17px;white-space: nowrap;}
-.ft10{font: 13px 'Courier New';line-height: 15px;}
-.ft11{font: 16px 'Arial';margin-left: 16px;line-height: 17px;}
-.ft12{font: 10px 'Symbol';line-height: 12px;}
-.ft13{font: 16px 'Arial';margin-left: 18px;line-height: 18px;}
-.ft14{font: 16px 'Symbol';line-height: 20px;}
-.ft15{font: bold 16px 'Arial';line-height: 17px;white-space: nowrap;}
-.ft16{font: 16px 'Symbol';line-height: 29px;}
-.ft17{font: 16px 'Arial';line-height: 27px;}
-.ft18{font: 16px 'Courier New';line-height: 27px;}
-.ft19{font: 16px 'Courier New';line-height: 38px;}
-.ft20{font: 16px 'Arial';line-height: 38px;}
-.ft21{font: 15px 'Arial';line-height: 17px;}
-.ft22{font: 16px 'Arial';margin-left: 4px;line-height: 18px;}
-.ft23{font: 10px 'Symbol';line-height: 4px;}
-.ft24{font: 16px 'Arial';margin-left: 18px;line-height: 36px;}
-.ft30{font: 16px 'Arial';line-height: 18px;background-color:#FF0000;color:#FFFFFF}
-.ft31{font: 16px 'Arial';line-height: 18px;background-color:#FFFF00}
-.ft32{font: 16px 'Arial';line-height: 18px;background-color:#00FF00}
+  #if $indicator_error_exist
+  <article>
+    <h2>Couchbase &#8211; Alerts</h2>
+    <h3>Cluster-wide metrics</h3>
+    #for $counter in sorted($indicator_error.keys())
+      #set $error_list = $indicator_error[$counter]
+      #for $error_values in $error_list:
+      <p class="p20"><span class="ft3">$error_values["description"]</span></p>
+      <ul>
+        <li>Symptom
+        #for $err_val in sorted($error_values["value"])
+          <ul>
+            <li>Bucket : $error_values["bucket"] , Node : $err_val["node"]</li>
+            <li>Value : $err_val["value"]</li>
+          </ul>
+        #end for
+        </li>
+        <li>Causes - $error_values["cause"]</li>
+        <li>Impact - $error_values["impact"]</li>
+        <li>Action - $error_values["action"]</li>
+      </ul>
+      #end for
+    #end for
+  </article>
+  #end if
 
-.p0{text-align: left;padding-left: 2px;margin-top: 0px;margin-bottom: 0px;}
-.p1{text-align: left;padding-left: 2px;margin-top: 40px;margin-bottom: 0px;}
-.p2{text-align: left;padding-left: 2px;margin-top: 3px;margin-bottom: 0px;}
-.p3{text-align: left;padding-left: 2px;margin-top: 35px;margin-bottom: 0px;}
-.p4{text-align: left;padding-left: 2px;margin-top: 34px;margin-bottom: 0px;}
-.p5{text-align: justify;padding-left: 74px;margin-top: 0px;margin-bottom: 0px;}
-.p6{text-align: justify;padding-left: 26px;margin-top: 0px;margin-bottom: 0px;}
-.p7{text-align: left;padding-left: 26px;margin-top: 6px;margin-bottom: 0px;}
-.p8{text-align: left;padding-left: 74px;padding-right: 306px;margin-top: 0px;margin-bottom: 0px;text-indent: -47px;}
-.p9{text-align: left;padding-left: 74px;padding-right: 302px;margin-top: 0px;margin-bottom: 0px;}
-.p10{text-align: left;margin-top: 0px;margin-bottom: 0px;}
-.p11{text-align: left;margin-top: 35px;margin-bottom: 0px;}
-.p12{text-align: left;margin-top: 38px;margin-bottom: 0px;}
-.p13{text-align: left;margin-top: 30px;margin-bottom: 0px;}
-.p14{text-align: left;margin-top: 34px;margin-bottom: 0px;}
-.p15{text-align: justify;margin-top: 0px;margin-bottom: 0px;}
-.p16{text-align: justify;padding-left: 24px;margin-top: 6px;margin-bottom: 0px;}
-.p17{text-align: justify;padding-left: 24px;margin-top: 0px;margin-bottom: 0px;}
-.p18{text-align: justify;padding-left: 48px;padding-right: 27px;margin-top: 0px;margin-bottom: 0px;text-indent: -24px;}
-.p20{text-align: left;padding-left: 2px;margin-top: 30px;margin-bottom: 0px;}
+  <article>
+    <h2>Couchbase Cluster Overview</h2>
+    <h3>Bucket list</h3>
+    <table class="t1">
+    <thead>
+      <tr>
+        <th>Bucket Name</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    #for $bucket in sorted($bucket_list.keys())
+      <tr>
+        <td>$bucket</td>
+        <td>$bucket_list[$bucket]</td>
+      </tr>
+    #end for
+    </table>
+    <h3>Node list</h3>
+    <table class="t1">
+    <thead>
+      <tr>
+        <th>Node IP</th>
+        <th>Couchbase Server Version</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+      #for $node in sorted($node_list["nodeList"]["value"])
+      <tr>
+        <td>$node["host"]</td>
+        <td>$node["version"]</td>
+        <td>$node["status"]</td>
+      </tr>
+      #end for
+    </table>
+    <ul>
+      <li>Total number of nodes in the cluster: $node_list["numNodes"]["value"]</li>
+      <li>Number of down nodes: $node_list["numDownNodes"]["value"]</li>
+      <li>Number of warming up nodes: $node_list["numWarmupNodes"]["value"]</li>
+    </ul>
+    <h3>Cluster-wide metrics</h3>
+    <table class="t1">
+    #for $key in sorted($cluster_symptoms.keys())
+      #set $value = $cluster_symptoms[$key]
+      <tr>
+        <td>$value["description"]</td>
+        <td>$value["value"]</td>
+      </tr>
+    #end for
+    </table>
 
-.td0{text-align: left;padding-left: 0px;padding-right: 0px;width: 15px;vertical-align: bottom;}
-.td1{text-align: left;padding-left: 9px;padding-right: 0px;width: 251px;vertical-align: middle;}
-.td2{text-align: left;padding-left: 2px;padding-right: 0px;width: 110px;vertical-align: bottom;}
-.td3{text-align: left;padding-left: 57px;padding-right: 0px;width: 203px;vertical-align: bottom;}
-.td4{text-align: left;padding-left: 0px;padding-right: 0px;width: 112px;vertical-align: bottom;}
-.td5{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 140px;vertical-align: bottom;}
-.td6{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 332px;vertical-align: bottom;}
-.td7{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 89px;vertical-align: bottom;}
-.td8{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 140px;vertical-align: bottom;}
-.td9{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 332px;vertical-align: bottom;}
-.td10{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 89px;vertical-align: bottom;}
-.td11{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td12{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;}
-.tdr{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;background-color:#FF0000;color:#FFFFFF}
-.tdy{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;background-color:#FFFF00}
-.td13{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td14{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;}
-.td15{border-left: #000000 1pt solid;border-right: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td16{border-right: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 258px;vertical-align: bottom;}
-.td17{border-left: #000000 1pt solid;border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;width: 318px;vertical-align: bottom;}
-.td18{border-right: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;width: 24px;vertical-align: bottom;}
-.td19{border-right: #000000 1pt solid;border-top: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td20{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td21{border-right: #000000 1pt solid;text-align: left;padding-left: 7px;padding-right: 0px;width: 311px;vertical-align: bottom;}
-.td22{border-right: #000000 1pt solid;border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;width: 318px;vertical-align: bottom;}
-.td23{text-align: left;padding-left: 0px;padding-right: 0px;width: 342px;vertical-align: bottom;}
-.td24{text-align: left;padding-left: 0px;padding-right: 0px;width: 265px;vertical-align: bottom;}
-.td25{text-align: left;padding-left: 0px;padding-right: 0px;width: 24px;vertical-align: bottom;}
-.td26{text-align: left;padding-left: 24px;padding-right: 0px;width: 294px;vertical-align: bottom;}
-.td27{border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;line-height: 17px;width: 318px;vertical-align: bottom;}
-.td28{border-bottom: #000000 1pt solid;text-align: left;padding-left: 0px;padding-right: 0px;line-height: 17px;width: 265px;vertical-align: bottom;}
-
-.tr0{height: 25px;}
-.tr1{height: 19px;}
-.tr2{height: 21px;}
-.tr3{height: 20px;}
-.tr4{height: 41px;}
-.tr5{height: 18px;}
-.tr6{height: 40px;}
-.tr7{height: 55px;}
-.tr8{height: 56px;}
-.tr9{height: 53px;}
-.tr10{height: 74px;}
-.tr11{height: 22px;}
-.tr12{height: 34px;}
-.tr13{height: 89px;}
-
-.t0{width: 387px;margin-left: 26px;margin-top: 5px;font: 13px 'Symbol';line-height: 16px;}
-.t1{width: 582px;margin-left: 26px;margin-top: 51px;font: 16px 'Arial';line-height: 18px;}
-.t2{width: 583px;margin-left: 24px;font: 16px 'Arial';line-height: 18px;}
-.t3{width: 607px;font: 16px 'Arial';line-height: 18px;}
-.t4{width: 583px;font: 16px 'Arial';line-height: 18px;}
-
-</STYLE>
-</HEAD>
-
-<BODY>
-<DIV id="page_1">
-
-<P class="p0"><FONT class="ft0">Couchbase Cluster Health Check Report</FONT></P>
-<P class="p1"><FONT class="ft1">Tool Version: $globals['versions']</FONT></P>
-<P class="p0"><FONT class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</FONT></P>
-#if $globals.cluster_health == "Error"
-<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft30">Immediate action needed</FONT></P>
-#elif $globals.cluster_health == "Warning"
-<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft31">Attention needed</FONT></P>
-#else
-<P class="p2"><FONT class="ft2">Overall cluster health: </FONT><FONT class="ft32">OK</FONT></P>
-#end if
-#if $indicator_error_exist
-<P class="p3"><FONT class="ft4">Couchbase &#8211; Alerts</FONT></P>
-<P class="p4"><FONT class="ft5">Cluster-wide metrics</FONT></P>
-#for $counter in sorted($indicator_error.keys())
-#set $error_list = $indicator_error[$counter]
-#for $error_values in $error_list:
-<P class="p20"><FONT class="ft3">$error_values["description"]</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t0">
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
-	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
-</TR>
-#for $err_val in sorted($error_values["value"])
-<TR class="tr1">
-	<TD class="td0">&nbsp;</TD>
-	<TD class="td3" colspan=2><FONT class="ft6">Bucket : $error_values["bucket"] , </FONT>
-	<FONT class="ft9">Node : $err_val["node"]</FONT></TD>
-</TR>
-<TR class="tr1">
-	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft6">Value :  </FONT></TD>
-	<TD class="td4"><FONT class="ft9"> $err_val["value"]</FONT></TD>
-</TR>
-#end for
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Causes -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$error_values["cause"]</FONT></TD>
-</TR>
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Impact -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$error_values["impact"]</FONT></TD>
-</TR>
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Action -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$error_values["action"]</FONT></TD>
-</TR>
-</TABLE>
-#end for
-#end for
-#end if
-<P class="p4"><FONT class="ft4">Couchbase Cluster Overview</FONT></P>
-<P class="p11"><FONT class="ft5">Bucket list</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t1">
-<TR class="tr6">
-	<TD class="td5"><FONT class="ft15">Bucket Name</FONT></TD>
-	<TD class="td7"><FONT class="ft15">Status</FONT></TD>
-</TR>
-#for $bucket in sorted($bucket_list.keys())
-<TR class="tr6">
-	<TD class="td8">$bucket</TD>
-	<TD class="td10">$bucket_list[$bucket]</TD>
-</TR>
-#end for
-</TABLE>
-<P class="p11"><FONT class="ft5">Node list</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t1">
-<TR class="tr6">
-	<TD class="td5"><FONT class="ft15">Node IP</FONT></TD>
-	<TD class="td6"><FONT class="ft15">Couchbase Server Version</FONT></TD>
-	<TD class="td7"><FONT class="ft15">Status</FONT></TD>
-</TR>
-#for $node in sorted($node_list["nodeList"]["value"])
-<TR class="tr6">
-	<TD class="td8">$node["host"]</TD>
-	<TD class="td9">$node["version"]</TD>
-	<TD class="td10">$node["status"]</TD>
-</TR>
-#end for
-</TABLE>
-<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Total number of nodes in the cluster: $node_list["numNodes"]["value"] </FONT></P>
-<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of down nodes: $node_list["numDownNodes"]["value"] </FONT></P>
-<P class="p8"><FONT class="ft16">&#8226; </FONT><FONT class="ft17">Number of warming up nodes: $node_list["numWarmupNodes"]["value"] </FONT></P>
-<P class="p11"><FONT class="ft5">Cluster-wide metrics</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t1">
-#for $key in sorted($cluster_symptoms.keys())
-#set $value = $cluster_symptoms[$key]
-<TR class="tr4">
-	<TD class="td11">$value["description"]</TD>
-	<TD class="td12">$value["value"]</TD>
-</TR>
-#end for
-</TABLE>
-<P class="p11"><FONT class="ft5">Bucket metrics</FONT></P>
-#for $bucket in sorted($bucket_list.keys())
-#set $status = $bucket_list[$bucket]
-<P class="p2"><FONT class="ft2">Bucket name: </FONT><FONT class="ft3">$bucket</FONT></P>
-#if $status == "Error"
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft30">Immediate action needed</FONT></P>
-#elif $status == "Warning"
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft31">Attention needed</FONT></P>
-#else
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
-#end if
-<TABLE cellpadding=0 cellspacing=0 class="t3">
-#for $symptom in sorted($bucket_symptoms[$bucket])
-<TR class="tr6">
-	<TD class="td18">&nbsp;</TD>
-	<TD class="td11">$symptom["description"]</TD>
-#if $symptom["status"] == "Error"
-	<TD class="tdr">$symptom["value"]</TD>
-#elif $symptom["status"] == "Warning"
-	<TD class="tdy">$symptom["value"]</TD>
-#else
-	<TD class="td12">$symptom["value"]</TD>
-#end if
-</TR>
-#end for
-</TABLE>
-#if $verbose
-#for $node in sorted($bucket_node_symptoms[$bucket])
-#set $node_values = $bucket_node_symptoms[$bucket][$node]
-<P class="p12"><FONT class="ft2">IP address: $node</FONT></P>
-#if $bucket_node_status[$bucket].has_key($node)
-#if $bucket_node_status[$bucket][$node] == "Error"
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft30">Immediate action needed</FONT></P>
-#elif $bucket_node_status[$bucket][$node] == "Warning"
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft31">Attention needed</FONT></P>
-#else
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
-#end if
-#else
-<P class="p10"><FONT class="ft2">Status &#8211; </FONT><FONT class="ft32">OK</FONT></P>
-#end if
-<TABLE cellpadding=0 cellspacing=0 class="t3">
-#for $node_value in sorted($node_values)
-<TR class="tr6">
-	<TD class="td18">&nbsp;</TD>
-	<TD class="td11">$node_value["description"]</TD>
-#if $node_value["status"] == "Error"
-	<TD class="tdr">$node_value["value"]</TD>
-#elif $node_value["status"] == "Warning"
-	<TD class="tdy">$node_value["value"]</TD>
-#else
-	<TD class="td12">$node_value["value"]</TD>
-#end if
-</TR>
-#end for
-</TABLE>
-#end for
-#end if
-#end for
-#if $indicator_warn_exist
-<P class="p13"><FONT class="ft4">Couchbase &#8211; Warning Indicators</FONT></P>
-<P class="p14"><FONT class="ft5">Cluster-wide metrics</FONT></P>
-#for $counter in sorted($indicator_warn)
-#set $warn_list = $indicator_warn[$counter]
-#for $warn_values in $warn_list
-<P class="p0"><FONT class="ft3">$warn_values["description"]</FONT></P>
-<TABLE cellpadding=0 cellspacing=0 class="t0">
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Symptom</FONT></TD>
-	<TD class="td2"><FONT class="ft8">&nbsp;</FONT></TD>
-</TR>
-#for $warn_val in sorted($warn_values["value"])
-<TR class="tr1">
-	<TD class="td0">&nbsp;</TD>
-	<TD class="td3" colspan="2"><FONT class="ft9">Bucket : $warn_values["bucket"] , </FONT>
-       <FONT class="ft9">Node : $warn_val["node"]</FONT></TD>
-</TR>
-<TR class="tr1">
-	<TD class="td0">&nbsp;</TD>
-	<TD class="td3"><FONT class="ft9">Value : </FONT></TD>
-	<TD class="td4"><FONT class="ft9">$warn_val["value"]</FONT></TD>
-</TR>
-#end for
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Causes -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$warn_values["cause"]</FONT></TD>
-</TR>
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Impact -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$warn_values["impact"]</FONT></TD>
-</TR>
-<TR class="tr0">
-	<TD class="td0">&#8226;</TD>
-	<TD class="td1"><FONT class="ft6">Action -</FONT></TD>
-	<TD class="td2"><FONT class="ft9">$warn_values["action"]</FONT></TD>
-</TR>
-</TABLE>
-#end for
-#end for
-#end if
-</DIV>
+    <h3>Bucket metrics</h3>
+    #for $bucket in sorted($bucket_list.keys())
+      #set $status = $bucket_list[$bucket]
+      <p class="p2"><strong>Bucket name: </strong><span class="ft3">$bucket</span></p>
+      <p class="p10">
+        <strong>Status &#8211; </strong>
+        #if $status == "Error"
+        <span class="status-error">Immediate action needed</span>
+        #elif $status == "Warning"
+        <span class="status-warning">Attention needed</span>
+        #else
+        <span class="status-ok">OK</span>
+        #end if
+      </p>
+      <table class="t1">
+      #for $symptom in sorted($bucket_symptoms[$bucket])
+        <tr>
+          <td>$symptom["description"]</td>
+          #if $symptom["status"] == "Error"
+          <td class="status-error">$symptom["value"]</td>
+          #elif $symptom["status"] == "Warning"
+          <td class="status-warning">$symptom["value"]</td>
+          #else
+          <td>$symptom["value"]</td>
+          #end if
+        </tr>
+      #end for
+      </table>
+      #if $verbose
+      #for $node in sorted($bucket_node_symptoms[$bucket])
+        #set $node_values = $bucket_node_symptoms[$bucket][$node]
+        <p class="p12"><strong>IP address: $node</strong></p>
+        <p class="p10"><strong>Status &#8211; </strong>
+        #if $bucket_node_status[$bucket].has_key($node)
+            #if $bucket_node_status[$bucket][$node] == "Error"
+            <span class="status-error">Immediate action needed</span>
+            #elif $bucket_node_status[$bucket][$node] == "Warning"
+            <span class="status-warning">Attention needed</span>
+            #else
+            <span class="status-ok">OK</span>
+            #end if
+        #else
+          <span class="status-ok">OK</span>
+        #end if
+        </p>
+        <table class="t1">
+        #for $node_value in sorted($node_values)
+          <tr>
+            <td>$node_value["description"]</td>
+            #if $node_value["status"] == "Error"
+            <td class="status-error">$node_value["value"]</td>
+            #elif $node_value["status"] == "Warning"
+            <td class="status-warning">$node_value["value"]</td>
+            #else
+            <td>$node_value["value"]</td>
+            #end if
+          </tr>
+        #end for
+        </table>
+      #end for
+      #end if
+    #end for
+  </article>
+  #if $indicator_warn_exist
+  <article>
+    <h2>Couchbase &#8211; Warning Indicators</h2>
+    <h3>Cluster-wide metrics</h3>
+    #for $counter in sorted($indicator_warn)
+      #set $warn_list = $indicator_warn[$counter]
+      #for $warn_values in $warn_list
+      <p class="p0"><span class="ft3">$warn_values["description"]</span></p>
+      <ul>
+        <li>Symptom
+          #for $warn_val in sorted($warn_values["value"])
+          <ul>
+            <li>Bucket : $warn_values["bucket"] , Node : $warn_val["node"]</li>
+            <li>Value : $warn_val["value"]</li>
+          </ul>
+          #end for
+        </li>
+        <li>Causes - $warn_values["cause"]</li>
+        <li>Impact - $warn_values["impact"]</li>
+        <li>Action - $warn_values["action"]</li>
+      </ul>
+      #end for
+    #end for
+  </article>
+  #end if
 </body>
-</HTML>
+</html>
