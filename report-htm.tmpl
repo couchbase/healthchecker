@@ -112,7 +112,7 @@
   #for $counter in sorted($indicator_error.keys())
     #set $error_list = $indicator_error[$counter]
     #for $error_values in $error_list:
-      <p class="p20"><span class="ft3">$error_values["description"]</span></p>
+      <h4>$error_values["description"]</h4>
       <ul>
         <li>Symptom
       #for $err_val in sorted($error_values["value"])
@@ -257,7 +257,7 @@
   #for $counter in sorted($indicator_warn)
     #set $warn_list = $indicator_warn[$counter]
     #for $warn_values in $warn_list
-      <p class="p0"><span class="ft3">$warn_values["description"]</span></p>
+      <h4>$warn_values["description"]</h4>
       <ul>
         <li>Symptom
       #for $warn_val in sorted($warn_values["value"])
