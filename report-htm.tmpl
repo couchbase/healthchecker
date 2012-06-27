@@ -124,7 +124,7 @@
         </li>
         <li>Causes - $error_values["cause"]</li>
         <li>Impact - $error_values["impact"]</li>
-        <li>Action - $error_values["action"]</li>
+        <li>Action - $error_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
     #end for
   #end for
@@ -269,7 +269,7 @@
         </li>
         <li>Causes - $warn_values["cause"]</li>
         <li>Impact - $warn_values["impact"]</li>
-        <li>Action - $warn_values["action"]</li>
+        <li>Action - $warn_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
     #end for
   #end for
