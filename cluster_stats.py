@@ -439,6 +439,7 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "CacheMissRatio",
             "threshold" : 2,
+            "formula" : "Avg(ep_cache_miss_rate)",
         },
      ],
      "clusterwise" : True,
@@ -452,7 +453,8 @@ ClusterCapsule = [
         {
             "name" : "dgm",
             "description" : "Disk to memory ratio",
-            "code" : "DGMRatio"
+            "code" : "DGMRatio",
+            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
      ],
      "clusterwise" : True,
@@ -469,6 +471,7 @@ ClusterCapsule = [
             "code" : "ARRatio",
             "threshold" : 5,
             "symptom" : "Active to replica resident ratio difference'{0}%' is bigger than '{1}%'",
+            "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
         },
         {
             "name" : "activeResidentRatio",
@@ -478,6 +481,7 @@ ClusterCapsule = [
             "code" : "ResidentItemRatio",
             "threshold" : 30,
             "symptom" : "Active resident item ratio '{0}' is less than '{1}'",
+            "formula" : "Avg(vb_active_resident_items_ratio)",
         },
         {
             "name" : "replicaResidentRatio",
@@ -487,6 +491,7 @@ ClusterCapsule = [
             "code" : "ResidentItemRatio",
             "threshold" : 20,
             "symptom" : "Replica resident item ratio '{0}' is less than '{1}'",
+            "formula" : "Avg(vb_replica_resident_items_ratio)",
         },
      ],
      "clusterwise" : True,
@@ -502,6 +507,7 @@ ClusterCapsule = [
             "scale" : "week",
             "counter" : ["cmd_get", "cmd_set", "delete_hits"],
             "code" : "OpsRatio",
+            "formula" : "Avg(cmd_get) : Avg(cmd_get) : Avg(delete_hits)",
         },
      ],
      "perBucket" : True,
@@ -516,6 +522,7 @@ ClusterCapsule = [
             "scale" : "day",
             "code" : "ItemGrowth",
             "unit" : "percentage",
+            "formula" : "Linear(curr_items)",
         },
      ],
      "clusterwise" : True,
@@ -529,7 +536,8 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "NumVbuckt",
             "threshold" : 1024,
-            "symptom" : "Number of active vBuckets '{0}' is less than '{1}'", 
+            "symptom" : "Number of active vBuckets '{0}' is less than '{1}'",
+            "formula" : "Avg(vb_active_num)",
         },
         {
             "name" : "replicaVBucketNumber",
@@ -539,6 +547,7 @@ ClusterCapsule = [
             "code" : "NumVbuckt",
             "threshold" : 1024,
             "symptom" : "Number of replica vBuckets '{0}' is less than '{1}'", 
+            "formula" : "Avg(vb_replica_num)",
         },
      ],
      "indicator" : True,
@@ -551,6 +560,7 @@ ClusterCapsule = [
             "counter" : "mem_used",
             "scale" : "hour",
             "code" : "MemUsed",
+            "formula" : "Avg(mem_used)",
         },
      ],
      "nodeDisparate" : True,
@@ -563,7 +573,8 @@ ClusterCapsule = [
             "counter" : "ep_tap_queue_backfillremaining",
             "code" : "RebalanceStuck",
             "threshold" : 1000,
-            "symptom" : "Tap queue backfill remaining '{0}' is higher than threshold '{1}'"
+            "symptom" : "Tap queue backfill remaining '{0}' is higher than threshold '{1}'",
+            "formula" : "ep_tap_queue_backfillremaining > threshold",
         },
         {
             "name" : "tapNack",
@@ -572,6 +583,7 @@ ClusterCapsule = [
             "code" : "RebalanceStuck",
             "threshold" : 5,
             "symptom" : "Number of negative tap acks received '{0}' is above threshold '{1}'",
+            "formula" : "num_tap_nack > threshold",
         },
      ],
      "indicator" : True,
@@ -586,6 +598,7 @@ ClusterCapsule = [
             "unit" : "size",
             "threshold" : 1073741824,  # 1GB
             "symptom" : "Total memory fragmentation '{0}' is larger than '{1}'",
+            "formula" : "total_fragmentation_bytes > threshold",
         },
         {
             "name" : "diskDelete",
@@ -595,6 +608,7 @@ ClusterCapsule = [
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk delete time '{0}' is slower than '{1}'",
+            "formula" : "Avg(disk_del) > threshold",
         },
         {
             "name" : "diskUpdate",
@@ -604,6 +618,7 @@ ClusterCapsule = [
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk update time '{0}' is slower than '{1}'",
+            "formula" : "Avg(disk_update) > threshold",
         },
         {
             "name" : "diskInsert",
@@ -614,6 +629,7 @@ ClusterCapsule = [
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk insert time '{0}' is slower than '{1}'",
+            "formula" : "Avg(disk_insert) > threshold",
         },
         {
             "name" : "diskCommit",
@@ -623,6 +639,7 @@ ClusterCapsule = [
             "unit" : "time",
             "threshold" : 5000000,     #10s
             "symptom" : "Average disk commit time '{0}' is slower than '{1}'",
+            "formula" : "Avg(disk_commit) > threshold",
         },
      ],
      "indicator" : True,
@@ -636,6 +653,7 @@ ClusterCapsule = [
             "code" : "EPEnginePerformance",
             "threshold" : "running",
             "symptom" : "The flusher is not running",
+            "formula" : "ep_flusher_state == True",
         },
         {
             "name" : "flusherCompleted",
@@ -643,7 +661,8 @@ ClusterCapsule = [
             "counter" : "ep_flusher_num_completed",
             "code" : "EPEnginePerformance",
             "threshold" : 0,
-            "symptom" : "The flusher is not persisting any items"
+            "symptom" : "The flusher is not persisting any items",
+            "formula" : "ep_flusher_num_completed == 0",
         },
         {
             "name" : "avgItemLoadTime",
@@ -652,6 +671,7 @@ ClusterCapsule = [
             "code" : "EPEnginePerformance",
             "threshold" : 100,
             "symptom" : "Average time '{0}' for items to be loaded is slower than '{1}'",  
+            "formula" : "Avg(ep_bg_load_avg) > threshold",
         },
         {
             "name" : "avgItemWaitTime",
@@ -660,6 +680,7 @@ ClusterCapsule = [
             "code" : "EPEnginePerformance",
             "threshold" : 100,
             "symptom" : "Average wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
+            "formula" : "Avg(ep_bg_wait_avg) > threshold",
         },
      ],
      "indicator" : True,

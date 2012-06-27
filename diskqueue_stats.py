@@ -93,7 +93,7 @@ class ReplicationTrend:
                     res.append((active[0], 0))
                 else:
                     ratio = 100.0 * replica[1] / active[1] 
-                    delta = active[1] - replica[1]
+                    delta = replica[1]
                     res.append((active[0], util.pretty_float(ratio)))
                     if ratio > threshold_val["percentage"]["high"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
@@ -177,7 +177,8 @@ DiskQueueCapsule = [
                 "low" : 50000000,
                 "high" : 1000000000
             },
-            "symptom" : "Disk write queue length '{0}' has reached '{1}' items"
+            "symptom" : "Disk write queue length '{0}' has reached '{1}' items",
+            "formula" : "Avg(disk_write_queue) > threshold"
         },
         {
             "name" : "diskQueueTrend",
@@ -190,7 +191,8 @@ DiskQueueCapsule = [
                 "low" : 0.01,
                 "high" : 0.25
             },
-            "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'"
+            "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'",
+            "formula" : "Linear(disk_write_queue) > threshold",
         },
      ],
      "indicator" : True,
@@ -213,7 +215,8 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
-            "symptom" : "Number of remaining items for replication '{0}' is above threshold '{1}'"
+            "symptom" : "Number of backlog items for replication '{0}' is above threshold '{1}'",
+            "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) < threshold",
         }
      ],
      "pernode" : True,
@@ -234,6 +237,7 @@ DiskQueueCapsule = [
                 "diskLength" : 100000,
             },
             "symptom" : "Active disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
+            "formula" : "Avg(vb_active_queue_drain) < threshold AND Avg(disk_write_queue) > threshold",
         },
         {
             "name" : "replicaDiskQueueDrainRate",
@@ -247,6 +251,7 @@ DiskQueueCapsule = [
                 "diskLength" : 100000,
             },
             "symptom" : "Replica disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
+            "formula" : "Avg(vb_replica_queue_drain) < threshold AND Avg(disk_write_queue) > threshold"
         },
      ],
      "indicator" : True,

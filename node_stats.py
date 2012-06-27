@@ -189,6 +189,7 @@ NodeCapsule = [
                 "high" : 1000,
             },
             "symptom" : "Number of connections '{0}' reaches connection maximum '{1}'",
+            "formula" : "Avg(curr_connections) > threshold",
         },
      ],
      "nodewise" : True,
@@ -202,6 +203,7 @@ NodeCapsule = [
             "counter" : "ep_oom_errors",
             "scale" : "hour",
             "code" : "CalcTrend",
+            "formula" : "ep_oom_errors",
         },
         {
             "name" : "tempOomErrors",
@@ -209,18 +211,11 @@ NodeCapsule = [
             "counter" : "ep_tmp_oom_errors",
             "scale" : "hour",
             "code" : "CalcTrend",
-        },
-     ]
-    },
-    {"name" : "bucketList",
-     "ingredients" : [
-        {
-            "name" : "bucketList",
-            "description" : "Bucket list",
-            "code" : "BucketList",
+            "formula" : "ep_tmp_oom_errors",
         },
      ],
      "nodewise" : True,
+     "perBucket"  : True, 
     },
     {"name" : "nodeStorageStats",
      "ingredients" : [
@@ -251,6 +246,7 @@ NodeCapsule = [
             "code" : "NodePerformanceStats",
             "threshold" : 1000,
             "symptom" : "Number of items in a checkpoint '{0}' reaches threshold '{1}'",
+            "formula" : "num_checkpoint_items > threshold",
         },
      ],
      "perBucket" : True,
@@ -263,6 +259,7 @@ NodeCapsule = [
             "counter" : "disk_commit",
             "code" : "NodePerformanceStats",
             "unit" : "time",
+            "formula" : "Avg(disk_commit)",
         },
         {
             "name" : "diskUpdate",
@@ -270,6 +267,7 @@ NodeCapsule = [
             "counter" : "disk_update",
             "code" : "NodePerformanceStats",
             "unit" : "time",
+            "formula" : "Avg(disk_update)",
         },
         {
             "name" : "diskInsert",
@@ -277,6 +275,7 @@ NodeCapsule = [
             "counter" : "disk_insert",
             "code" : "NodePerformanceStats",
             "unit" : "time",
+            "formula" : "Avg(disk_insert)",
         },
         {
             "name" : "diskDelete",
@@ -284,6 +283,7 @@ NodeCapsule = [
             "counter" : "disk_del",
             "code" : "NodePerformanceStats",
             "unit" : "time",
+            "formula" : " Avg(disk_del)",
         },
      ],
      "perBucket" : True,
@@ -296,6 +296,7 @@ NodeCapsule = [
             "counter" : "item_alloc_sizes",
             "code" : "NodePerformanceStats",
             "unit" : "size",
+            "formula" : "Avg(item_alloc_sizes)",
         },
      ],
      "perBucket" : True,
@@ -308,6 +309,7 @@ NodeCapsule = [
             "counter" : "total_heap_bytes",
             "code" : "NodePerformanceStats",
             "unit" : "size",
+            "formula" : "total_heap_bytes",
         },
         {
             "name" : "totalFragmentation",
@@ -315,6 +317,7 @@ NodeCapsule = [
             "counter" : "total_fragmentation_bytes",
             "code" : "NodePerformanceStats",
             "unit" : "size",
+            "formula" : "total_fragmentation_bytes",
         },
         {
             "name" : "totalInternalMemory",
@@ -322,6 +325,7 @@ NodeCapsule = [
             "counter" : "mem_used",
             "code" : "NodePerformanceStats",
             "unit" : "size",
+            "formula" : "mem_used",
         },
         {
             "name" : "overhead",
@@ -330,6 +334,7 @@ NodeCapsule = [
             "scale" : "hour",
             "code" : "NodePerformanceStats",
             "unit" : "size",
+            "formula" : "ep_overhead",
         },
      ],
      "perBucket" : True,
@@ -341,19 +346,22 @@ NodeCapsule = [
             "description" : "Engine flusher state",
             "counter" : "ep_flusher_state",
             "code" : "NodePerformanceStats",
+            "formula" : "ep_flusher_state",
         },
         {
             "name" : "flusherCompleted",
             "description" : "Flusher completed",
             "counter" : "ep_flusher_num_completed",
             "code" : "NodePerformanceStats",
+            "formula" : "ep_flusher_num_completed",
         },
         {
             "name" : "avgItemLoadTime",
             "description" : "Average item loaded time",
             "counter" : "ep_bg_load_avg",
             "code" : "NodePerformanceStats",
-            "unit" : "time"
+            "unit" : "time",
+            "formula" : "ep_bg_load_avg",
         },
         {
             "name" : "avgItemWaitTime",
@@ -361,6 +369,7 @@ NodeCapsule = [
             "counter" : "ep_bg_wait_avg",
             "code" : "NodePerformanceStats",
             "unit" : "time",
+            "formula" : "ep_bg_wait_avg",
         },
      ],
      "perNode" : True,

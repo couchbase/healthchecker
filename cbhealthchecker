@@ -20,7 +20,7 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False, '')
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False, False, '')
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
@@ -51,7 +51,8 @@ def parse_opt():
         if opt in ('-p', '--password'):
             password = arg
         if opt in ('-d', '--debug'):
-            log.setLevel(logging.DEBUG)
+            debug = True
+            #log.setLevel(logging.DEBUG)
         if opt in ('-o', '--output'):
             htmlfile = arg
         if opt in ('-v', '--verbose'):
@@ -61,7 +62,7 @@ def parse_opt():
 
     if not cluster and not inputfile: 
         usage()
-    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile, opts)
+    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile, opts)
 
 def usage(error_msg=''):
     if error_msg:
@@ -83,21 +84,21 @@ OPTIONS:
   -b BUCKETNAME, --bucket=BUCKETNAME Specific bucket name. Default is all buckets
   -i FILENAME, --input=FILENAME      Construct report out of input JSON file
   -o FILENAME, --output=FILENAME     Default output filename is 'health_report.html'
-  -d --debug
+  -d --debug                         Show diagnosis information
   -h --help                          Show this help message and exit
   -v --verbose                       Display detailed node level information
 """
     sys.exit(2)
 
 def main():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose, inputfile, opts) = parse_opt()
+    (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile, opts) = parse_opt()
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
     retriever.collect_data(bucket, cluster, user, password, inputfile, opts)
 
     #analyze the snapshot and historic data
     performer = analyzer.StatsAnalyzer(log)
-    performer.run_analysis()
+    performer.run_analysis(debug)
     performer.run_report(txtfile, htmlfile, verbose)
 
 if __name__ == '__main__':

@@ -96,40 +96,40 @@
   <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
   <p class="p2">
     <strong>Overall cluster health:</strong>
-    #if $globals.cluster_health == "Error"
+#if $globals.cluster_health == "Error"
     <span class="status-error">Immediate action needed</span>
-    #elif $globals.cluster_health == "Warning"
+#elif $globals.cluster_health == "Warning"
     <span class="status-warning">Attention needed</span>
-    #else
+#else
     <span class="status-ok">OK</span>
-    #end if
+#end if
   </p>
 
-  #if $indicator_error_exist
+#if $indicator_error_exist
   <article>
     <h2>Couchbase &#8211; Alerts</h2>
     <h3>Cluster-wide metrics</h3>
-    #for $counter in sorted($indicator_error.keys())
-      #set $error_list = $indicator_error[$counter]
-      #for $error_values in $error_list:
+  #for $counter in sorted($indicator_error.keys())
+    #set $error_list = $indicator_error[$counter]
+    #for $error_values in $error_list:
       <p class="p20"><span class="ft3">$error_values["description"]</span></p>
       <ul>
         <li>Symptom
-        #for $err_val in sorted($error_values["value"])
+      #for $err_val in sorted($error_values["value"])
           <ul>
             <li>Bucket : $error_values["bucket"] , Node : $err_val["node"]</li>
             <li>Value : $err_val["value"]</li>
           </ul>
-        #end for
+      #end for
         </li>
         <li>Causes - $error_values["cause"]</li>
         <li>Impact - $error_values["impact"]</li>
         <li>Action - $error_values["action"]</li>
       </ul>
-      #end for
     #end for
+  #end for
   </article>
-  #end if
+#end if
 
   <article>
     <h2>Couchbase Cluster Overview</h2>
@@ -141,12 +141,12 @@
         <th>Status</th>
       </tr>
     </thead>
-    #for $bucket in sorted($bucket_list.keys())
+#for $bucket in sorted($bucket_list.keys())
       <tr>
         <td>$bucket</td>
         <td>$bucket_list[$bucket]</td>
       </tr>
-    #end for
+#end for
     </table>
     <h3>Node list</h3>
     <table class="t1">
@@ -157,13 +157,13 @@
         <th>Status</th>
       </tr>
     </thead>
-      #for $node in sorted($node_list["nodeList"]["value"])
+#for $node in sorted($node_list["nodeList"]["value"])
       <tr>
         <td>$node["host"]</td>
         <td>$node["version"]</td>
         <td>$node["status"]</td>
       </tr>
-      #end for
+#end for
     </table>
     <ul>
       <li>Total number of nodes in the cluster: $node_list["numNodes"]["value"]</li>
@@ -172,102 +172,102 @@
     </ul>
     <h3>Cluster-wide metrics</h3>
     <table class="t1">
-    #for $key in sorted($cluster_symptoms.keys())
-      #set $value = $cluster_symptoms[$key]
+#for $key in sorted($cluster_symptoms.keys())
+  #set $value = $cluster_symptoms[$key]
       <tr>
         <td>$value["description"]</td>
         <td>$value["value"]</td>
       </tr>
-    #end for
+#end for
     </table>
 
     <h3>Bucket metrics</h3>
-    #for $bucket in sorted($bucket_list.keys())
-      #set $status = $bucket_list[$bucket]
+#for $bucket in sorted($bucket_list.keys())
+  #set $status = $bucket_list[$bucket]
       <p class="p2"><strong>Bucket name: </strong><span class="ft3">$bucket</span></p>
       <p class="p10">
         <strong>Status &#8211; </strong>
-        #if $status == "Error"
+  #if $status == "Error"
         <span class="status-error">Immediate action needed</span>
-        #elif $status == "Warning"
+  #elif $status == "Warning"
         <span class="status-warning">Attention needed</span>
-        #else
+  #else
         <span class="status-ok">OK</span>
-        #end if
+  #end if
       </p>
       <table class="t1">
-      #for $symptom in sorted($bucket_symptoms[$bucket])
+  #for $symptom in sorted($bucket_symptoms[$bucket])
         <tr>
           <td>$symptom["description"]</td>
-          #if $symptom["status"] == "Error"
+    #if $symptom["status"] == "Error"
           <td class="status-error">$symptom["value"]</td>
-          #elif $symptom["status"] == "Warning"
+    #elif $symptom["status"] == "Warning"
           <td class="status-warning">$symptom["value"]</td>
-          #else
+    #else
           <td>$symptom["value"]</td>
-          #end if
+    #end if
         </tr>
-      #end for
+  #end for
       </table>
-      #if $verbose
-      #for $node in sorted($bucket_node_symptoms[$bucket])
-        #set $node_values = $bucket_node_symptoms[$bucket][$node]
+  #if $verbose
+    #for $node in sorted($bucket_node_symptoms[$bucket])
+      #set $node_values = $bucket_node_symptoms[$bucket][$node]
         <p class="p12"><strong>IP address: $node</strong></p>
         <p class="p10"><strong>Status &#8211; </strong>
-        #if $bucket_node_status[$bucket].has_key($node)
-            #if $bucket_node_status[$bucket][$node] == "Error"
+      #if $bucket_node_status[$bucket].has_key($node)
+        #if $bucket_node_status[$bucket][$node] == "Error"
             <span class="status-error">Immediate action needed</span>
-            #elif $bucket_node_status[$bucket][$node] == "Warning"
+        #elif $bucket_node_status[$bucket][$node] == "Warning"
             <span class="status-warning">Attention needed</span>
-            #else
-            <span class="status-ok">OK</span>
-            #end if
         #else
-          <span class="status-ok">OK</span>
+            <span class="status-ok">OK</span>
         #end if
+      #else
+          <span class="status-ok">OK</span>
+      #end if
         </p>
         <table class="t1">
-        #for $node_value in sorted($node_values)
+      #for $node_value in sorted($node_values)
           <tr>
             <td>$node_value["description"]</td>
-            #if $node_value["status"] == "Error"
+        #if $node_value["status"] == "Error"
             <td class="status-error">$node_value["value"]</td>
-            #elif $node_value["status"] == "Warning"
+        #elif $node_value["status"] == "Warning"
             <td class="status-warning">$node_value["value"]</td>
-            #else
+        #else
             <td>$node_value["value"]</td>
-            #end if
+        #end if
           </tr>
-        #end for
-        </table>
       #end for
-      #end if
+        </table>
     #end for
+  #end if
+#end for
   </article>
-  #if $indicator_warn_exist
+#if $indicator_warn_exist
   <article>
     <h2>Couchbase &#8211; Warning Indicators</h2>
     <h3>Cluster-wide metrics</h3>
-    #for $counter in sorted($indicator_warn)
-      #set $warn_list = $indicator_warn[$counter]
-      #for $warn_values in $warn_list
+  #for $counter in sorted($indicator_warn)
+    #set $warn_list = $indicator_warn[$counter]
+    #for $warn_values in $warn_list
       <p class="p0"><span class="ft3">$warn_values["description"]</span></p>
       <ul>
         <li>Symptom
-          #for $warn_val in sorted($warn_values["value"])
+      #for $warn_val in sorted($warn_values["value"])
           <ul>
             <li>Bucket : $warn_values["bucket"] , Node : $warn_val["node"]</li>
             <li>Value : $warn_val["value"]</li>
           </ul>
-          #end for
+      #end for
         </li>
         <li>Causes - $warn_values["cause"]</li>
         <li>Impact - $warn_values["impact"]</li>
         <li>Action - $warn_values["action"]</li>
       </ul>
-      #end for
     #end for
+  #end for
   </article>
-  #end if
+#end if
 </body>
 </html>

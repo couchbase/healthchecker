@@ -43,7 +43,7 @@ class StatsAnalyzer:
     def __init__(self, log):
         self.log = log
 
-    def run_analysis(self):
+    def run_analysis(self, debug):
 
         for bucket in stats_buffer.buckets.iterkeys():
             bucket_list[bucket] = "OK"
@@ -66,6 +66,8 @@ class StatsAnalyzer:
                                     cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                             else:
                                 cluster_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
+                            if debug and counter.has_key("formula"):
+                                cluster_symptoms[counter["name"]]["formula"] = counter["formula"]
                         if pill.has_key("perBucket") and pill["perBucket"] :
                             for bucket, values in result.iteritems():
                                 if bucket == "cluster":
@@ -82,14 +84,32 @@ class StatsAnalyzer:
                                     if val[0] == "variance" or val[0] == "error":
                                         continue
                                     elif val[0] == "total":
-                                        bucket_symptoms[bucket].append({"description":counter["description"], "value":val[1], "status":status})
+                                        if debug and counter.has_key("formula"):
+                                            bucket_symptoms[bucket].append({"description":counter["description"], 
+                                                                            "value":val[1], 
+                                                                            "status":status, 
+                                                                            "formula":counter["formula"]})
+                                        else:
+                                            bucket_symptoms[bucket].append({"description":counter["description"], "value":val[1], "status":status})
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                             bucket_node_symptoms[bucket][val[0]] = []
-                                        bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], "value" : val[1], "status":status})
-
+                                        if debug and counter.has_key("formula"):
+                                            bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
+                                                                                         "value" : val[1], 
+                                                                                         "status":status,
+                                                                                         "formula":counter["formula"]})
+                                        else:
+                                            bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
+                                                                                         "value" : val[1], 
+                                                                                         "status":status})
                         if pill.has_key("perNode") and pill["perNode"] :
-                            node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
+                            if debug and counter.has_key("formula"):
+                                node_symptoms[counter["name"]] = {"description" : counter["description"], 
+                                                                  "value":result, 
+                                                                  "formula":counter["formula"]}
+                            else:
+                                node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                         if pill.has_key("nodewise") and pill["nodewise"]:
                             node_list[counter["name"]] = {"description" : counter["description"], "value":result}
                         if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
@@ -115,7 +135,17 @@ class StatsAnalyzer:
                                         if values.has_key("error"):
                                             if indicator_error.has_key(counter["name"]) == False:
                                                 indicator_error[counter["name"]] = []
-                                            indicator_error[counter["name"]].append({"description" : counter["description"], 
+                                            if debug and counter.has_key("formula"): 
+                                                indicator_error[counter["name"]].append({"description" : counter["description"], 
+                                                                            "bucket": bucket, 
+                                                                            "value":values["error"], 
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
+                                                                            "formula" : counter["formula"],
+                                                                           })
+                                            else:
+                                                indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":values["error"], 
                                                                             "cause" : cause,
@@ -128,7 +158,17 @@ class StatsAnalyzer:
                                         if values.has_key("warn"):
                                             if indicator_warn.has_key(counter["name"]) == False:
                                                 indicator_warn[counter["name"]] = []
-                                            indicator_warn[counter["name"]].append({"description" : counter["description"],
+                                            if debug and counter.has_key("formula"): 
+                                                indicator_warn[counter["name"]].append({"description" : counter["description"],
+                                                                           "bucket": bucket,
+                                                                           "value":values["warn"],
+                                                                           "cause" : cause,
+                                                                           "impact" : impact,
+                                                                           "action" : action,
+                                                                           "formula" : counter["formula"],
+                                                                          })
+                                            else:
+                                                indicator_warn[counter["name"]].append({"description" : counter["description"],
                                                                            "bucket": bucket,
                                                                            "value":values["warn"],
                                                                            "cause" : cause,
@@ -145,7 +185,17 @@ class StatsAnalyzer:
                                             if val[0] == "error":
                                                 if indicator_error.has_key(counter["name"]) == False:
                                                     indicator_error[counter["name"]] = []
-                                                indicator_error[counter["name"]].append({"description" : counter["description"], 
+                                                if debug and counter.has_key("formula"):
+                                                    indicator_error[counter["name"]].append({"description" : counter["description"], 
+                                                                            "bucket": bucket, 
+                                                                            "value":val[1], 
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
+                                                                            "formula": counter["formula"],
+                                                                           })
+                                                else:
+                                                    indicator_error[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : cause,
@@ -158,7 +208,17 @@ class StatsAnalyzer:
                                             elif val[0] == "warn":
                                                 if indicator_warn.has_key(counter["name"]) == False:
                                                     indicator_warn[counter["name"]] = []
-                                                indicator_warn[counter["name"]].append({"description" : counter["description"], 
+                                                if debug and counter.has_key("formula"):
+                                                    indicator_warn[counter["name"]].append({"description" : counter["description"], 
+                                                                            "bucket": bucket, 
+                                                                            "value":val[1], 
+                                                                            "cause" : cause,
+                                                                            "impact" : impact,
+                                                                            "action" : action,
+                                                                            "formula": counter["formula"],
+                                                                           })
+                                                else:
+                                                    indicator_warn[counter["name"]].append({"description" : counter["description"], 
                                                                             "bucket": bucket, 
                                                                             "value":val[1], 
                                                                             "cause" : cause,
