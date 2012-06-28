@@ -251,7 +251,7 @@ class StatsAnalyzer:
         else:
             globals["cluster_health"] = "OK"
 
-    def run_report(self, txtfile, htmlfile, verbose):
+    def run_report(self, txtfile, htmlfile, verbose, scale):
         
         dict = {
             "globals" : globals,
@@ -267,6 +267,7 @@ class StatsAnalyzer:
             "indicator_error" : indicator_error,
             "indicator_error_exist" : len(indicator_error) > 0,
             "verbose" : verbose,
+            "scale" : scale,
         }
 
         # read the current version number

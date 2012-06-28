@@ -248,6 +248,7 @@ class StatsCollector:
             self.log.debug(util.pretty_print(stats_buffer.buckets))
 
             collected_data = {}
+            collected_data["scale"] = scale
             collected_data["nodes"] = stats_buffer.nodes
             collected_data["bucket_info"] = stats_buffer.bucket_info
             collected_data["buckets_summary"] = stats_buffer.buckets_summary
@@ -264,3 +265,5 @@ class StatsCollector:
             stats_buffer.buckets_summary = collected_data["buckets_summary"]
             stats_buffer.node_stats = collected_data["node_stats"]
             stats_buffer.buckets = collected_data["buckets"]
+            scale = collected_data["scale"]
+        return scale

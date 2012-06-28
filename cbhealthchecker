@@ -100,12 +100,11 @@ def main():
 
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
-    retriever.collect_data(bucket, cluster, user, password, inputfile, scale, opts)
-
+    scale = retriever.collect_data(bucket, cluster, user, password, inputfile, scale, opts)
     #analyze the snapshot and historic data
     performer = analyzer.StatsAnalyzer(log)
     performer.run_analysis(scale, debug)
-    performer.run_report(txtfile, htmlfile, verbose)
+    performer.run_report(txtfile, htmlfile, verbose, scale)
 
 if __name__ == '__main__':
     main()
