@@ -112,7 +112,7 @@
   #for $counter in sorted($indicator_error.keys())
     #set $error_list = $indicator_error[$counter]
     #for $error_values in $error_list:
-      <p class="p20"><span class="ft3">$error_values["description"]</span></p>
+      <h4>$error_values["description"]</h4>
       <ul>
         <li>Symptom
       #for $err_val in sorted($error_values["value"])
@@ -124,7 +124,7 @@
         </li>
         <li>Causes - $error_values["cause"]</li>
         <li>Impact - $error_values["impact"]</li>
-        <li>Action - $error_values["action"]</li>
+        <li>Action - $error_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
     #end for
   #end for
@@ -141,16 +141,11 @@
         <th>Health Status</th>
       </tr>
     </thead>
-#for $bucket in sorted($bucket_list.keys())
+    #for $bucket in sorted($bucket_list.keys())
+      #set $bucket_status_class = 'status-' + $bucket_list[$bucket].lower()
       <tr>
         <td>$bucket</td>
-  #if $bucket_list[$bucket] == "Error"
-        <td class="status-error">Immediate action needed</td>
-  #elif $bucket_list[$bucket] == "Warning"
-        <td class="status-warning">Attention needed</td>
-  #else
-        <td class="status-ok">OK</td>
-  #end if
+        <td class="$bucket_status_class">$bucket_list[$bucket]</td>
       </tr>
 #end for
     </table>
@@ -163,11 +158,12 @@
         <th>Cluster Status</th>
       </tr>
     </thead>
-#for $node in sorted($node_list["nodeList"]["value"])
+      #for $node in sorted($node_list["nodeList"]["value"])
+      #set $node_status_class = 'status-' + $node["status"].lower()
       <tr>
         <td>$node["host"]</td>
         <td>$node["version"]</td>
-        <td>$node["status"]</td>
+        <td class="$node_status_class">$node["status"]</td>
       </tr>
 #end for
     </table>
@@ -257,7 +253,7 @@
   #for $counter in sorted($indicator_warn)
     #set $warn_list = $indicator_warn[$counter]
     #for $warn_values in $warn_list
-      <p class="p0"><span class="ft3">$warn_values["description"]</span></p>
+      <h4>$warn_values["description"]</h4>
       <ul>
         <li>Symptom
       #for $warn_val in sorted($warn_values["value"])
@@ -269,7 +265,7 @@
         </li>
         <li>Causes - $warn_values["cause"]</li>
         <li>Impact - $warn_values["impact"]</li>
-        <li>Action - $warn_values["action"]</li>
+        <li>Action - $warn_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
     #end for
   #end for
