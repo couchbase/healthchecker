@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import traceback
 import copy
@@ -254,7 +255,7 @@ class StatsCollector:
             collected_data["buckets_summary"] = stats_buffer.buckets_summary
             collected_data["node_stats"] = stats_buffer.node_stats
             collected_data["buckets"] = stats_buffer.buckets
-            self.write_file(statsfile, collected_data)
+            self.write_file(os.path.join('reports', statsfile), collected_data)
         else:
             import json
             json_data=open(inputfile)

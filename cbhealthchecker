@@ -111,13 +111,13 @@ def main():
     retriever = collector.StatsCollector(log)
     scale = retriever.collect_data(bucket, cluster, user, password, inputfile, statsfile, scale, opts)
     if statsonly:
-        sys.stderr.write("\nThe run finished successfully. Please find collected stats at '{0}'.\n".format(statsfile))
+        sys.stderr.write("\nThe run finished successfully. Please find collected stats at 'reports/{0}'.\n".format(statsfile))
         sys.exit(0)
     else:
         #analyze the snapshot and historic data
         performer = analyzer.StatsAnalyzer(log)
         performer.run_analysis(scale)
         performer.run_report(txtfile, htmlfile, verbose, scale, debug)
-        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.\n".format(htmlfile, txtfile))
+        sys.stderr.write("\nThe run finished successfully. Please find html output at 'reports/{0}' and text output at 'reports/{1}'.\n".format(htmlfile, txtfile))
 if __name__ == '__main__':
     main()

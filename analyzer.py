@@ -264,7 +264,17 @@ class StatsAnalyzer:
             globals["cluster_health"] = "OK"
 
     def run_report(self, txtfile, htmlfile, verbose, scale, debug):
+        working_dir = os.path.dirname(sys.argv[0])
+        reports_dir = os.path.join(working_dir, 'reports')
+        try:
+            os.mkdir(reports_dir)
+        except OSError:
+            # directory exists, and that's OK
+            pass
         
+        txtfile = os.path.join(reports_dir, txtfile)
+        htmlfile = os.path.join(reports_dir, htmlfile)
+
         dict = {
             "util": UtilTool(),
             "globals" : globals,
@@ -311,7 +321,6 @@ class StatsAnalyzer:
         print >> f, util.pretty_print(report)
         f.close()
 
-        mydir = os.path.dirname(sys.argv[0])
         f = open(htmlfile, 'w')
-        print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
+        print >> f, Template(file=os.path.join(working_dir, "report-htm.tmpl"), searchList=[dict])
         f.close()
