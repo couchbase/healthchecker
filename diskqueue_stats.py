@@ -2,7 +2,7 @@ import stats_buffer
 import util_cli as util
 
 class AvgDiskQueue:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("DiskQueueDiagnosis"):
             threshold_val = threshold["DiskQueueDiagnosis"][accessor["name"]]
@@ -12,7 +12,7 @@ class AvgDiskQueue:
             #print bucket, stats_info
             disk_queue_avg_error = []
             disk_queue_avg_warn = []
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
             for node, vals in nodeStats.iteritems():
@@ -33,7 +33,7 @@ class AvgDiskQueue:
         return result
 
 class DiskQueueTrend:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("DiskQueueDiagnosis"):
             threshold_val = threshold["DiskQueueDiagnosis"][accessor["name"]]
@@ -42,7 +42,7 @@ class DiskQueueTrend:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             trend_error = []
             trend_warn = []
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
@@ -62,7 +62,7 @@ class DiskQueueTrend:
         return result
 
 class ReplicationTrend:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
         if threshold.has_key("ReplicationTrend"):
@@ -77,7 +77,7 @@ class ReplicationTrend:
             num_error = []
             num_warn = []
             for counter in accessor["counter"]:
-                values = stats_info[accessor["scale"]][counter]
+                values = stats_info[scale][counter]
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
@@ -131,7 +131,7 @@ class ReplicationTrend:
         return result
 
 class DiskQueueDrainingRate:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("DiskQueueDrainingAnalysis"):
             threshold_val = threshold["DiskQueueDrainingAnalysis"][accessor["name"]]
@@ -141,8 +141,8 @@ class DiskQueueDrainingRate:
             #print bucket, stats_info
             disk_queue_avg_error = []
             disk_queue_avg_warn = []
-            drain_values = stats_info[accessor["scale"]][accessor["counter"][0]]
-            len_values = stats_info[accessor["scale"]][accessor["counter"][1]]
+            drain_values = stats_info[scale][accessor["counter"][0]]
+            len_values = stats_info[scale][accessor["counter"][1]]
             nodeStats = drain_values["nodeStats"]
             samplesCount = drain_values["samplesCount"]
             for node, vals in nodeStats.iteritems():

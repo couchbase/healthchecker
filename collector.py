@@ -207,7 +207,8 @@ class StatsCollector:
                             stats_buffer.nodes[node['hostname']]['status'] = 'down'
                             traceback.print_exc()
 
-    def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, opts):
+    def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, scale, opts):
+        stats_buffer.stats[scale] = stats_buffer.counters
         for bucket in bucketlist:
             bucket_name = bucket['name']
             if bucketname == 'all' or bucket_name == bucketname:
@@ -219,14 +220,13 @@ class StatsCollector:
                             sys.stderr.write('.')
                             self.log.debug("retrieve: %s" % stat)
                             c = buckets.BucketNodeStats(bucket_name, stat, scale)
-
                             json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
                             stats_buffer.buckets[bucket_name][scale][stat] = json
                         except Exception, err:
                             traceback.print_exc()
                 sys.stderr.write('\n')
 
-    def collect_data(self, bucketname, cluster, user, password, inputfile, opts):
+    def collect_data(self, bucketname, cluster, user, password, inputfile, scale, opts):
         if not inputfile:
             server, port = util.hostport(cluster)
 
@@ -244,7 +244,7 @@ class StatsCollector:
             self.log.debug(util.pretty_print(stats_buffer.node_stats))
         
             #get stats from ns-server
-            self.get_ns_stats(bucketlist, server, port, user, password, bucketname, opts)
+            self.get_ns_stats(bucketlist, server, port, user, password, bucketname, scale, opts)
             self.log.debug(util.pretty_print(stats_buffer.buckets))
 
             collected_data = {}

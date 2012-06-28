@@ -43,7 +43,7 @@ class StatsAnalyzer:
     def __init__(self, log):
         self.log = log
 
-    def run_analysis(self, debug):
+    def run_analysis(self, scale, debug):
 
         for bucket in stats_buffer.buckets.iterkeys():
             bucket_list[bucket] = "OK"
@@ -56,7 +56,7 @@ class StatsAnalyzer:
                 self.log.debug(pill['name'])
                 for counter in pill['ingredients']:
                     try:
-                        result = eval("{0}.{1}().run(counter, threshold.{2})".format(package_name, counter['code'], capsule_name))
+                        result = eval("{0}.{1}().run(counter, scale, threshold.{2})".format(package_name, counter['code'], capsule_name))
                         self.log.debug(counter)
                         if pill.has_key("clusterwise") and pill["clusterwise"] :
                             if isinstance(result, dict):

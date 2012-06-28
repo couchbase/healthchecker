@@ -1,12 +1,8 @@
 import stats_buffer
 import util_cli as util
 
-class BucketSummary:
-    def run(self, accessor):
-        return  stats_buffer.bucket_info
-
 class DGMRatio:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = []
         hdd_total = 0
         ram_total = 0
@@ -24,7 +20,7 @@ class DGMRatio:
         return util.pretty_float(ratio) + "%"
 
 class ARRatio:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
         if threshold.has_key("ActiveReplicaResidentRatio"):
@@ -38,7 +34,7 @@ class ARRatio:
             }
             num_error = []
             for counter in accessor["counter"]:
-                values = stats_info[accessor["scale"]][counter]
+                values = stats_info[scale][counter]
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
@@ -82,7 +78,7 @@ class ARRatio:
         return result
 
 class OpsRatio:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         read_cluster = write_cluster = del_cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
@@ -92,7 +88,7 @@ class OpsRatio:
                 "delete_hits" : [],
             }
             for counter in accessor["counter"]:
-                values = stats_info[accessor["scale"]][counter]
+                values = stats_info[scale][counter]
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
@@ -138,14 +134,14 @@ class OpsRatio:
         return result
 
 class CacheMissRatio:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
         thresholdval = accessor["threshold"]
         if threshold.has_key("CacheMissRatio"):
             thresholdval = threshold["CacheMissRatio"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
@@ -180,7 +176,7 @@ class CacheMissRatio:
         return result
 
 class ResidentItemRatio:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
         if threshold.has_key("ActiveReplicaResidentRatio"):
@@ -188,7 +184,7 @@ class ResidentItemRatio:
         else:
             threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
@@ -225,11 +221,11 @@ class ResidentItemRatio:
         return result
 
 class MemUsed:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
@@ -250,13 +246,13 @@ class MemUsed:
         return result
 
 class ItemGrowth:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         start_cluster = 0
         end_cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             trend = []
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
@@ -285,7 +281,7 @@ class ItemGrowth:
         return result
 
 class NumVbuckt:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("VBucketNumber"):
             threshold_val = threshold["VBucketNumber"][accessor["name"]]
@@ -297,7 +293,7 @@ class NumVbuckt:
         avg_threshold = threshold_val / num_node
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             num_error = []
-            values = stats_info[accessor["scale"]][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
             for node, vals in nodeStats.iteritems():
                 if vals[-1] > 0 and vals[-1] < avg_threshold:
@@ -308,7 +304,7 @@ class NumVbuckt:
         return result
 
 class RebalanceStuck:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("RebalancePerformance"):
             threshold_val = threshold["RebalancePerformance"][accessor["name"]]
@@ -327,7 +323,7 @@ class RebalanceStuck:
         return result
 
 class MemoryFramentation:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("MemoryFragmentation"):
             threshold_val = threshold["MemoryFragmentation"][accessor["name"]]
@@ -359,7 +355,7 @@ class MemoryFramentation:
         return result
 
 class EPEnginePerformance:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("EPEnginePerformance"):
             threshold_val = threshold["EPEnginePerformance"][accessor["name"]]
@@ -384,7 +380,7 @@ class EPEnginePerformance:
         return result
 
 class TotalDataSize:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["status"] != "healthy":
@@ -394,7 +390,7 @@ class TotalDataSize:
         return util.size_label(total)
 
 class AvailableDiskSpace:
-    def run(self, accessor, threshold=None):
+    def run(self, accessor, scale, threshold=None):
         result = []
         total = 0
         for node, nodeinfo in stats_buffer.nodes.iteritems():
