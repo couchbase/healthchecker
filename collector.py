@@ -226,7 +226,7 @@ class StatsCollector:
                             traceback.print_exc()
                 sys.stderr.write('\n')
 
-    def collect_data(self, bucketname, cluster, user, password, inputfile, scale, opts):
+    def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale, opts):
         if not inputfile:
             server, port = util.hostport(cluster)
 
@@ -254,7 +254,7 @@ class StatsCollector:
             collected_data["buckets_summary"] = stats_buffer.buckets_summary
             collected_data["node_stats"] = stats_buffer.node_stats
             collected_data["buckets"] = stats_buffer.buckets
-            self.write_file("stats.json", collected_data)
+            self.write_file(statsfile, collected_data)
         else:
             import json
             json_data=open(inputfile)

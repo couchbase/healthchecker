@@ -20,11 +20,11 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler())
 
 def parse_opt():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile, scale) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', False, False, '', 'day')
+    (bucket, cluster, user, password, txtfile, htmlfile, statsfile, verbose, debug, inputfile, scale, statsonly) = ('all', '', '', '', 'clusterstats.txt', 'health_report.html', 'stats.json', False, False, '', 'day', False)
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 
-                                      'b:c:dh?vp:u:o:i:s:', [
+                                      'b:c:dh?vp:u:o:i:s:j', [
                 'bucket=',
                 'cluster=',
                 'debug',
@@ -35,6 +35,7 @@ def parse_opt():
                 'html=',
                 'input=',
                 'scale=',
+                'json',
                 ])
     except getopt.GetoptError, err:
         usage(err)
@@ -67,10 +68,12 @@ def parse_opt():
                 exit(1)
             else:
                 scale = arg
+        if opt in ('-j', '--json'):
+            statsonly = True
 
     if not cluster and not inputfile: 
         usage()
-    return (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile, scale, opts)
+    return (bucket, cluster, user, password, txtfile, htmlfile, statsfile, verbose, debug, inputfile, scale, statsonly, opts)
 
 def usage(error_msg=''):
     if error_msg:
@@ -97,19 +100,24 @@ OPTIONS:
   -v --verbose                       Display detailed node level information
   -s SCALE, --scale=SCALE            Specify stats scale, i.e. minute, hour, day, week, month and year
                                      Default scale is 'day'
+  -j --jsononly                      Colllect data only but no analysis report generated
 """
     sys.exit(2)
 
 def main():
-    (bucket, cluster, user, password, txtfile, htmlfile, verbose, debug, inputfile, scale, opts) = parse_opt()
+    (bucket, cluster, user, password, txtfile, htmlfile, statsfile, verbose, debug, inputfile, scale, statsonly, opts) = parse_opt()
 
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
-    scale = retriever.collect_data(bucket, cluster, user, password, inputfile, scale, opts)
-    #analyze the snapshot and historic data
-    performer = analyzer.StatsAnalyzer(log)
-    performer.run_analysis(scale, debug)
-    performer.run_report(txtfile, htmlfile, verbose, scale)
-
+    scale = retriever.collect_data(bucket, cluster, user, password, inputfile, statsfile, scale, opts)
+    if statsonly:
+        sys.stderr.write("\nThe run finished successfully. Please find collected stats at '{0}'.\n".format(statsfile))
+        sys.exit(0)
+    else:
+        #analyze the snapshot and historic data
+        performer = analyzer.StatsAnalyzer(log)
+        performer.run_analysis(scale, debug)
+        performer.run_report(txtfile, htmlfile, verbose, scale)
+        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.\n".format(htmlfile, txtfile))
 if __name__ == '__main__':
     main()
