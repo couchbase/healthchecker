@@ -203,12 +203,13 @@
         <tr>
           <td title="$symptom["formula"]">$symptom["description"]</td>
     #if $symptom["status"] == "Error"
-          <td class="status-error">$symptom["value"]</td>
+      #set $statusClass = "status-error"
     #elif $symptom["status"] == "Warning"
-          <td class="status-warning">$symptom["value"]</td>
+      #set $statusClass = "status-error"
     #else
-          <td>$symptom["value"]</td>
+      #set $statusClass = ""
     #end if
+          <td class=$statusClass>$symptom["value"]</td>
         </tr>
   #end for
       </table>
@@ -234,11 +235,16 @@
           <tr>
             <td title="$node_value["formula"]">$node_value["description"]</td>
         #if $node_value["status"] == "Error"
-            <td class="status-error">$node_value["value"]</td>
+          #set $statusClass = "status-error"
         #elif $node_value["status"] == "Warning"
-            <td class="status-warning">$node_value["value"]</td>
+          #set $statusClass = "status-error"
         #else
-            <td>$node_value["value"]</td>
+          #set $statusClass = ""
+        #end if
+        #if $util.isdict($node_value["value"])
+            <td class=$statusClass, title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
+        #else
+            <td class=$statusClass>$node_value["value"]</td>
         #end if
           </tr>
       #end for

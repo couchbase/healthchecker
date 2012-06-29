@@ -53,7 +53,9 @@ class ARRatio:
                         res.append((active[0], "No replica"))
                 else:
                     ratio = 100.0 * active[1] / replica[1]
-                    res.append((active[0], util.pretty_float(ratio) + "%"))
+                    res.append((active[0], {"value" : util.pretty_float(ratio) + "%", 
+                                            "raw" : (active[1],replica[1]),
+                                           }))
                 active_total += active[1]
                 replica_total += replica[1]
             if active_total == 0:
@@ -110,7 +112,9 @@ class OpsRatio:
                     write_total += write_ratio
                     del_ratio = delete[1] * 100.0 / count
                     del_total += del_ratio
-                    res.append((read[0], "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))))
+                    res.append((read[0], {"value":"{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5)),
+                                          "raw":(read[1], write[1], delete[1]),
+                                         }))
                     read_cluster += read[1]
                     write_cluster += write[1]
                     del_cluster += delete[1]
@@ -156,11 +160,14 @@ class CacheMissRatio:
                     value = sum(vals) / samplesCount
                 else:
                     value = 0
+                value = max(0, value)
                 total += value
                 if value > thresholdval:
                     symptom = accessor["symptom"].format(value, thresholdval)
                     num_error.append({"node":node, "value":symptom})
-                trend.append((node, util.pretty_float(value) + "%"))
+                trend.append((node, {"value" : util.pretty_float(value) + "%",
+                                     "raw" : vals,
+                                    }))
                 data.append(value)
             if len(nodeStats) > 0:
                 total /= len(nodeStats)
@@ -194,16 +201,20 @@ class ResidentItemRatio:
             data = []
             num_error = []
             for node, vals in nodeStats.iteritems():
-                #a, b = util.linreg(timestamps, vals)
+                a, b = util.linreg(timestamps, vals)
                 if samplesCount > 0:
-                    value = sum(vals) / samplesCount
+                    #value = sum(vals)*1.0 / samplesCount
+                    value = a * timestamps[-1] + b
+                    #print "sum:", sum(vals), " value:", value, " samples:", samplesCount, value1
                 else:
                     value = 0
                 total += value
                 if value > 0 and value < threshold_val:
                     symptom = accessor["symptom"].format(util.pretty_float(value) + "%", util.pretty_float(threshold_val) + "%")
                     num_error.append({"node":node, "value":symptom})
-                trend.append((node, util.pretty_float(value) + "%"))
+                trend.append((node, {"value" : util.pretty_float(value) + "%",
+                                     "raw" : (samplesCount, vals),
+                                    }))
                 data.append(value)
             if len(nodeStats) > 0:
                 total /= len(nodeStats)
@@ -270,7 +281,9 @@ class ItemGrowth:
                         rate = (end_val * 1.0 / b - 1.0) * 100
                     else:
                         rate = 0
-                    trend.append((node, util.pretty_float(rate) + "%"))
+                    trend.append((node, {"value" : util.pretty_float(rate) + "%",
+                                         "raw" : vals,
+                                        }))
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
             if start_cluster > 0:

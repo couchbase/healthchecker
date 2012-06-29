@@ -39,6 +39,18 @@ indicator_error = {}
 indicator_warn = {}
 node_disparate = {}
 
+class UtilTool:
+    def isdict(self, obj):
+        return isinstance(obj, dict)
+
+    def statsClass(self, status):
+        if status == "Error":
+            return "status-error"
+        elif status == "Warning":
+            return "status-warning"
+        else:
+            return "status-ok"
+
 class StatsAnalyzer:
     def __init__(self, log):
         self.log = log
@@ -254,6 +266,7 @@ class StatsAnalyzer:
     def run_report(self, txtfile, htmlfile, verbose, scale):
         
         dict = {
+            "util": UtilTool(),
             "globals" : globals,
             "cluster_symptoms" : cluster_symptoms,
             "bucket_symptoms" : bucket_symptoms,
@@ -301,5 +314,3 @@ class StatsAnalyzer:
         f = open(htmlfile, 'w')
         print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
         f.close()
-
-        sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.\n".format(htmlfile, txtfile))
