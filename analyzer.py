@@ -265,8 +265,7 @@ class StatsAnalyzer:
             globals["cluster_health"] = "OK"
 
     def run_report(self, txtfile, htmlfile, verbose, scale, debug):
-        working_dir = os.path.dirname(sys.argv[0])
-        reports_dir = os.path.join(working_dir, 'reports')
+        reports_dir = os.path.join(os.path.dirname(sys.argv[0]), 'reports')
         txtfile = os.path.join(reports_dir, txtfile)
         htmlfile = os.path.join(reports_dir, htmlfile)
 
@@ -317,7 +316,7 @@ class StatsAnalyzer:
         f.close()
 
         f = open(htmlfile, 'w')
-        print >> f, Template(file=os.path.join(working_dir, "report-htm.tmpl"), searchList=[dict])
+        print >> f, Template(file=os.path.join(reports_dir, "template.tmpl"), searchList=[dict])
         f.close()
 
         # generate array/list of available reports for use via AJAX
