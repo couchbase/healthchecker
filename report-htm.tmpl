@@ -62,11 +62,12 @@
       thead {display: table-header-group;}
       tr {page-break-inside: avoid;}
 
+      nav {display: none}
       article {page-break-after: always}
     </style>
     <!-- screen only styles -->
     <style type="text/css" media="screen">
-      body {margin:10%;padding:0;font:16px 'Arial';background:#FCFDFB}
+      body {margin:10% 10% 10% 0;padding:0;font:16px 'Arial';background:#FCFDFB}
 
       h1 {padding-left: 2px;margin-top: 0px;margin-bottom: 0px;font-size:25px;line-height:30px}
       h2 {font: bold 21px 'Arial';line-height: 24px;}
@@ -87,10 +88,16 @@
 
       .t1, .t3{border-collapse: collapse;}
       .t1{margin-left: 26px;margin-top: 51px;}
+
+      #sidebar {float: left;padding:15px}
+      #sidebar ul {list-style:none;margin:0;padding:0}
+      #main {margin-left:12em}
     </style>
 </head>
 
 <body>
+<nav id="sidebar"></nav>
+<section id="main">
   <h1>Couchbase Cluster Health Check Report</h1>
   <p class="p1"><span class="ft1">Tool Version: $globals['versions']</span></p>
   <p class="p0"><span class="ft1">Stats Scale : $scale</span></p>
@@ -306,5 +313,8 @@
   #end for
   </article>
 #end if
+</section>
+<script src="zepto.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

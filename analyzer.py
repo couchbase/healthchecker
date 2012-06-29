@@ -4,6 +4,7 @@ import datetime
 import logging
 import traceback
 import string
+import fnmatch
 
 import util_cli as util
 import cluster_stats
@@ -266,12 +267,6 @@ class StatsAnalyzer:
     def run_report(self, txtfile, htmlfile, verbose, scale, debug):
         working_dir = os.path.dirname(sys.argv[0])
         reports_dir = os.path.join(working_dir, 'reports')
-        try:
-            os.mkdir(reports_dir)
-        except OSError:
-            # directory exists, and that's OK
-            pass
-        
         txtfile = os.path.join(reports_dir, txtfile)
         htmlfile = os.path.join(reports_dir, htmlfile)
 
@@ -323,4 +318,12 @@ class StatsAnalyzer:
 
         f = open(htmlfile, 'w')
         print >> f, Template(file=os.path.join(working_dir, "report-htm.tmpl"), searchList=[dict])
+        f.close()
+
+        # generate array/list of available reports for use via AJAX
+        available_reports = [os.path.splitext(n)[0]
+                             for n in fnmatch.filter(os.listdir('./reports/'),
+                                                     '*.html')]
+        f = open(os.path.join(reports_dir, 'all.json'), 'w')
+        print >> f, util.pretty_print(available_reports)
         f.close()

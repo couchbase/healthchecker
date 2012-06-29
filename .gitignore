@@ -1,2 +1,6 @@
 *.pyc
 .pydevproject
+reports/*.html
+reports/*.txt
+reports/*.json
+
