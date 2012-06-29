@@ -116,8 +116,8 @@ def main():
     else:
         #analyze the snapshot and historic data
         performer = analyzer.StatsAnalyzer(log)
-        performer.run_analysis(scale, debug)
-        performer.run_report(txtfile, htmlfile, verbose, scale)
+        performer.run_analysis(scale)
+        performer.run_report(txtfile, htmlfile, verbose, scale, debug)
         sys.stderr.write("\nThe run finished successfully. Please find html output at '{0}' and text output at '{1}'.\n".format(htmlfile, txtfile))
 if __name__ == '__main__':
     main()

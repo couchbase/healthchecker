@@ -17,12 +17,13 @@ class DGMRatio:
             ratio = hdd_total * 100.0 / ram_total
         else:
             ratio = 0
-        return util.pretty_float(ratio) + "%"
+        return {"value" : util.pretty_float(ratio) + "%",
+                "raw" : (hdd_total, ram_total)}
 
 class ARRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        cluster = 0
+        cluster = []
         if threshold.has_key("ActiveReplicaResidentRatio"):
             threshold_val = threshold["ActiveReplicaResidentRatio"]["activeReplicaResidentRatio"]
         else:
@@ -66,8 +67,9 @@ class ARRatio:
                     num_error.append({"node":"total", "value": "No replica items"})
             else:
                 ratio = active_total * 100.0 / replica_total
-                cluster += ratio
-                res.append(("total", util.pretty_float(ratio) + "%"))
+                cluster.append(ratio)
+                res.append(("total", {"value" : util.pretty_float(ratio) + "%",
+                                      "raw" : (active_total, replica_total)}))
                 delta = abs(100 - ratio)
                 if delta > threshold_val:
                     symptom = accessor["symptom"].format(util.pretty_float(delta), util.pretty_float(threshold_val))
@@ -76,13 +78,14 @@ class ARRatio:
                 res.append(("error", num_error))
             result[bucket] = res
         if len(stats_buffer.buckets) > 0:
-            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets)) + "%"
+            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
+                                 "raw" : cluster}
         return result
 
 class OpsRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        read_cluster = write_cluster = del_cluster = 0
+        read_cluster = write_cluster = del_cluster = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             ops_avg = {
                 "cmd_get": [],
@@ -115,9 +118,9 @@ class OpsRatio:
                     res.append((read[0], {"value":"{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5)),
                                           "raw":(read[1], write[1], delete[1]),
                                          }))
-                    read_cluster += read[1]
-                    write_cluster += write[1]
-                    del_cluster += delete[1]
+                    read_cluster.append(read[1])
+                    write_cluster.append(write[1])
+                    del_cluster.append(delete[1])
 
             if len(ops_avg['cmd_get']) > 0:
                 read_total /= len(ops_avg['cmd_get'])
@@ -125,22 +128,24 @@ class OpsRatio:
                 write_total /= len(ops_avg['cmd_set'])
             if len(ops_avg['delete_hits']) > 0:
                 del_total /= len(ops_avg['delete_hits'])
-            res.append(("total", "{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5))))
+            res.append(("total", {"value" :"{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5)),
+                                  "raw" : (read_total, write_total, del_total)}))
             result[bucket] = res
-        count = read_cluster + write_cluster + del_cluster
+        count = sum(read_cluster) + sum(write_cluster) + sum(del_cluster)
         if count == 0:
             read_ratio = write_ratio = del_ratio = 0
         else:
-            read_ratio = read_cluster * 100.0 / count + .5
-            write_ratio = write_cluster * 100.0 / count + .5
-            del_ratio = del_cluster * 100 / count + .5
-        result["cluster"] = "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio))
+            read_ratio = sum(read_cluster) * 100.0 / count + .5
+            write_ratio = sum(write_cluster) * 100.0 / count + .5
+            del_ratio = sum(del_cluster) * 100 / count + .5
+        result["cluster"] = {"value" : "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio)),
+                             "raw" : (read_cluster, write_cluster, del_cluster)}
         return result
 
 class CacheMissRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        cluster = 0
+        cluster = []
         thresholdval = accessor["threshold"]
         if threshold.has_key("CacheMissRatio"):
             thresholdval = threshold["CacheMissRatio"]
@@ -151,7 +156,7 @@ class CacheMissRatio:
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
             trend = []
-            total = 0
+            total = []
             data = []
             num_error = []
             for node, vals in nodeStats.iteritems():
@@ -161,7 +166,7 @@ class CacheMissRatio:
                 else:
                     value = 0
                 value = max(0, value)
-                total += value
+                total.append(value)
                 if value > thresholdval:
                     symptom = accessor["symptom"].format(value, thresholdval)
                     num_error.append({"node":node, "value":symptom})
@@ -170,22 +175,25 @@ class CacheMissRatio:
                                     }))
                 data.append(value)
             if len(nodeStats) > 0:
-                total /= len(nodeStats)
-            trend.append(("total", util.pretty_float(total) + "%"))
+                trend.append(("total", {"value" : util.pretty_float(sum(total) / len(nodeStats)) + "%",
+                                        "raw" : total}))
+            else:
+                trend.append(("total", util.pretty_float(sum(total)) + "%"))
             trend.append(("variance", util.two_pass_variance(data)))
             if len(num_error) > 0:
                 trend.append(("error", num_error))
 
-            cluster += total
+            cluster.append(sum(total))
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
-            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets)) + "%"
+            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
+                                 "raw" : cluster}
         return result
 
 class ResidentItemRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        cluster = 0
+        cluster = []
         if threshold.has_key("ActiveReplicaResidentRatio"):
             threshold_val = threshold["ActiveReplicaResidentRatio"][accessor["name"]]
         else:
@@ -197,18 +205,17 @@ class ResidentItemRatio:
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
             trend = []
-            total = 0
+            total = []
             data = []
             num_error = []
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 if samplesCount > 0:
-                    #value = sum(vals)*1.0 / samplesCount
-                    value = a * timestamps[-1] + b
-                    #print "sum:", sum(vals), " value:", value, " samples:", samplesCount, value1
+                    # Take the lastest one as sample value
+                    value = vals[-1]
                 else:
                     value = 0
-                total += value
+                total.append(value)
                 if value > 0 and value < threshold_val:
                     symptom = accessor["symptom"].format(util.pretty_float(value) + "%", util.pretty_float(threshold_val) + "%")
                     num_error.append({"node":node, "value":symptom})
@@ -217,24 +224,25 @@ class ResidentItemRatio:
                                     }))
                 data.append(value)
             if len(nodeStats) > 0:
-                total /= len(nodeStats)
-            trend.append(("total", util.pretty_float(total) + "%"))
-            if total > 0 and total < threshold_val:
-                symptom = accessor["symptom"].format(util.pretty_float(total) + "%", util.pretty_float(threshold_val) + "%")
-                num_error.append({"node": "total", "value":symptom})
+                total_val = sum(total) / len(nodeStats)
+                cluster.append(total_val)
+                trend.append(("total", {"value" : util.pretty_float(total_val) + "%", "raw" : total}))
+                if total_val > 0 and total_val < threshold_val:
+                    symptom = accessor["symptom"].format(util.pretty_float(total_val) + "%", util.pretty_float(threshold_val) + "%")
+                    num_error.append({"node": "total", "value":symptom})
             trend.append(("variance", util.two_pass_variance(data)))
             if len(num_error) > 0:
                 trend.append(("error", num_error))
-            cluster += total
+
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
-            result["cluster"] = util.pretty_float(cluster / len(stats_buffer.buckets)) + "%"
+            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
+                                 "raw" : cluster}
         return result
 
 class MemUsed:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        cluster = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
@@ -246,23 +254,29 @@ class MemUsed:
             data = []
             for node, vals in nodeStats.iteritems():
                 if samplesCount > 0:
-                    avg = sum(vals) / samplesCount
+                    #avg = sum(vals) / samplesCount
+                    a, b = util.linreg(timestamps, vals)
+                    avg = a * timestamps[-1]  + b
                 else:
                     avg = 0
-                trend.append((node, util.size_label(avg)))
+                trend.append((node, {"value" : util.size_label(avg), "raw" : vals}))
                 data.append(avg)
-            #print data
+            if len(nodeStats) > 0:
+                total_val = sum(data) / len(nodeStats)
+                trend.append(("total", {"value" : util.size_label(total_val), "raw" : data}))
             trend.append(("variance", util.two_pass_variance(data)))
             result[bucket] = trend
         return result
 
 class ItemGrowth:
     def run(self, accessor, scale, threshold=None):
+        per_day = 86400000 #ms
+        ratio = per_day / 1000
         result = {}
-        start_cluster = 0
-        end_cluster = 0
+        cluster = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             trend = []
+            total = []
             values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
@@ -270,27 +284,23 @@ class ItemGrowth:
             samplesCount = values["samplesCount"]
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
-                if b < 1:
-                   trend.append((node, 0))
-                else:
-                    start_val = b
-                    start_cluster += b
-                    end_val = a * timestamps[-1] + b
-                    end_cluster += end_val
-                    if b > 0:
-                        rate = (end_val * 1.0 / b - 1.0) * 100
-                    else:
-                        rate = 0
-                    trend.append((node, {"value" : util.pretty_float(rate) + "%",
-                                         "raw" : vals,
-                                        }))
+                rate = a * ratio
+                total.append(rate)
+                trend.append((node, {"value" : util.pretty_float(rate) + " thousands items per day",
+                                     "raw" : vals,
+                                    }))
+            if len(nodeStats) > 0:
+                rate = sum(total) / len(nodeStats)
+                trend.append(("total", {"value" : util.pretty_float(rate) + " thousands items per day",
+                                        "raw" : total}))
+                cluster.append(rate)
+            else:
+                cluster.append(0.0)
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
-            if start_cluster > 0:
-                rate = (end_cluster * 1.0 / start_cluster - 1.0) * 100
-            else:
-                rate = 0
-            result["cluster"] = util.pretty_float(rate) + "%"
+            rate = sum(cluster) / len(stats_buffer.buckets)
+            result["cluster"] = {"value" : util.pretty_float(rate) + " thousands items per day",
+                                 "raw" : cluster}
         return result
 
 class NumVbuckt:
@@ -306,14 +316,22 @@ class NumVbuckt:
         avg_threshold = threshold_val / num_node
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             num_error = []
+            trend = []
             values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
+            total = []
             for node, vals in nodeStats.iteritems():
-                if vals[-1] > 0 and vals[-1] < avg_threshold:
-                    symptom = accessor["symptom"].format(vals[-1], avg_threshold)
+                numVal = int(vals[-1])
+                if numVal > 0 and numVal < avg_threshold:
+                    symptom = accessor["symptom"].format(numVal, avg_threshold)
                     num_error.append({"node":node, "value": symptom})
+                trend.append((node, {"value" : numVal,"raw" : vals,}))
+                total.append(numVal)
+            if len(nodeStats) > 0:
+                trend.append(("total", {"value" : sum(total) / len(nodeStats), "raw":total}))
             if len(num_error) > 0:
-                result[bucket] = {"error" : num_error}
+                trend.append(("error", num_error))
+            result[bucket] = trend
         return result
 
 class RebalanceStuck:
@@ -490,7 +508,7 @@ ClusterCapsule = [
             "code" : "ResidentItemRatio",
             "threshold" : 30,
             "symptom" : "Active resident item ratio '{0}' is less than '{1}'",
-            "formula" : "Avg(vb_active_resident_items_ratio)",
+            "formula" : "Last(vb_active_resident_items_ratio)",
         },
         {
             "name" : "replicaResidentRatio",
@@ -500,7 +518,7 @@ ClusterCapsule = [
             "code" : "ResidentItemRatio",
             "threshold" : 20,
             "symptom" : "Replica resident item ratio '{0}' is less than '{1}'",
-            "formula" : "Avg(vb_replica_resident_items_ratio)",
+            "formula" : "Last(vb_replica_resident_items_ratio)",
         },
      ],
      "clusterwise" : True,
@@ -535,12 +553,14 @@ ClusterCapsule = [
         },
      ],
      "clusterwise" : True,
+     "perBucket" : True,
+     "perNode" : True,
     },
     {"name" : "VBucketNumber",
      "ingredients" : [
         {
             "name" : "activeVbucketNumber",
-            "description" : "Active VBucket number is less than expected",
+            "description" : "Active VBucket number",
             "counter" : "vb_active_num",
             "scale" : "hour",
             "code" : "NumVbuckt",
@@ -550,7 +570,7 @@ ClusterCapsule = [
         },
         {
             "name" : "replicaVBucketNumber",
-            "description" : "Replica VBucket number is less than expected",
+            "description" : "Replica VBucket number",
             "counter" : "vb_replica_num",
             "scale" : "hour",
             "code" : "NumVbuckt",
@@ -560,18 +580,22 @@ ClusterCapsule = [
         },
      ],
      "indicator" : True,
+     "perBucket" : True,
+     "perNode" : True,
     },
     {"name" : "MemoryUsage",
      "ingredients" : [
         {
             "name" : "memoryUsage",
-            "description" : "Check memory usage",
+            "description" : "Memory usage",
             "counter" : "mem_used",
             "scale" : "hour",
             "code" : "MemUsed",
             "formula" : "Avg(mem_used)",
         },
      ],
+     "perNode" : True,
+     "perBucket" : True,
      "nodeDisparate" : True,
     },
     {"name" : "RebalancePerformance",

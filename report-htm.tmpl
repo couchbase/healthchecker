@@ -142,8 +142,8 @@
         <th>Health Status</th>
       </tr>
     </thead>
-    #for $bucket in sorted($bucket_list.keys())
-      #set $bucket_status_class = 'status-' + $bucket_list[$bucket].lower()
+#for $bucket in sorted($bucket_list.keys())
+  #set $bucket_status_class = 'status-' + $bucket_list[$bucket].lower()
       <tr>
         <td>$bucket</td>
         <td class="$bucket_status_class">$bucket_list[$bucket]</td>
@@ -159,8 +159,8 @@
         <th>Cluster Status</th>
       </tr>
     </thead>
-      #for $node in sorted($node_list["nodeList"]["value"])
-      #set $node_status_class = 'status-' + $node["status"].lower()
+#for $node in sorted($node_list["nodeList"]["value"])
+  #set $node_status_class = 'status-' + $node["status"].lower()
       <tr>
         <td>$node["host"]</td>
         <td>$node["version"]</td>
@@ -178,8 +178,20 @@
 #for $key in sorted($cluster_symptoms.keys())
   #set $value = $cluster_symptoms[$key]
       <tr>
+    #if $debug
         <td title="$value["formula"]">$value["description"]</td>
+    #else
+        <td>$value["description"]</td>
+    #end if
+    #if $util.isdict($value["value"])
+      #if $debug
+        <td title="$value["value"]["raw"]">$value["value"]["value"]</td>
+      #else
+        <td>$value["value"]["value"]</td>
+      #end if
+    #else
         <td>$value["value"]</td>
+    #end if
       </tr>
 #end for
     </table>
@@ -209,7 +221,15 @@
     #else
       #set $statusClass = ""
     #end if
+    #if $util.isdict($symptom["value"])
+      #if $debug
+          <td class=$statusClass, title="$symptom["value"]["raw"]">$symptom["value"]["value"]</td>
+      #else
+          <td class=$statusClass>$symptom["value"]["value"]</td>
+      #end if
+    #else
           <td class=$statusClass>$symptom["value"]</td>
+    #end if
         </tr>
   #end for
       </table>
@@ -233,7 +253,11 @@
         <table class="t1">
       #for $node_value in sorted($node_values)
           <tr>
+        #if $debug
             <td title="$node_value["formula"]">$node_value["description"]</td>
+        #else
+            <td>$node_value["description"]</td>
+        #end if
         #if $node_value["status"] == "Error"
           #set $statusClass = "status-error"
         #elif $node_value["status"] == "Warning"
@@ -242,7 +266,11 @@
           #set $statusClass = ""
         #end if
         #if $util.isdict($node_value["value"])
+          #if $debug
             <td class=$statusClass, title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
+          #else
+            <td class=$statusClass>$node_value["value"]["value"]</td>
+          #end if
         #else
             <td class=$statusClass>$node_value["value"]</td>
         #end if
