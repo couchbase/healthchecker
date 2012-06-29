@@ -61,7 +61,12 @@ def parse_opt():
         if opt in ('-i', '--input'):
             inputfile = arg
         if opt in ('-s', '--scale'):
-            scale = arg
+            if arg not in ('minute', 'hour', 'day', 'week', 'month', 'year'):
+                print "ERROR: Wrong scale unit:" + arg
+                usage()
+                exit(1)
+            else:
+                scale = arg
 
     if not cluster and not inputfile: 
         usage()
