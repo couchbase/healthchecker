@@ -1,0 +1,10 @@
+body {font-family: Helvetica, Arial, sans-serif;}
+h1 {color: #A30A0A;}
+h2 {color: #345a8a;}
+h3 {color: #4f81bd;}
+ul ul {list-style: none}
+
+/** Couchbase sepcific styles **/
+.status-error {background: #f00;color:#fff;}
+.status-warning {background: #ff0;}
+.status-ok {background: #0f0;}
