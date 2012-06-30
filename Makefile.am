@@ -20,8 +20,10 @@ pythonlib_DATA = \
     mc_bin_client.py \
     memcacheConstants.py \
     node_stats.py \
+    prescription.py \
     restclient.py \
     stats_buffer.py \
+    threshold.py \
     usage.py \
     util_cli.py \
     report-htm.tmpl
