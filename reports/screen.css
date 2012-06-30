@@ -1,4 +1,4 @@
-body {margin:10% 10% 10% 0;padding:0;font:16px 'Arial';background:#FCFDFB}
+body {margin:12% 10% 10% 10%;padding:0;font:16px 'Arial';background:#FCFDFB}
 
 h1 {padding-left: 2px;margin-top: 0px;margin-bottom: 0px;font-size:25px;line-height:30px}
 h2 {font: bold 21px 'Arial';line-height: 24px;}
@@ -20,6 +20,13 @@ td, th {padding:7px;border: 1pt solid black;}
 .t1, .t3{border-collapse: collapse;}
 .t1{margin-left: 26px;margin-top: 51px;}
 
-#sidebar {float: left;padding:15px}
-#sidebar ul {list-style:none;margin:0;padding:0}
-#main {margin-left:12em}
+#reports {position:fixed;height:75px;overflow:hidden;top:0;right:0;left:0;background:white;border-bottom:1px solid #aaa;box-shadow: 0 1px 5px #ccc}
+#reports th {background: #eee;border:none;color:#aaa;font-weight:normal}
+#reports td {border:none;padding:0}
+#reports td a {display:block;background: #e3e3e3;padding:0.5em;color:#333;text-decoration:none}
+#reports td a:hover {background: #aaa;color:black}
+#prev, #next {position:absolute;height:75;width:20px;padding:30px 5px;background:white;z-index:10;text-align:center;opacity:0.9}
+#prev {box-shadow: 5px 0 5px white}
+#next {right:0;box-shadow: -5px 0 5px white}
+#prev.disabled, #next.disabled {box-shadow: none}
+#reports table {position:absolute;right:30px}

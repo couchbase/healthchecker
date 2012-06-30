@@ -8,7 +8,10 @@
 </head>
 
 <body>
-<nav id="sidebar"></nav>
+<nav id="reports">
+  <a id="prev">&laquo;</a>
+  <a id="next">&raquo;</a>
+</nav>
 <section id="main">
   <h1>Couchbase Cluster Health Check Report</h1>
   <p class="p1"><span class="ft1">Tool Version: $globals['versions']</span></p>
@@ -227,6 +230,7 @@
 #end if
 </section>
 <script src="zepto.min.js"></script>
+<script src="underscore.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
