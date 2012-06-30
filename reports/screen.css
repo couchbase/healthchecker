@@ -25,8 +25,7 @@ td, th {padding:7px;border: 1pt solid black;}
 #reports td {border:none;padding:0}
 #reports td a {display:block;background: #e3e3e3;padding:0.5em;color:#333;text-decoration:none}
 #reports td a:hover {background: #aaa;color:black}
-#prev, #next {position:absolute;height:75;width:20px;padding:30px 5px;background:white;z-index:10;text-align:center;opacity:0.9}
+#prev, #next {position:absolute;height:75;width:20px;padding:30px 5px;background:white;z-index:10;text-align:center;opacity:0.9;cursor:pointer}
 #prev {box-shadow: 5px 0 5px white}
 #next {right:0;box-shadow: -5px 0 5px white}
-#prev.disabled, #next.disabled {box-shadow: none}
 #reports table {position:absolute;right:30px}
