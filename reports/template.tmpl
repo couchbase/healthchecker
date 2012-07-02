@@ -2,100 +2,22 @@
 <html>
   <head>
     <title>Couchbase Cluster Health Check Report</title>
-    <!-- shared styles -->
-    <style media="all">
-      body {font-family: Helvetica, Arial, sans-serif;}
-      h1 {color: #A30A0A;}
-      h2 {color: #345a8a;}
-      h3 {color: #4f81bd;}
-      ul ul {list-style: none}
-
-      /** Couchbase sepcific styles **/
-      .status-error {background: #f00;color:#fff;}
-      .status-warning {background: #ff0;}
-      .status-ok {background: #0f0;}
-    </style>
-    <!-- print only styles -->
-    <style media="print">
-      /* --------------------------------------------------------------
-      Based on Hartija & Priss CSS Print  Frameworks
-      -------------------------------------------------------------- */
-
-      body {
-      width:100% !important;
-      margin:0 !important;
-      padding:0 !important;
-      line-height: 1.4;
-      word-spacing:1.1pt;
-      letter-spacing:0.2pt;
-      color: #000;
-      background: none;
-      font-size: 12pt;
-      }
-
-      /*Headings */
-      h1{font-size:19pt;}
-      h2{font-size:17pt;}
-      h3{font-size:15pt;}
-      h4,h5,h6{font-size:12pt;}
-
-      code { font: 10pt Courier, monospace; }
-      blockquote { margin: 1.3em; padding: 1em;  font-size: 10pt; }
-      hr { background-color: #ccc; }
-
-      /* Images */
-      img { float: left; margin: 1em 1.5em 1.5em 0; }
-      a img { border: none; }
-
-      /* Links */
-      a:link, a:visited { background: transparent; font-weight: 700; text-decoration: underline;color:#333; }
-      a:link[href^="http://"]:after, a[href^="http://"]:visited:after { content: " (" attr(href) ") "; font-size: 90%; }
-      a[href^="http://"] {color:#000; }
-
-      /* Table */
-      table { border-collapse: collapse; margin: 1px; text-align:left; page-break-inside: avoid;}
-      th { border: 1px solid #333;  font-weight: bold; }
-      td { border: 1px solid #333; }
-      th,td { padding: 4px 10px 4px 10px; }
-      tfoot { font-style: italic; }
-      caption { background: #fff; margin-bottom:2em; text-align:left; }
-      thead {display: table-header-group;}
-      tr {page-break-inside: avoid;}
-
-      article {page-break-after: always}
-    </style>
-    <!-- screen only styles -->
-    <style type="text/css" media="screen">
-      body {margin:10%;padding:0;font:16px 'Arial';background:#FCFDFB}
-
-      h1 {padding-left: 2px;margin-top: 0px;margin-bottom: 0px;font-size:25px;line-height:30px}
-      h2 {font: bold 21px 'Arial';line-height: 24px;}
-      h3 {font: bold 17px 'Arial';line-height: 19px;}
-      ul {line-height:28px}
-      th {background:#F8F7F2}
-      td {background:#FFF}
-      td, th {padding:7px;border: 1pt solid black;}
-
-      .ft1{font: italic 19px 'Arial';color: #345a8a;line-height: 15px;}
-      .ft15{font-weight: bold;line-height: 17px;white-space: nowrap;}
-
-      .p0{padding-left: 2px;margin-top: 0px;margin-bottom: 0px;}
-      .p1{padding-left: 2px;margin-top: 40px;margin-bottom: 0px;}
-      .p2{padding-left: 2px;margin-top: 3px;margin-bottom: 0px;}
-      .p10{margin-top: 0px;margin-bottom: 0px;}
-      .p12{margin-top: 38px;margin-bottom: 0px;}
-
-      .t1, .t3{border-collapse: collapse;}
-      .t1{margin-left: 26px;margin-top: 51px;}
-    </style>
+    <link rel="stylesheet" media="all" href="all.css" />
+    <link rel="stylesheet" media="print" href="print.css" />
+    <link rel="stylesheet" media="screen" href="screen.css" />
 </head>
 
 <body>
+<nav id="reports">
+  <a id="prev">&laquo;</a>
+  <a id="next">&raquo;</a>
+</nav>
+<section id="main">
   <h1>Couchbase Cluster Health Check Report</h1>
-  <p class="p1"><span class="ft1">Tool Version: $globals['versions']</span></p>
+  <div class="tool-version">Tool Version: $globals['versions']</div>
   <p class="p0"><span class="ft1">Stats Scale : $scale</span></p>
   <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
-  <p class="p2">
+  <p>
     <strong>Overall cluster health:</strong>
 #if $globals.cluster_health == "Error"
     <span class="status-error">Immediate action needed</span>
@@ -113,19 +35,17 @@
   #for $counter in sorted($indicator_error.keys())
     #set $error_list = $indicator_error[$counter]
     #for $error_values in $error_list:
-      <h4>$error_values["description"]</h4>
+      <h4>$error_values["description"] - <strong class="status-error">$error_values["cause"]</strong></h4>
       <ul>
-        <li>Symptom
       #for $err_val in sorted($error_values["value"])
+        <li>Symptom in <em>$error_values["bucket"]</em> bucket on <em>$err_val["node"] node(s):</em>
           <ul>
-            <li>Bucket : $error_values["bucket"] , Node : $err_val["node"]</li>
-            <li>Value : $err_val["value"]</li>
+            <li><strong>$err_val["value"]</strong></li>
           </ul>
-      #end for
         </li>
-        <li>Causes - $error_values["cause"]</li>
-        <li>Impact - $error_values["impact"]</li>
-        <li>Action - $error_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
+      #end for
+        <li>Impact <ul><li>$error_values["impact"]</li></ul></li>
+        <li>Action <ul><li>$error_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li></ul></li>
       </ul>
     #end for
   #end for
@@ -199,9 +119,8 @@
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
   #set $status = $bucket_list[$bucket]
-      <p class="p2"><strong>Bucket name: </strong><span class="ft3">$bucket</span></p>
-      <p class="p10">
-        <strong>Status &#8211; </strong>
+      <p class="bucket">
+        <strong>Bucket: </strong> $bucket &ndash;
   #if $status == "Error"
         <span class="status-error">Immediate action needed</span>
   #elif $status == "Warning"
@@ -236,8 +155,7 @@
   #if $verbose
     #for $node in sorted($bucket_node_symptoms[$bucket])
       #set $node_values = $bucket_node_symptoms[$bucket][$node]
-        <p class="p12"><strong>IP address: $node</strong></p>
-        <p class="p10"><strong>Status &#8211; </strong>
+        <p class="node"><strong>Node: </strong> $node &ndash;
       #if $bucket_node_status[$bucket].has_key($node)
         #if $bucket_node_status[$bucket][$node] == "Error"
             <span class="status-error">Immediate action needed</span>
@@ -288,23 +206,25 @@
   #for $counter in sorted($indicator_warn)
     #set $warn_list = $indicator_warn[$counter]
     #for $warn_values in $warn_list
-      <h4>$warn_values["description"]</h4>
+      <h4>$warn_values["description"] - <strong class="status-warning">$warn_values["cause"]</strong></h4>
       <ul>
-        <li>Symptom
       #for $warn_val in sorted($warn_values["value"])
+        <li>Symptom in <em>$warn_values["bucket"]</em> bucket on <em>$warn_val["node"]</em> node(s):
           <ul>
-            <li>Bucket : $warn_values["bucket"] , Node : $warn_val["node"]</li>
-            <li>Value : $warn_val["value"]</li>
+            <li><strong>$warn_val["value"]</strong></li>
           </ul>
-      #end for
         </li>
-        <li>Causes - $warn_values["cause"]</li>
-        <li>Impact - $warn_values["impact"]</li>
-        <li>Action - $warn_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
+      #end for
+        <li>Impact <ul><li>$warn_values["impact"]</li></ul></li>
+        <li>Action <ul><li>$warn_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li></ul></li>
       </ul>
     #end for
   #end for
   </article>
 #end if
+</section>
+<script src="zepto.min.js"></script>
+<script src="underscore.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

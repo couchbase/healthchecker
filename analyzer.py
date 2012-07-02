@@ -4,6 +4,7 @@ import datetime
 import logging
 import traceback
 import string
+import fnmatch
 
 import util_cli as util
 import cluster_stats
@@ -195,7 +196,7 @@ class StatsAnalyzer:
                                                                            "action" : action,
                                                                            "formula": "N/A",
                                                                           })
-                                            for val in values["warn"]:
+                                            for node in values["warn"]:
                                                 if bucket_node_status[bucket].has_key(node["node"]) == False:
                                                     bucket_node_status[bucket][node["node"]] = "Warning"
                                                 if bucket_list[bucket] == "OK":
@@ -264,7 +265,10 @@ class StatsAnalyzer:
             globals["cluster_health"] = "OK"
 
     def run_report(self, txtfile, htmlfile, verbose, scale, debug):
-        
+        reports_dir = os.path.join(os.path.dirname(sys.argv[0]), 'reports')
+        txtfile = os.path.join(reports_dir, txtfile)
+        htmlfile = os.path.join(reports_dir, htmlfile)
+
         dict = {
             "util": UtilTool(),
             "globals" : globals,
@@ -311,7 +315,14 @@ class StatsAnalyzer:
         print >> f, util.pretty_print(report)
         f.close()
 
-        mydir = os.path.dirname(sys.argv[0])
         f = open(htmlfile, 'w')
-        print >> f, Template(file=os.path.join(mydir, "report-htm.tmpl"), searchList=[dict])
+        print >> f, Template(file=os.path.join(reports_dir, "template.tmpl"), searchList=[dict])
+        f.close()
+
+        # generate array/list of available reports for use via AJAX
+        available_reports = [os.path.splitext(n)[0]
+                             for n in fnmatch.filter(os.listdir('./reports/'),
+                                                     '*.html')]
+        f = open(os.path.join(reports_dir, 'all.json'), 'w')
+        print >> f, util.pretty_print(available_reports)
         f.close()

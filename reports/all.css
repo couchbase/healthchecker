@@ -1,0 +1,21 @@
+body {font-family: Helvetica, Arial, sans-serif;}
+h1 {color: #A30A0A;}
+h2 {color: #345a8a;}
+h3 {color: #4f81bd;}
+ul ul {list-style: none}
+
+/** Couchbase sepcific styles **/
+.status-error, .status-warning, .status-ok {padding:3px 5px}
+.status-error {background: #f00;color:#fff;}
+.status-warning {background: #ff0;}
+.status-ok {background: #0f0;}
+
+strong.status-error, strong.status-warning, strong.status-ok {padding: inherit}
+strong.status-error {background:inherit;color: #f00;}
+strong.status-warning {background:inherit;color: #ff0}
+strong.status-ok {background:inherit;color: #0f0}
+
+.tool-version {float:right;color:#aaa}
+
+.bucket {background: url("icons.png") no-repeat -22px -105px;margin-bottom: 0;margin-top: 3px;padding:15px 50px 23px;}
+.node {background: url("icons.png") no-repeat -22px 0;margin-bottom: 0;margin-top: 3px;padding:15px 50px 20px;}
