@@ -15,7 +15,7 @@ font-size: 12pt;
 }
 
 /*Headings */
-h1{font-size:19pt;}
+h1{font-size:19pt;clear:both}
 h2{font-size:17pt;}
 h3{font-size:15pt;}
 h4,h5,h6{font-size:12pt;}
@@ -45,3 +45,6 @@ tr {page-break-inside: avoid;}
 
 nav {display: none}
 article {page-break-after: always}
+
+.logo {display:none}
+.logo-for-print {width:70%;}

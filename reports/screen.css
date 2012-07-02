@@ -17,6 +17,8 @@ td, th {padding:7px;border: 1pt solid black;}
 .t1, .t3{border-collapse: collapse;}
 .t1{margin: 30px 26px;}
 
+.logo-for-print {display:none}
+
 #reports {position:fixed;height:75px;overflow:hidden;top:0;right:0;left:0;background:white;border-bottom:1px solid #aaa;box-shadow: 0 1px 5px #ccc}
 #reports th {background: #eee;border:none;color:#aaa;font-weight:normal}
 #reports td {border:none;padding:0}
