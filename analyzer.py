@@ -196,7 +196,7 @@ class StatsAnalyzer:
                                                                            "action" : action,
                                                                            "formula": "N/A",
                                                                           })
-                                            for val in values["warn"]:
+                                            for node in values["warn"]:
                                                 if bucket_node_status[bucket].has_key(node["node"]) == False:
                                                     bucket_node_status[bucket][node["node"]] = "Warning"
                                                 if bucket_list[bucket] == "OK":
