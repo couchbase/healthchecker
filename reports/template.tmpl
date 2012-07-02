@@ -17,7 +17,7 @@
   <div class="tool-version">Tool Version: $globals['versions']</div>
   <p class="p0"><span class="ft1">Stats Scale : $scale</span></p>
   <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
-  <p class="p2">
+  <p>
     <strong>Overall cluster health:</strong>
 #if $globals.cluster_health == "Error"
     <span class="status-error">Immediate action needed</span>
@@ -119,9 +119,8 @@
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
   #set $status = $bucket_list[$bucket]
-      <p class="p2">
-        <strong>Bucket name: </strong>
-        <span class="ft3">$bucket</span> &ndash;
+      <p class="bucket">
+        <strong>Bucket: </strong> $bucket &ndash;
   #if $status == "Error"
         <span class="status-error">Immediate action needed</span>
   #elif $status == "Warning"
@@ -156,8 +155,7 @@
   #if $verbose
     #for $node in sorted($bucket_node_symptoms[$bucket])
       #set $node_values = $bucket_node_symptoms[$bucket][$node]
-        <p class="p12"><strong>IP address: $node</strong></p>
-        <p class="p10"><strong>Status &#8211; </strong>
+        <p class="node"><strong>Node: </strong> $node &ndash;
       #if $bucket_node_status[$bucket].has_key($node)
         #if $bucket_node_status[$bucket][$node] == "Error"
             <span class="status-error">Immediate action needed</span>
