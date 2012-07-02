@@ -5,6 +5,9 @@ h3 {color: #4f81bd;}
 ul ul {list-style: none}
 
 /** Couchbase sepcific styles **/
+.status-error, .status-warning, .status-ok {padding:3px 5px}
 .status-error {background: #f00;color:#fff;}
 .status-warning {background: #ff0;}
 .status-ok {background: #0f0;}
+
+.tool-version {float:right;color:#aaa}

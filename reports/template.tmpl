@@ -14,7 +14,7 @@
 </nav>
 <section id="main">
   <h1>Couchbase Cluster Health Check Report</h1>
-  <p class="p1"><span class="ft1">Tool Version: $globals['versions']</span></p>
+  <div class="tool-version">Tool Version: $globals['versions']</div>
   <p class="p0"><span class="ft1">Stats Scale : $scale</span></p>
   <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
   <p class="p2">
@@ -121,9 +121,9 @@
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
   #set $status = $bucket_list[$bucket]
-      <p class="p2"><strong>Bucket name: </strong><span class="ft3">$bucket</span></p>
-      <p class="p10">
-        <strong>Status &#8211; </strong>
+      <p class="p2">
+        <strong>Bucket name: </strong>
+        <span class="ft3">$bucket</span> &ndash;
   #if $status == "Error"
         <span class="status-error">Immediate action needed</span>
   #elif $status == "Warning"
