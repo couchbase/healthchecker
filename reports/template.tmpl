@@ -37,15 +37,15 @@
     #for $error_values in $error_list:
       <h4>$error_values["description"]</h4>
       <ul>
+        <li>Cause - <strong>$error_values["cause"]</strong></li>
         <li>Symptom
       #for $err_val in sorted($error_values["value"])
           <ul>
+            <li>$err_val["value"]</li>
             <li>Bucket : $error_values["bucket"] , Node : $err_val["node"]</li>
-            <li>Value : $err_val["value"]</li>
           </ul>
       #end for
         </li>
-        <li>Causes - $error_values["cause"]</li>
         <li>Impact - $error_values["impact"]</li>
         <li>Action - $error_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
@@ -212,15 +212,15 @@
     #for $warn_values in $warn_list
       <h4>$warn_values["description"]</h4>
       <ul>
+        <li>Cause - <strong>$warn_values["cause"]</strong></li>
         <li>Symptom
       #for $warn_val in sorted($warn_values["value"])
           <ul>
+            <li>$warn_val["value"]</li>
             <li>Bucket : $warn_values["bucket"] , Node : $warn_val["node"]</li>
-            <li>Value : $warn_val["value"]</li>
           </ul>
       #end for
         </li>
-        <li>Causes - $warn_values["cause"]</li>
         <li>Impact - $warn_values["impact"]</li>
         <li>Action - $warn_values["action"].replace('support@couchbase.com', '<a href="mailto:support@couchbase.com">support@couchbase.com</a>')</li>
       </ul>
