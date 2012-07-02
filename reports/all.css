@@ -10,4 +10,9 @@ ul ul {list-style: none}
 .status-warning {background: #ff0;}
 .status-ok {background: #0f0;}
 
+strong.status-error, strong.status-warning, strong.status-ok {padding: inherit}
+strong.status-error {background:inherit;color: #f00;}
+strong.status-warning {background:inherit;color: #ff0}
+strong.status-ok {background:inherit;color: #0f0}
+
 .tool-version {float:right;color:#aaa}
