@@ -39,7 +39,7 @@ def time_label(s):
         product = sz * product
         sizeMap.insert(0, (l, product))
     lbl, factor = itertools.dropwhile(lambda x: x[1] > s, sizeMap).next()
-    return "%d %s" % (s / factor, lbl)
+    return '%.*f %s' % (2, s * 1.0/factor, lbl)
 
 def size_label(s):
     if type(s) in (int, long, float, complex) :
@@ -48,7 +48,7 @@ def size_label(s):
         sizes=['', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']
         e = math.floor(math.log(abs(s), 1024))
         suffix = sizes[int(e)]
-        return "%d %s" % (s/(1024 ** math.floor(e)), suffix)
+        return "%.*f %s" % (2, s *1.0/(1024 ** math.floor(e)), suffix)
     else:
         return s
 
