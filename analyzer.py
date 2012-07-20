@@ -96,7 +96,7 @@ class StatsAnalyzer:
                                         status = "Warning"
                                         break
                                 for val in values:
-                                    if val[0] == "variance" or val[0] == "error":
+                                    if val[0] == "variance" or val[0] == "error" or val[0] == "warn":
                                         continue
                                     elif val[0] == "total":
                                         if counter.has_key("formula"):

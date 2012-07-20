@@ -13,8 +13,8 @@ Capsules = {
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "VBucketNumber" : {
-        "cause" : "The number of active vBuckets is less than the maximum number. This can occur if a node goes down.",
-        "impact" : "Data is missing and unavailable. Writes to missing vBuckets will fail.",
+        "cause" : "The number of vBuckets is less than the maximum number. This can occur if a node goes down.",
+        "impact" : "The cluster is unbalanced. Data is missing and unavailable. Writes to missing vBuckets will fail.",
         "action" : "Run rebalance to recreate missing vBuckets. If issue persists please contact support@couchbase.com",
     },
     "VBucketServerMap" : {

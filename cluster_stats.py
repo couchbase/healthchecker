@@ -314,22 +314,29 @@ class NumVbuckt:
         if num_node == 0:
             return result
         avg_threshold = threshold_val / num_node
+        total_vbucket = 0
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            num_error = []
+            num_warn = []
             trend = []
             values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
             total = []
             for node, vals in nodeStats.iteritems():
                 numVal = int(vals[-1])
+                total_vbucket += numVal
                 if numVal > 0 and numVal < avg_threshold:
                     symptom = accessor["symptom"].format(numVal, avg_threshold)
-                    num_error.append({"node":node, "value": symptom})
+                    num_warn.append({"node":node, "value": symptom})
                 trend.append((node, {"value" : numVal,"raw" : vals,}))
                 total.append(numVal)
             if len(nodeStats) > 0:
                 trend.append(("total", {"value" : sum(total) / len(nodeStats), "raw":total}))
-            if len(num_error) > 0:
+            if len(num_warn) > 0:
+                trend.append(("warn", num_warn))
+            if total_vbucket < threshold_val:
+                num_error = []
+                symptom = accessor["symptom"].format(total_vbucket, threshold_val)
+                num_error.append({"node":bucket, "value": symptom})
                 trend.append(("error", num_error))
             result[bucket] = trend
         return result
@@ -347,7 +354,7 @@ class VbucketMapSanity:
             len_map = len(vbucketMap)
             if len_map != accessor["threshold"]:
                 symptom = "vBucketMap length {0} is not equal to {1}".format(len_map, accessor["threshold"])
-                num_error.append({"node" : bucket, "value" : symptom})
+                num_error.append({"node" : "total", "value" : symptom})
 
             correct_len = numReplica + 1
             for vbucket in vbucketMap:
@@ -356,17 +363,17 @@ class VbucketMapSanity:
                     #check two - each vbucket map correctness
                     if len_element != correct_len:
                         symptom = "vBucketMap element length {0} is not consistent to replica {1}".format(len_element, numReplica)
-                        num_error.append({"node" : bucket, "value" : symptom})
+                        num_error.append({"node" : "total", "value" : symptom})
                     for element in vbucket:
                         #check three - each vbucket index correctness
                         if element > len_serverMap - 1:
                             symptom = "vBucketMap element server index {0} can not be found in server list".format(element)
-                            num_error.append({"node" : bucket, "value" : symptom})
+                            num_error.append({"node" : "total", "value" : symptom})
                     #check four - check unqiueness for vbucket
                     new_set = set(vbucket)
                     if len(new_set) < len_element:
                         symptom = "vBucketMap element {0} violates index uniqueness".format(vbucket)
-                        num_error.append({"node" : bucket, "value" : symptom})
+                        num_error.append({"node" : "total", "value" : symptom})
             if len(num_error) > 0:
                 trend.append(("error", num_error))
             result[bucket] = trend
@@ -384,7 +391,7 @@ class VbucketServerListSanity:
             new_set = set(serverMap)
             if len(new_set) < len(serverMap):
                 symptom = "vBucketMap server list {0} violates node uniqueness".format(serverMap)
-                num_error.append({"node" : bucket, "value" : symptom})
+                num_error.append({"node" : "total", "value" : symptom})
             if len(num_error) > 0:
                 trend.append(("error", num_error))
             result[bucket] = trend
@@ -622,7 +629,7 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "NumVbuckt",
             "threshold" : 1024,
-            "symptom" : "Number of active vBuckets '{0}' is less than '{1}'",
+            "symptom" : "Number of active vBuckets '{0}' is less than '{1}' per node",
             "formula" : "Avg(vb_active_num)",
         },
         {
@@ -632,7 +639,7 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "NumVbuckt",
             "threshold" : 1024,
-            "symptom" : "Number of replica vBuckets '{0}' is less than '{1}'", 
+            "symptom" : "Number of replica vBuckets '{0}' is less than '{1}' per node", 
             "formula" : "Avg(vb_replica_num)",
         },
      ],
