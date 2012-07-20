@@ -135,7 +135,7 @@ class StatsCollector:
                     bucketinfo['numReplica'] = bucket['replicaNumber']
                     bucketinfo['ramQuota'] = bucket['quota']['ram']
                     bucketinfo['master'] = server
-
+                    bucketinfo['vBucketServerMap'] = bucket['vBucketServerMap']
                     bucketStats = bucket['basicStats']
                     bucketinfo['bucketStats'] = {}
                     for key in bucketStats.iterkeys():

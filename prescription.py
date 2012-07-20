@@ -17,6 +17,11 @@ Capsules = {
         "impact" : "Data is missing and unavailable. Writes to missing vBuckets will fail.",
         "action" : "Run rebalance to recreate missing vBuckets. If issue persists please contact support@couchbase.com",
     },
+    "VBucketServerMap" : {
+        "cause" : "vBucketServerMap sanity checking fails",
+        "impact" : "Rebalance may fail",
+        "action" : "Please contact support@couchbase.com",
+    },
     "RebalancePerformance" : {
         "cause" : "Amount of data that should be moved between nodes, called TAP Queue, is is higher than threshold.",
         "impact" : "Rebalances will take long time, freeze, or may fail due to timeout.",

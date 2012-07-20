@@ -334,6 +334,63 @@ class NumVbuckt:
             result[bucket] = trend
         return result
 
+class VbucketMapSanity:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
+            num_error = []
+            trend = []
+            numReplica = bucketinfo['vBucketServerMap']['numReplicas']
+            vbucketMap = bucketinfo['vBucketServerMap']['vBucketMap']
+            len_serverMap = len(bucketinfo['vBucketServerMap']['serverList'])
+            # check one - vbucket map length
+            len_map = len(vbucketMap)
+            if len_map != accessor["threshold"]:
+                symptom = "vBucketMap length {0} is not equal to {1}".format(len_map, accessor["threshold"])
+                num_error.append({"node" : bucket, "value" : symptom})
+
+            correct_len = numReplica + 1
+            for vbucket in vbucketMap:
+                if type(vbucket) is list:
+                    len_element = len(vbucket)
+                    #check two - each vbucket map correctness
+                    if len_element != correct_len:
+                        symptom = "vBucketMap element length {0} is not consistent to replica {1}".format(len_element, numReplica)
+                        num_error.append({"node" : bucket, "value" : symptom})
+                    for element in vbucket:
+                        #check three - each vbucket index correctness
+                        if element > len_serverMap - 1:
+                            symptom = "vBucketMap element server index {0} can not be found in server list".format(element)
+                            num_error.append({"node" : bucket, "value" : symptom})
+                    #check four - check unqiueness for vbucket
+                    new_set = set(vbucket)
+                    if len(new_set) < len_element:
+                        symptom = "vBucketMap element {0} violates index uniqueness".format(vbucket)
+                        num_error.append({"node" : bucket, "value" : symptom})
+            if len(num_error) > 0:
+                trend.append(("error", num_error))
+            result[bucket] = trend
+
+        return result
+
+
+class VbucketServerListSanity:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
+            num_error = []
+            trend = []
+            serverMap = bucketinfo['vBucketServerMap']['serverList']
+            new_set = set(serverMap)
+            if len(new_set) < len(serverMap):
+                symptom = "vBucketMap server list {0} violates node uniqueness".format(serverMap)
+                num_error.append({"node" : bucket, "value" : symptom})
+            if len(num_error) > 0:
+                trend.append(("error", num_error))
+            result[bucket] = trend
+
+        return result
+
 class RebalanceStuck:
     def run(self, accessor, scale, threshold=None):
         result = {}
@@ -582,6 +639,25 @@ ClusterCapsule = [
      "indicator" : True,
      "perBucket" : True,
      "perNode" : True,
+    },
+    {"name" : "VBucketServerMap",
+     "ingredients" : [
+        {
+            "name" : "vbucketMap",
+            "description" : "Sanity checks for vBucket map",
+            "code" : "VbucketMapSanity",
+            "threshold" : 1024,
+            "formula" : "",
+        },
+        {
+            "name" : "vbucketServerList",
+            "description" : "Sanity checks for vBucket server list",
+            "code" : "VbucketServerListSanity",
+            "formula" : "",
+        },
+     ],
+     "indicator" : True,
+     "perBucket" : True,
     },
     {"name" : "MemoryUsage",
      "ingredients" : [
