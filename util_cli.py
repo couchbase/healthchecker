@@ -33,7 +33,7 @@ def time_label(s):
     elif s == 0:
         return '0'
     product = 1
-    sizes = (('us', 1), ('ms', 1000), ('s', 1000), ('m', 60))
+    sizes = (('us', 1), ('ms', 1000), ('sec', 1000), ('min', 60))
     sizeMap = []
     for l,sz in sizes:
         product = sz * product
