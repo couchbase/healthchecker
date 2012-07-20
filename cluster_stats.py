@@ -417,7 +417,7 @@ class RebalanceStuck:
                 result[bucket] = {"error" : num_error}
         return result
 
-class MemoryFramentation:
+class CalcFragmentation:
     def run(self, accessor, scale, threshold=None):
         result = {}
         if threshold.has_key("MemoryFragmentation"):
@@ -710,17 +710,22 @@ ClusterCapsule = [
             "name" : "totalFragmentation",
             "description" : "Total memory fragmentation",
             "counter" : "total_fragmentation_bytes",
-            "code" : "MemoryFramentation",
+            "code" : "CalcFragmentation",
             "unit" : "size",
             "threshold" : 1073741824,  # 1GB
             "symptom" : "Total memory fragmentation '{0}' is larger than '{1}'",
             "formula" : "total_fragmentation_bytes > threshold",
         },
+      ],
+      "indicator" : True,
+    },
+    {"name" : "DiskFragmentation",
+     "ingredients" : [
         {
             "name" : "diskDelete",
             "description" : "Average disk delete time",
             "counter" : "disk_del",
-            "code" : "MemoryFramentation",
+            "code" : "CalcFragmentation",
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk delete time '{0}' is slower than '{1}'",
@@ -730,7 +735,7 @@ ClusterCapsule = [
             "name" : "diskUpdate",
             "description" : "Average disk update time",
             "counter" : "disk_update",
-            "code" : "MemoryFramentation",
+            "code" : "CalcFragmentation",
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk update time '{0}' is slower than '{1}'",
@@ -741,7 +746,7 @@ ClusterCapsule = [
             "description" : "Average disk insert time",
             "type" : "python",
             "counter" : "disk_insert",
-            "code" : "MemoryFramentation",
+            "code" : "CalcFragmentation",
             "unit" : "time",
             "threshold" : 1000,     #1ms
             "symptom" : "Average disk insert time '{0}' is slower than '{1}'",
@@ -751,7 +756,7 @@ ClusterCapsule = [
             "name" : "diskCommit",
             "description" : "Average disk commit time",
             "counter" : "disk_commit",
-            "code" : "MemoryFramentation",
+            "code" : "CalcFragmentation",
             "unit" : "time",
             "threshold" : 5000000,     #10s
             "symptom" : "Average disk commit time '{0}' is slower than '{1}'",
