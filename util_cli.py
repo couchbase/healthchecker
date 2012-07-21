@@ -52,6 +52,17 @@ def size_label(s):
     else:
         return s
 
+def number_label(s):
+    if type(s) in (int, long, float, complex) :
+        if s == 0:
+            return "0"
+        sizes=['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion']
+        e = math.floor(math.log(abs(s), 1000))
+        suffix = sizes[int(e)]
+        return "%.*f %s" % (2, s *1.0/(1000 ** math.floor(e)), suffix)
+    else:
+        return s
+
 def linreg(X, Y):
     """
     Summary

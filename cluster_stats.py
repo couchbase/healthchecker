@@ -271,7 +271,7 @@ class MemUsed:
 class ItemGrowth:
     def run(self, accessor, scale, threshold=None):
         per_day = 86400000 #ms
-        ratio = per_day / 1000
+        ratio = per_day
         result = {}
         cluster = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
@@ -286,12 +286,12 @@ class ItemGrowth:
                 a, b = util.linreg(timestamps, vals)
                 rate = a * ratio
                 total.append(rate)
-                trend.append((node, {"value" : util.pretty_float(rate) + " thousands items per day",
+                trend.append((node, {"value" : util.number_label(rate) + " items per day",
                                      "raw" : vals,
                                     }))
             if len(nodeStats) > 0:
                 rate = sum(total) / len(nodeStats)
-                trend.append(("total", {"value" : util.pretty_float(rate) + " thousands items per day",
+                trend.append(("total", {"value" : util.number_label(rate) + " items per day",
                                         "raw" : total}))
                 cluster.append(rate)
             else:
@@ -299,7 +299,7 @@ class ItemGrowth:
             result[bucket] = trend
         if len(stats_buffer.buckets) > 0:
             rate = sum(cluster) / len(stats_buffer.buckets)
-            result["cluster"] = {"value" : util.pretty_float(rate) + " thousands items per day",
+            result["cluster"] = {"value" : util.number_label(rate) + " items per day",
                                  "raw" : cluster}
         return result
 
@@ -612,7 +612,6 @@ ClusterCapsule = [
             "counter" : "curr_items",
             "scale" : "day",
             "code" : "ItemGrowth",
-            "unit" : "percentage",
             "formula" : "Linear(curr_items)",
         },
      ],
