@@ -14,7 +14,7 @@ ClusterCapsule = {
     },
     "RebalancePerformance" : {
         "highBackfillRemaing" : 10000,
-        "tapNack" : 5,
+        "tapNack" : 500,
     },
     "MemoryFragmentation" : {
         "totalFragmentation" : 1073741824, 
