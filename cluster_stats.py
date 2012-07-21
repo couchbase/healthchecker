@@ -330,7 +330,7 @@ class NumVbuckt:
                 trend.append((node, {"value" : numVal,"raw" : vals,}))
                 total.append(numVal)
             if len(nodeStats) > 0:
-                trend.append(("total", {"value" : sum(total) / len(nodeStats), "raw":total}))
+                trend.append(("total", {"value" : sum(total), "raw":total}))
             if len(num_warn) > 0:
                 trend.append(("warn", num_warn))
             if total_vbucket < threshold_val:
