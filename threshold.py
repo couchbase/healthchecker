@@ -13,7 +13,7 @@ ClusterCapsule = {
         "replicaVBucketNumber" : 1024,
     },
     "RebalancePerformance" : {
-        "highBackfillRemaing" : 1000,
+        "highBackfillRemaing" : 10000,
         "tapNack" : 5,
     },
     "MemoryFragmentation" : {

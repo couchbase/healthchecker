@@ -406,15 +406,15 @@ class RebalanceStuck:
         else:
             threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
-            num_error = []
+            num_warn = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if int(value) > threshold_val:
                             symptom = accessor["symptom"].format(int(value), threshold_val)
-                            num_error.append({"node":node, "value": symptom})
-            if len(num_error) > 0:
-                result[bucket] = {"error" : num_error}
+                            num_warn.append({"node":node, "value": symptom})
+            if len(num_warn) > 0:
+                result[bucket] = {"warn" : num_warn}
         return result
 
 class CalcFragmentation:
