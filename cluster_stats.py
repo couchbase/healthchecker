@@ -353,8 +353,10 @@ class NumVbuckt:
 class VbucketMapSanity:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        return result
+
         for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
+            if not bucketinfo.has_key('vBucketServerMap'):
+                continue
             num_error = []
             trend = []
             numReplica = bucketinfo['vBucketServerMap']['numReplicas']
@@ -394,8 +396,10 @@ class VbucketMapSanity:
 class VbucketServerListSanity:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        return result
+
         for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
+            if not bucketinfo.has_key('vBucketServerMap'):
+                continue
             num_error = []
             trend = []
             serverMap = bucketinfo['vBucketServerMap']['serverList']
