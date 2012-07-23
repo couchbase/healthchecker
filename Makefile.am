@@ -38,7 +38,7 @@ ${PYTHON_TOOLS}: wrapper/wrapper
 CLEANFILES = ${PYTHON_TOOLS}
 bin_SCRIPTS = ${PYTHON_TOOLS}
 
-EXTRA_DIST = $(pythonlib_DATA) $(pythonlib_SCRIPTS) LICENSE
+EXTRA_DIST = $(pythonlib_DATA) $(pythonlib_SCRIPTS) reports LICENSE
 
 clean-local:
 	rm -f membase*tar.gz
@@ -54,7 +54,7 @@ bdist:
 	rm -rf $(TMP_DIR)/$(PROJECT_NAME)
 	mkdir -p $(TMP_DIR)/$(PROJECT_NAME)/simplejson
 	cp $(PROJECT_NAME) *.py  $(TMP_DIR)/$(PROJECT_NAME)
-	cp -rf $(CHEETAH_LIB) $(JSON_LIB) report-htm.tmpl LICENSE $(TMP_DIR)/$(PROJECT_NAME)
+	cp -rf $(CHEETAH_LIB) $(JSON_LIB) reports LICENSE $(TMP_DIR)/$(PROJECT_NAME)
 	cp $(TMP_VER) $(TMP_DIR)/$(PROJECT_NAME)/VERSION.txt
 	(cd $(TMP_DIR); tar cf - $(PROJECT_NAME)) | gzip -9 > $(PROJECT_NAME)-`cat $(TMP_VER)`.tar.gz
 	rm -rf $(TMP_DIR)
