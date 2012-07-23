@@ -52,7 +52,7 @@ class RestClient:
                        method,
                        response,
                        opts={ 'success_msg':'',
-                              'error_msg':'' }):
+                              'error_msg':''}):
         """ parse response in standard way.
             """
         if response.status in [200, 201, 202, 204, 302]:
@@ -64,7 +64,6 @@ class RestClient:
         if response.status == 401:
             print 'ERROR: unable to access the REST API - please check your username (-u) and password (-p)'
             sys.exit(2)
-
         print 'ERROR: %s (%d) %s' % (opts['error_msg'],
                                      response.status, response.reason)
 
@@ -153,7 +152,9 @@ class RestClient:
     def jsonMessage(self, data):
         return json.JSONEncoder().encode(data)
 
-    def restCmd(self, method, uri, user='', password='', opts={}):
+    def restCmd(self, method, uri, user='', password='',
+                opts={ 'success_msg':'',
+                       'error_msg':''}):
         if method == None:
             method = 'GET'
 
