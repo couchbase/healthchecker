@@ -9,7 +9,7 @@ Capsules = {
     },
     "ActiveReplicaResidentRatio" : {
         "cause" : "",
-        "impact" : "Performing failover will slow down nodes severely because it requires information stored on disk and result in eviction of active items",
+        "impact" : "Performing failover will slow down nodes severely because it will likely require information stored on disk",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "VBucketNumber" : {
@@ -29,12 +29,12 @@ Capsules = {
     },
     "MemoryFragmentation" : {
         "cause" : "Severe IO issue possibly caused by in-memory fragmentation",
-        "impact" : "Overuse of RAM for a node, causing ejections to disk. Possible system out of memory errors; OS may shutdown entire Couchbase Server.",
+        "impact" : "Overuse of RAM for a node, causing ejections to disk. Possible system out of memory errors; OS may shutdown Couchbase Server.",
         "action" : "Remove problem node, and add again the node to cluster. If issue persists, please contact support@couchbase.com",
     },
     "DiskFragmentation" : {
-        "cause" : "Severe IO issue possibly caused by disk fragmentation or limited disk space",
-        "impact" : "OS may shutdown entire Couchbase Server.",
+        "cause" : "Severe IO issue possibly caused by disk fragmentation",
+        "impact" : "OS may shutdown Couchbase Server if memory grows in persistence queues due to slow disk I/O.",
         "action" : "Remove problem node, and add again the node to cluster. If issue persists, please contact support@couchbase.com",
     },
     "EPEnginePerformance" : {
