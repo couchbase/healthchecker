@@ -85,7 +85,12 @@ class ARRatio:
 class OpsRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        read_cluster = write_cluster = del_cluster = []
+        read_cluster = []
+        write_cluster = []
+        del_cluster = []
+        read_stats = []
+        write_stats = []
+        del_stats = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             ops_avg = {
                 "cmd_get": [],
@@ -130,7 +135,11 @@ class OpsRatio:
                 del_total /= len(ops_avg['delete_hits'])
             res.append(("total", {"value" :"{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5)),
                                   "raw" : (read_total, write_total, del_total)}))
+            read_stats.append(read_total)
+            write_stats.append(write_total)
+            del_stats.append(del_total)
             result[bucket] = res
+
         count = sum(read_cluster) + sum(write_cluster) + sum(del_cluster)
         if count == 0:
             read_ratio = write_ratio = del_ratio = 0
@@ -139,7 +148,7 @@ class OpsRatio:
             write_ratio = sum(write_cluster) * 100.0 / count + .5
             del_ratio = sum(del_cluster) * 100 / count + .5
         result["cluster"] = {"value" : "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio)),
-                             "raw" : (read_cluster, write_cluster, del_cluster)}
+                             "raw" : (read_stats, write_stats, del_stats)}
         return result
 
 class CacheMissRatio:
@@ -324,9 +333,9 @@ class NumVbuckt:
             for node, vals in nodeStats.iteritems():
                 numVal = int(vals[-1])
                 total_vbucket += numVal
-                if numVal > 0 and numVal < avg_threshold:
-                    symptom = accessor["symptom"].format(numVal, avg_threshold)
-                    num_warn.append({"node":node, "value": symptom})
+                #if numVal > 0 and numVal < avg_threshold:
+                #    symptom = accessor["symptom"].format(numVal, avg_threshold)
+                #    num_warn.append({"node":node, "value": symptom})
                 trend.append((node, {"value" : numVal,"raw" : vals,}))
                 total.append(numVal)
             if len(nodeStats) > 0:
@@ -641,7 +650,7 @@ ClusterCapsule = [
      "ingredients" : [
         {
             "name" : "dataGrowthRateForItems",
-            "description" : "Data growth rate for items",
+            "description" : "Average data growth rate for items",
             "counter" : "curr_items",
             "scale" : "day",
             "code" : "ItemGrowth",
