@@ -23,7 +23,7 @@ Capsules = {
         "action" : "Please contact support@couchbase.com",
     },
     "RebalancePerformance" : {
-        "cause" : "Amount of data that should be moved between nodes, called TAP Queue, is is higher than threshold.",
+        "cause" : "Amount of data that should be moved between nodes, called TAP Queue, is higher than threshold.",
         "impact" : "Rebalances will take long time, freeze, or may fail due to timeout.",
         "action" : "Wait for TAP Queue to decrease, if it does not, please contact support@couchbase.com",
     },
