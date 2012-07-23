@@ -106,10 +106,14 @@
         <td>$value["description"]</td>
     #end if
     #if $util.isdict($value["value"])
-      #if $debug
+      #if $value["value"].has_key("value")
+        #if $debug
         <td title="$value["value"]["raw"]">$value["value"]["value"]</td>
-      #else
+        #else
         <td>$value["value"]["value"]</td>
+        #end if
+      #else
+        <td>N/A</td>
       #end if
     #else
         <td>$value["value"]</td>
