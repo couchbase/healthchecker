@@ -17,7 +17,7 @@
   <img src="logo_for_print.png" alt="Couchbase" class="logo-for-print" />
   <h1>Cluster Health Check Report</h1>
   <div class="tool-version">Tool Version: $globals['versions']</div>
-  <p class="p0"><span class="ft1">Stats Scale : $scale</span></p>
+  <p class="p0"><span class="ft1">Stats Scale: $scale</span></p>
   <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
   <p>
     <strong>Overall cluster health:</strong>
@@ -40,7 +40,11 @@
       <h4>$error_values["description"] - <strong class="status-error">$error_values["cause"]</strong></h4>
       <ul>
       #for $err_val in sorted($error_values["value"])
+        #if $err_val["node"] == "total"
+        <li>Symptom in <em>$error_values["bucket"]</em> bucket:</em>
+        #else
         <li>Symptom in <em>$error_values["bucket"]</em> bucket on <em>$err_val["node"] node(s):</em>
+        #end if
           <ul>
             <li><strong>$err_val["value"]</strong></li>
           </ul>
@@ -215,7 +219,11 @@
       <h4>$warn_values["description"] - <span class="status-warning">$warn_values["cause"]</span></h4>
       <ul>
       #for $warn_val in sorted($warn_values["value"])
+        #if $warn_val["node"] == "total"
+        <li>Symptom in <em>$warn_values["bucket"]</em> bucket:
+        #else
         <li>Symptom in <em>$warn_values["bucket"]</em> bucket on <em>$warn_val["node"]</em> node(s):
+        #end if
           <ul>
             <li><strong>$warn_val["value"]</strong></li>
           </ul>
