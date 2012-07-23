@@ -197,8 +197,13 @@ class StatsAnalyzer:
                                                                            "formula": "N/A",
                                                                           })
                                             for node in values["warn"]:
-                                                if bucket_node_status[bucket].has_key(node["node"]) == False:
-                                                    bucket_node_status[bucket][node["node"]] = "Warning"
+                                                node_val = None
+                                                if type(node) is dict:
+                                                    node_val = node["node"]
+                                                else:
+                                                    node_val = node[0]
+                                                if bucket_node_status[bucket].has_key(node_val) == False:
+                                                    bucket_node_status[bucket][node_val] = "Warning"
                                                 if bucket_list[bucket] == "OK":
                                                     bucket_list[bucket] = "Warning"
                                     elif type(values) is list:

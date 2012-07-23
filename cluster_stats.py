@@ -344,6 +344,7 @@ class NumVbuckt:
 class VbucketMapSanity:
     def run(self, accessor, scale, threshold=None):
         result = {}
+        return result
         for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
             num_error = []
             trend = []
@@ -384,6 +385,7 @@ class VbucketMapSanity:
 class VbucketServerListSanity:
     def run(self, accessor, scale, threshold=None):
         result = {}
+        return result
         for bucket, bucketinfo in stats_buffer.bucket_info.iteritems():
             num_error = []
             trend = []
@@ -415,7 +417,7 @@ class RebalanceStuck:
                             warnings.append(value)
                 if len(warnings) > 0:
                     symptom = accessor["symptom"].format(len(warnings), threshold_val)
-                    num_warn.append((node, {"value":symptom, "raw":warnings}))
+                    num_warn.append({"node":node, "value": symptom})
             if len(num_warn) > 0:
                 result[bucket] = {"warn" : num_warn}
         return result
@@ -719,7 +721,7 @@ ClusterCapsule = [
             "counter" : "ep_tap_queue_backfillremaining",
             "code" : "RebalanceStuck",
             "threshold" : 1000,
-            "symptom" : "There are {0} stats showing tap queue backfill remainings are higher than threshold '{1}'",
+            "symptom" : "There are {0} stats showing tap queue backfill remainings higher than threshold '{1}'",
             "formula" : "Total(ep_tap_queue_backfillremaining > threshold)",
         },
         {
@@ -728,7 +730,7 @@ ClusterCapsule = [
             "counter" : "num_tap_nack",
             "code" : "RebalanceStuck",
             "threshold" : 5,
-            "symptom" : "There are {0} stats showing number of negative tap acks received is above threshold '{1}'",
+            "symptom" : "There are {0} stats showing number of negative tap acks received above threshold '{1}'",
             "formula" : "Total(num_tap_nack > threshold)",
         },
      ],

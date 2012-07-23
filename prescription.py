@@ -8,7 +8,7 @@ Capsules = {
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "ActiveReplicaResidentRatio" : {
-        "cause" : "Too much data on disk versus data in memory.",
+        "cause" : "",
         "impact" : "Performing failover will slow down nodes severely because it requires information stored on disk and result in eviction of active items",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
