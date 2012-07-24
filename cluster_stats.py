@@ -133,7 +133,14 @@ class OpsRatio:
                 write_total /= len(ops_avg['cmd_set'])
             if len(ops_avg['delete_hits']) > 0:
                 del_total /= len(ops_avg['delete_hits'])
-            res.append(("total", {"value" :"{0}% reads : {1}% writes : {2}% deletes".format(int(read_total+.5), int(write_total+.5), int(del_total+.5)),
+            count = read_total + write_total + del_total
+            if count == 0:
+                read_ratio = write_ratio = del_ratio = 0
+            else:
+                read_ratio = read_total * 100.0 / count + .5
+                write_ratio = write_total * 100.0 / count + .5
+                del_ratio = del_total * 100.0 / count + .5
+            res.append(("total", {"value" :"{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio)),
                                   "raw" : (read_total, write_total, del_total)}))
             read_stats.append(read_total)
             write_stats.append(write_total)
