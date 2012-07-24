@@ -152,7 +152,7 @@
     #end if
     #if $util.isdict($symptom["value"])
       #if $debug
-          <td class=$statusClass, title="$symptom["value"]["raw"]">$symptom["value"]["value"]</td>
+          <td class="$statusClass" title="$symptom["value"]["raw"]">$symptom["value"]["value"]</td>
       #else
           <td class=$statusClass>$symptom["value"]["value"]</td>
       #end if
@@ -195,7 +195,7 @@
         #end if
         #if $util.isdict($node_value["value"])
           #if $debug
-            <td class=$statusClass, title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
+            <td class="$statusClass" title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
           #else
             <td class=$statusClass>$node_value["value"]["value"]</td>
           #end if
