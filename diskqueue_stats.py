@@ -12,6 +12,7 @@ class AvgDiskQueue:
             #print bucket, stats_info
             disk_queue_avg_error = []
             disk_queue_avg_warn = []
+            res = []
             values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
@@ -23,13 +24,17 @@ class AvgDiskQueue:
                 if avg > threshold_val["high"]:
                     symptom = accessor["symptom"].format(int(avg), threshold_val["high"])
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
+                    res.append((node, int(avg)))
                 elif avg > threshold_val["low"]:
                     symptom = accessor["symptom"].format(int(avg), threshold_val["low"])
                     disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
+                    res.append((node, int(avg)))
             if len(disk_queue_avg_error) > 0:
-                result[bucket] = {"error" : disk_queue_avg_error}
+                res.append(("error", disk_queue_avg_error))
             if len(disk_queue_avg_warn) > 0:
-                result[bucket] = {"warn" : disk_queue_avg_warn}
+                res.append(("warn", disk_queue_avg_warn))
+
+            result[bucket] = res
         return result
 
 class DiskQueueTrend:
@@ -42,6 +47,7 @@ class DiskQueueTrend:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             trend_error = []
             trend_warn = []
+            res = []
             values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
@@ -52,13 +58,16 @@ class DiskQueueTrend:
                 if a > threshold_val["high"]:
                     symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["high"])
                     trend_error.append({"node":node, "level":"red", "value":symptom})
+                    res.append((node, util.pretty_float(a)))
                 elif a > threshold_val["low"]:
                     symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["low"])
                     trend_warn.append({"node":node, "level":"yellow", "value":symptom})
+                    res.append((node, util.pretty_float(a)))
             if len(trend_error) > 0:
-                result[bucket] = {"error" : trend_error}
+                res.append(("error", trend_error))
             if len(trend_warn) > 0:
-                result[bucket] = {"warn" : trend_warn}
+                res.append(("warn", trend_warn))
+            result[bucket] = res
         return result
 
 class ReplicationTrend:
@@ -94,19 +103,22 @@ class ReplicationTrend:
                 else:
                     ratio = 100.0 * replica[1] / active[1] 
                     delta = replica[1]
-                    res.append((active[0], util.pretty_float(ratio)))
                     if ratio > threshold_val["percentage"]["high"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
+                        res.append((active[0], util.pretty_float(ratio)))
                     elif delta > threshold_val["number"]["high"]:
                         symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
+                        res.append((active[0], int(delta)))
                     elif ratio > threshold_val["percentage"]["low"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
+                        res.append((active[0], util.pretty_float(ratio)))
                     elif delta > threshold_val["number"]["low"]:
                         symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
+                        res.append((active[0], int(delta)))
                 active_total += active[1]
                 replica_total += replica[1]
             if active_total == 0:
@@ -138,9 +150,8 @@ class DiskQueueDrainingRate:
         else:
             threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            #print bucket, stats_info
+            res = []
             disk_queue_avg_error = []
-            disk_queue_avg_warn = []
             drain_values = stats_info[scale][accessor["counter"][0]]
             len_values = stats_info[scale][accessor["counter"][1]]
             nodeStats = drain_values["nodeStats"]
@@ -158,8 +169,11 @@ class DiskQueueDrainingRate:
                 if avg < threshold_val["drainRate"] and len_avg > threshold_val["diskLength"]:
                     symptom = accessor["symptom"].format(util.pretty_float(avg), threshold_val["drainRate"], int(len_avg), threshold_val["diskLength"])
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
+                    res.append((node, (util.pretty_float(avg), int(len_avg))))
+
             if len(disk_queue_avg_error) > 0:
-                result[bucket] = {"error" : disk_queue_avg_error}
+                res.append(("error", disk_queue_avg_error))
+            result[bucket] = res
         return result
 
 DiskQueueCapsule = [
@@ -196,12 +210,13 @@ DiskQueueCapsule = [
         },
      ],
      "indicator" : True,
+     "perBucket" : True,
     },
     {"name" : "ReplicationTrend",
      "ingredients" : [
         {
             "name" : "replicationTrend",
-            "description" : "Replication severely behind - ",
+            "description" : "Replication severely behind",
             "counter" : ["curr_items", "ep_tap_total_total_backlog_size"],
             "scale" : "hour",
             "code" : "ReplicationTrend",
@@ -219,7 +234,7 @@ DiskQueueCapsule = [
             "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) < threshold",
         }
      ],
-     "pernode" : True,
+     "perBucket" : True,
      "indicator" : True,
     },
      {"name" : "DiskQueueDrainingAnalysis",
@@ -255,5 +270,6 @@ DiskQueueCapsule = [
         },
      ],
      "indicator" : True,
+     "perBucket" : True,
     },
 ]
