@@ -146,7 +146,7 @@
     #if $symptom["status"] == "Error"
       #set $statusClass = "status-error"
     #elif $symptom["status"] == "Warning"
-      #set $statusClass = "status-error"
+      #set $statusClass = "status-warning"
     #else
       #set $statusClass = ""
     #end if
@@ -189,7 +189,7 @@
         #if $node_value["status"] == "Error"
           #set $statusClass = "status-error"
         #elif $node_value["status"] == "Warning"
-          #set $statusClass = "status-error"
+          #set $statusClass = "status-warning"
         #else
           #set $statusClass = ""
         #end if

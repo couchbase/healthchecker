@@ -95,7 +95,7 @@ class StatsAnalyzer:
                                         for node in val[1]:
                                             node_error.append(node["node"])
                                         break
-                                    elif val[0] == "warn":
+                                    if val[0] == "warn":
                                         bucket_status = "Warning"
                                         for node in val[1]:
                                             node_warn.append(node["node"])
@@ -117,20 +117,20 @@ class StatsAnalyzer:
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                             bucket_node_symptoms[bucket][val[0]] = []
-                                        status = "OK"
+                                        counter_status = "OK"
                                         if val[0] in node_warn:
-                                            status = "Warning"
+                                            counter_status = "Warning"
                                         if val[0] in node_error:
-                                            status = "Error"
+                                            counter_status = "Error"
                                         if counter.has_key("formula"):
                                             bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
                                                                                          "value" : val[1], 
-                                                                                         "status":status,
+                                                                                         "status":counter_status,
                                                                                          "formula":counter["formula"]})
                                         else:
                                             bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
                                                                                          "value" : val[1], 
-                                                                                         "status":status,
+                                                                                         "status":counter_status,
                                                                                          "formula":"N/A"})
                         if pill.has_key("perNode") and pill["perNode"] :
                             if counter.has_key("formula"):

@@ -386,16 +386,19 @@ class VbucketMapSanity:
                     if len_element != correct_len:
                         symptom = "vBucketMap element length {0} is not consistent to replica {1}".format(len_element, numReplica)
                         num_error.append({"node" : "total", "value" : symptom})
+                        trend.append((node, len_element))
                     for element in vbucket:
                         #check three - each vbucket index correctness
                         if element > len_serverMap - 1:
                             symptom = "vBucketMap element server index {0} can not be found in server list".format(element)
                             num_error.append({"node" : "total", "value" : symptom})
+                            trend.append((node, element))
                     #check four - check unqiueness for vbucket
                     new_set = set(vbucket)
                     if len(new_set) < len_element:
                         symptom = "vBucketMap element {0} violates index uniqueness".format(vbucket)
                         num_error.append({"node" : "total", "value" : symptom})
+                        trend.append((node, vbucket))
             if len(num_error) > 0:
                 trend.append(("error", num_error))
             result[bucket] = trend
@@ -417,6 +420,7 @@ class VbucketServerListSanity:
             if len(new_set) < len(serverMap):
                 symptom = "vBucketMap server list {0} violates node uniqueness".format(serverMap)
                 num_error.append({"node" : "total", "value" : symptom})
+                trend.append((node, serverMap))
             if len(num_error) > 0:
                 trend.append(("error", num_error))
             result[bucket] = trend
@@ -432,6 +436,7 @@ class RebalanceStuck:
             threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_warn = []
+            res = []
             for node, stats_info in bucket_stats.iteritems():
                 warnings = []
                 for key, value in stats_info.iteritems():
@@ -441,8 +446,10 @@ class RebalanceStuck:
                 if len(warnings) > 0:
                     symptom = accessor["symptom"].format(len(warnings), threshold_val)
                     num_warn.append({"node":node, "value": symptom})
+                    res.append((node, {"value":symptom, "raw":warnings}))
             if len(num_warn) > 0:
-                result[bucket] = {"warn" : num_warn}
+                res.append(("warn", num_warn))
+            result[bucket] = res
         return result
 
 class CalcFragmentation:
@@ -575,7 +582,7 @@ ClusterCapsule = [
             "name" : "minFreeDiskSpace",
             "description" : "Node with least available disk space",
             "code" : "LeastDiskSpace",
-            "symptom" : "'{0}' with free disk space '{1}'",
+            "symptom" : "'{0}' with space '{1}'",
             "formula" : "Min(Storage['hdd']['free'])",
         },
      ],
@@ -756,15 +763,16 @@ ClusterCapsule = [
         },
         {
             "name" : "tapNack",
-            "description" : "Number of nacks",
+            "description" : "Number of backoff",
             "counter" : "num_tap_nack",
             "code" : "RebalanceStuck",
             "threshold" : 5,
-            "symptom" : "There are {0} stats showing number of negative tap acks received above threshold '{1}'",
+            "symptom" : "Backoff received above threshold '{1}'",
             "formula" : "Total(num_tap_nack > threshold)",
         },
      ],
      "indicator" : True,
+     "perBucket" : True,
     },
     {"name" : "MemoryFragmentation",
      "ingredients" : [
