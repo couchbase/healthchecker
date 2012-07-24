@@ -89,8 +89,11 @@ class ConnectionTrend:
             samplesCount = values["samplesCount"]
             trend = []
             for node, vals in nodeStats.iteritems():
-                a, b = util.linreg(timestamps, vals)
-                trend.append((node, a, vals[-1]))
+                if len(vals) == 0:
+                    trend.append((node, 0, 0))
+                else:
+                    a, b = util.linreg(timestamps, vals)
+                    trend.append((node, a, vals[-1]))
             result[bucket] = trend
         return result
 

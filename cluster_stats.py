@@ -219,7 +219,7 @@ class ResidentItemRatio:
             num_error = []
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
-                if samplesCount > 0:
+                if len(vals) > 0:
                     # Take the lastest one as sample value
                     value = vals[-1]
                 else:
@@ -262,7 +262,7 @@ class MemUsed:
             total = 0
             data = []
             for node, vals in nodeStats.iteritems():
-                if samplesCount > 0:
+                if len(timestamps) > 0:
                     #avg = sum(vals) / samplesCount
                     a, b = util.linreg(timestamps, vals)
                     avg = a * timestamps[-1]  + b
@@ -331,7 +331,10 @@ class NumVbuckt:
             nodeStats = values["nodeStats"]
             total = []
             for node, vals in nodeStats.iteritems():
-                numVal = int(vals[-1])
+                if len(vals) == 0:
+                    numVal = 0
+                else:
+                    numVal = int(vals[-1])
                 total_vbucket += numVal
                 #if numVal > 0 and numVal < avg_threshold:
                 #    symptom = accessor["symptom"].format(numVal, avg_threshold)
