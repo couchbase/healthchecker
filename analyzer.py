@@ -19,7 +19,6 @@ from Cheetah.Template import Template
 capsules = [
     (node_stats.NodeCapsule, "node_stats", "NodeCapsule"),
     (cluster_stats.ClusterCapsule, "cluster_stats", "ClusterCapsule"),
-    #(bucket_stats.BucketCapsule, "bucket_stats", "BucketCapsule"),
     (diskqueue_stats.DiskQueueCapsule, "diskqueue_stats", "DiskQueueCapsule"),
 ]
 
@@ -87,17 +86,17 @@ class StatsAnalyzer:
                             for bucket, values in result.iteritems():
                                 if bucket == "cluster":
                                     continue
-                                status = "OK"
+                                bucket_status = "OK"
                                 node_error = []
                                 node_warn = []
                                 for val in values:
                                     if val[0] == "error":
-                                        status = "Error"
+                                        bucket_status = "Error"
                                         for node in val[1]:
                                             node_error.append(node["node"])
                                         break
                                     elif val[0] == "warn":
-                                        status = "Warning"
+                                        bucket_status = "Warning"
                                         for node in val[1]:
                                             node_warn.append(node["node"])
                                         break
@@ -108,12 +107,12 @@ class StatsAnalyzer:
                                         if counter.has_key("formula"):
                                             bucket_symptoms[bucket].append({"description":counter["description"], 
                                                                             "value":val[1], 
-                                                                            "status":status, 
+                                                                            "status":bucket_status, 
                                                                             "formula":counter["formula"]})
                                         else:
                                             bucket_symptoms[bucket].append({"description":counter["description"], 
                                                                             "value":val[1], 
-                                                                            "status":status,
+                                                                            "status":bucket_status,
                                                                             "formula":"N/A"})
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:

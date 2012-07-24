@@ -121,18 +121,17 @@ class ReplicationTrend:
                         res.append((active[0], int(delta)))
                 active_total += active[1]
                 replica_total += replica[1]
-            if active_total == 0:
-                res.append(("total", 0))
-            else:
+            if active_total > 0:
                 ratio = replica_total * 100.0 / active_total
                 cluster += ratio
-                res.append(("total", util.pretty_float(ratio)))
                 if ratio > threshold_val["percentage"]["high"]:
                     symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                     num_error.append({"node":"total", "value": symptom})
+                    res.append(("total", util.pretty_float(ratio)))
                 elif ratio  > threshold_val["percentage"]["low"]:
                     symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                     num_warn.append({"node":"total", "value": symptom})
+                    res.append(("total", util.pretty_float(ratio)))
             if len(num_error) > 0:
                 res.append(("error", num_error))
             if len(num_warn) > 0:
