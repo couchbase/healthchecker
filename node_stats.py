@@ -251,43 +251,6 @@ NodeCapsule = [
      ],
      "perBucket" : True,
     },
-    {"name" : "diskPerformance",
-     "ingredients" : [
-        {
-            "name" : "diskCommit",
-            "description" : "Average disk commit time",
-            "counter" : "disk_commit",
-            "code" : "NodePerformanceStats",
-            "unit" : "time",
-            "formula" : "Avg(disk_commit)",
-        },
-        {
-            "name" : "diskUpdate",
-            "description" : "Average disk update time",
-            "counter" : "disk_update",
-            "code" : "NodePerformanceStats",
-            "unit" : "time",
-            "formula" : "Avg(disk_update)",
-        },
-        {
-            "name" : "diskInsert",
-            "description" : "Average disk insert time",
-            "counter" : "disk_insert",
-            "code" : "NodePerformanceStats",
-            "unit" : "time",
-            "formula" : "Avg(disk_insert)",
-        },
-        {
-            "name" : "diskDelete",
-            "description" : "Average disk delete time",
-            "counter" : "disk_del",
-            "code" : "NodePerformanceStats",
-            "unit" : "time",
-            "formula" : " Avg(disk_del)",
-        },
-     ],
-     "perBucket" : True,
-    },
     {"name" : "AverageDocumentSize",
      "ingredients" : [
         {

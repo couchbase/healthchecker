@@ -88,12 +88,18 @@ class StatsAnalyzer:
                                 if bucket == "cluster":
                                     continue
                                 status = "OK"
+                                node_error = []
+                                node_warn = []
                                 for val in values:
                                     if val[0] == "error":
                                         status = "Error"
+                                        for node in val[1]:
+                                            node_error.append(node["node"])
                                         break
                                     elif val[0] == "warn":
                                         status = "Warning"
+                                        for node in val[1]:
+                                            node_warn.append(node["node"])
                                         break
                                 for val in values:
                                     if val[0] == "variance" or val[0] == "error" or val[0] == "warn":
@@ -112,6 +118,11 @@ class StatsAnalyzer:
                                     else:
                                         if bucket_node_symptoms[bucket].has_key(val[0]) == False:
                                             bucket_node_symptoms[bucket][val[0]] = []
+                                        status = "OK"
+                                        if val[0] in node_warn:
+                                            status = "Warning"
+                                        if val[0] in node_error:
+                                            status = "Error"
                                         if counter.has_key("formula"):
                                             bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
                                                                                          "value" : val[1], 
@@ -319,6 +330,8 @@ class StatsAnalyzer:
 
         print >> f, util.pretty_print(report)
         f.close()
+
+        #print util.pretty_print(bucket_node_symptoms)
 
         f = open(htmlfile, 'w')
         print >> f, Template(file=os.path.join(reports_dir, "template.tmpl"), searchList=[dict])

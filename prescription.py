@@ -35,7 +35,7 @@ Capsules = {
     "DiskFragmentation" : {
         "cause" : "Severe IO issue possibly caused by disk fragmentation",
         "impact" : "OS may shutdown Couchbase Server if memory grows in persistence queues due to slow disk I/O.",
-        "action" : "Remove problem node, and add again the node to cluster. If issue persists, please contact support@couchbase.com",
+        "action" : "Replace problem node. If issue persists, please contact support@couchbase.com",
     },
     "EPEnginePerformance" : {
         "cause" : "Poor engine Key Performance Indicators",

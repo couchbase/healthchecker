@@ -444,27 +444,34 @@ class CalcFragmentation:
             threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
+            trend = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
-                    if key.find(accessor["counter"]) >= 0:
+                    if key == accessor["counter"]:
                         if accessor.has_key("threshold") and not isinstance(value, dict):
                             if int(value) > threshold_val:
+                                symptom = ""
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
                                         symptom = accessor["symptom"].format(util.time_label(value), util.time_label(threshold_val))
-                                        num_error.append({"node":node, "value": symptom})
                                     elif accessor["unit"] == "size":
                                         symptom = accessor["symptom"].format(util.size_label(value), util.size_label(threshold_val))
-                                        num_error.append({"node":node, "value": symptom})
                                     else:
                                         symptom = accessor["symptom"].format(value, threshold_val)
-                                        num_error.append({"node":node, "value": symptom})
+                                    num_error.append({"node":node, "value": symptom})
                                 else:
                                     symptom = accessor["symptom"].format(value, threshold_val)
                                     num_error.append({"node":node, "value": symptom})
-
+                        if accessor.has_key("unit"):
+                            if accessor["unit"] == "time":
+                                trend.append((node, {"value":util.time_label(value), "raw":value}))
+                            elif accessor["unit"] == "size":
+                                trend.append((node, {"value":util.size_label(int(value)), "raw":value}))
+                            else:
+                                trend.append((node, value))
             if len(num_error) > 0:
-                result[bucket] = {"error" : num_error}
+                trend.append(("error", num_error))
+                result[bucket] = trend
         return result
 
 class EPEnginePerformance:
@@ -748,7 +755,6 @@ ClusterCapsule = [
         },
      ],
      "indicator" : True,
-     "perNode" : True,
     },
     {"name" : "MemoryFragmentation",
      "ingredients" : [
@@ -810,6 +816,7 @@ ClusterCapsule = [
         },
      ],
      "indicator" : True,
+     "perBucket" : True,
     },
     {"name" : "EPEnginePerformance",
      "ingredients" : [
