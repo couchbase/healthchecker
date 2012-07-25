@@ -130,7 +130,7 @@
 
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
-  #set $status = $bucket_list[$bucket]
+  #set $status = $bucket_list[$bucket]["status"]
       <p class="bucket">
         <strong>Bucket: </strong> $bucket &ndash;
   #if $status == "Error"
