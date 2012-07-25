@@ -65,14 +65,16 @@
     <thead>
       <tr>
         <th>Bucket Name</th>
+        <th>Bucket Type</th>
         <th>Health Status</th>
       </tr>
     </thead>
 #for $bucket in sorted($bucket_list.keys())
-  #set $bucket_status_class = 'status-' + $bucket_list[$bucket].lower()
+  #set $bucket_status_class = 'status-' + $bucket_list[$bucket]["status"].lower()
       <tr>
         <td>$bucket</td>
-        <td class="$bucket_status_class">$bucket_list[$bucket]</td>
+        <td>$bucket_list[$bucket]["type"]</td>
+        <td class="$bucket_status_class">$bucket_list[$bucket]["status"]</td>
       </tr>
 #end for
     </table>

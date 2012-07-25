@@ -355,7 +355,7 @@ class NumVbuckt:
             if total_vbucket < threshold_val:
                 num_error = []
                 symptom = accessor["symptom"].format(total_vbucket, threshold_val)
-                num_error.append({"node":bucket, "value": symptom})
+                num_error.append({"node": "total", "value": symptom})
                 trend.append(("error", num_error))
             result[bucket] = trend
         return result
@@ -763,7 +763,7 @@ ClusterCapsule = [
         },
         {
             "name" : "tapNack",
-            "description" : "Number of backoff",
+            "description" : "Number of Tap stream backoff",
             "counter" : "num_tap_nack",
             "code" : "RebalanceStuck",
             "threshold" : 5,

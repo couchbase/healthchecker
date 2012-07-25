@@ -58,7 +58,8 @@ class StatsAnalyzer:
     def run_analysis(self, scale):
 
         for bucket in stats_buffer.buckets.iterkeys():
-            bucket_list[bucket] = "OK"
+            bucket_type =  stats_buffer.bucket_info[bucket]['bucketType']
+            bucket_list[bucket] = {"status":"OK", "type":bucket_type}
             bucket_symptoms[bucket] = []
             bucket_node_symptoms[bucket] = {}
             bucket_node_status[bucket] = {}
@@ -184,7 +185,7 @@ class StatsAnalyzer:
                                                                            })
                                             for val in values["error"]:
                                                 bucket_node_status[bucket][val["node"]] = "Error"
-                                                bucket_list[bucket] = "Error"
+                                                bucket_list[bucket]["status"] = "Error"
                                         if values.has_key("warn"):
                                             if indicator_warn.has_key(counter["name"]) == False:
                                                 indicator_warn[counter["name"]] = []
@@ -214,8 +215,8 @@ class StatsAnalyzer:
                                                     node_val = node[0]
                                                 if bucket_node_status[bucket].has_key(node_val) == False:
                                                     bucket_node_status[bucket][node_val] = "Warning"
-                                                if bucket_list[bucket] == "OK":
-                                                    bucket_list[bucket] = "Warning"
+                                                if bucket_list[bucket]["status"] == "OK":
+                                                    bucket_list[bucket]["status"] = "Warning"
                                     elif type(values) is list:
                                         for val in values:
                                             if val[0] == "error":
@@ -241,7 +242,7 @@ class StatsAnalyzer:
                                                                            })
                                                 for node in val[1]:
                                                     bucket_node_status[bucket][node["node"]] = "Error"
-                                                    bucket_list[bucket] = "Error"
+                                                    bucket_list[bucket]["status"] = "Error"
                                             elif val[0] == "warn":
                                                 if indicator_warn.has_key(counter["name"]) == False:
                                                     indicator_warn[counter["name"]] = []
@@ -266,8 +267,8 @@ class StatsAnalyzer:
                                                 for node in val[1]:
                                                     if bucket_node_status[bucket].has_key(node["node"]) == False:
                                                         bucket_node_status[bucket][node["node"]] = "Warning"
-                                                    if bucket_list[bucket] == "OK":
-                                                        bucket_list[bucket] = "Warning"
+                                                    if bucket_list[bucket]["status"] == "OK":
+                                                        bucket_list[bucket]["status"] = "Warning"
                     except Exception, err:
                         self.log.error("Exception launched when processing counter: {0}".format(counter["name"]))
                         traceback.print_exc()
