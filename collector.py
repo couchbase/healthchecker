@@ -135,7 +135,11 @@ class StatsCollector:
                     bucketinfo['numReplica'] = bucket['replicaNumber']
                     bucketinfo['ramQuota'] = bucket['quota']['ram']
                     bucketinfo['master'] = server
-                    bucketinfo['vBucketServerMap'] = bucket['vBucketServerMap']
+                    if bucket.has_key('vBucketServerMap'):
+                        bucketinfo['vBucketServerMap'] = bucket['vBucketServerMap']
+                    else:
+                        self.log.error("vBucketServerMap doesn't exist from bucket info")
+                        self.log.error(util.pretty_print(info))
                     bucketStats = bucket['basicStats']
                     bucketinfo['bucketStats'] = {}
                     for key in bucketStats.iterkeys():
