@@ -138,8 +138,10 @@ class StatsCollector:
                     if bucket.has_key('vBucketServerMap'):
                         bucketinfo['vBucketServerMap'] = bucket['vBucketServerMap']
                     else:
-                        self.log.error("vBucketServerMap doesn't exist from bucket info")
-                        self.log.error(util.pretty_print(info))
+                        if bucket['bucketType'] != "memcached":
+                            self.log.error("vBucketServerMap doesn't exist from bucket info")
+                            self.log.error(bucket)
+                        
                     bucketStats = bucket['basicStats']
                     bucketinfo['bucketStats'] = {}
                     for key in bucketStats.iterkeys():
