@@ -211,7 +211,7 @@ class StatsCollector:
                             self.get_mc_stats_per_node(mc, stats)
                             stats_buffer.node_stats[bucket_name][node['hostname']] = stats
                         except Exception, err:
-                            stats_buffer.nodes[node['hostname']]['status'] = 'down'
+                            #stats_buffer.nodes[node['hostname']]['status'] = 'down'
                             traceback.print_exc()
 
     def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, scale, opts):
