@@ -158,32 +158,49 @@ class StatsCollector:
             traceback.print_exc()
             sys.exit(1)
 
+    def process_histogram_data(self, histogram_data):
+        vals = sorted([self.seg(*kv) for kv in histogram_data.items()])
+        dd = {}
+        totals = {}
+        for s in vals:
+            if s[0][1] > util.BIG_VALUE or s[0][2] > util.BIG_VALUE:
+                #Ignore infinite bucket from stats. it will skew the final result
+                continue
+            else:
+                avg = (s[0][1] + s[0][2]) / 2
+                k = s[0][0]
+                l = dd.get(k, [])
+                l.append((avg, s[1]))
+                dd[k] = l
+                totals[k] = totals.get(k, 0) + s[1]
+        return (dd, totals)
+
     def get_mc_stats_per_node(self, mc, stats):
         cmd_list = ["timings", "tap", "checkpoint", "memory", ""]
-        #cmd_list = ["tap"]
         try:
             for cmd in cmd_list:
-                node_stats = mc.stats(cmd)
+                if mc:
+                    node_stats = mc.stats(cmd)
+                else:
+                    node_stats = stats
                 if node_stats:
                     if cmd == "timings":
-                        # need to preprocess histogram data first
-                        vals = sorted([self.seg(*kv) for kv in node_stats.items()])
                         dd = {}
-                        totals = {}
-                        longest = 0
-                        for s in vals:
-                            avg = (s[0][1] + s[0][2]) / 2
-                            k = s[0][0]
-                            l = dd.get(k, [])
-                            l.append((avg, s[1]))
-                            dd[k] = l
-                            totals[k] = totals.get(k, 0) + s[1]
-                        for k in sorted(dd):
-                            ccount = 0
-                            for lbl,v in dd[k]:
-                                ccount += v * lbl
-                            stats[k] = ccount / totals[k]
-                            stats["timging_"+k] = node_stats
+                        if mc:
+                            dd, totals = self.process_histogram_data(node_stats)
+                        else:
+                            for key in stats.iterkeys():
+                                if key.find("timging_") >= 0:
+                                    node_stats = stats[key]
+                                    dd, totals = self.process_histogram_data(node_stats)
+                                    break
+                        if dd:
+                            for k in sorted(dd):
+                                ccount = 0
+                                for lbl,v in dd[k]:
+                                    ccount += v * lbl
+                                stats[k] = ccount / totals[k]
+                        stats["timging_"] = node_stats
                     else:
                         for key, val in node_stats.items():
                             stats[key] = val
@@ -213,6 +230,22 @@ class StatsCollector:
                         except Exception, err:
                             #stats_buffer.nodes[node['hostname']]['status'] = 'down'
                             traceback.print_exc()
+
+    def get_mc_stats_fromfile(self, bucketname, collected_buckets, collected_nodes):
+        for bucket_name in collected_buckets.iterkeys():
+            if bucketname == 'all' or bucket_name == bucketname:
+                #stats_buffer.node_stats[bucket_name] = {}
+                if stats_buffer.bucket_info[bucket_name]["bucketType"] == 'memcached':
+                    self.log.info("Skip memcached bucket: %s" % bucket_name)
+                    continue
+                for node in collected_nodes.iterkeys():
+                    (node_server, node_port) = util.hostport(node)
+                    if collected_nodes[node]['status'] == 'healthy':
+                        try:
+                            self.get_mc_stats_per_node(None, stats_buffer.node_stats[bucket_name][node])
+                        except Exception, err:
+                            traceback.print_exc()
+                            sys.exit(1)
 
     def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, scale, opts):
         stats_buffer.stats[scale] = stats_buffer.counters
@@ -271,6 +304,9 @@ class StatsCollector:
             stats_buffer.bucket_info = collected_data["bucket_info"]
             stats_buffer.buckets_summary = collected_data["buckets_summary"]
             stats_buffer.node_stats = collected_data["node_stats"]
+            self.get_mc_stats_fromfile(bucketname,
+                                       collected_data["buckets"],
+                                       collected_data["nodes"])
             stats_buffer.buckets = collected_data["buckets"]
             scale = collected_data["scale"]
         return scale
