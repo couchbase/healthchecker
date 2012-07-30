@@ -163,16 +163,16 @@ class StatsCollector:
         dd = {}
         totals = {}
         for s in vals:
-            if s[0][1] > util.BIG_VALUE or s[0][2] > util.BIG_VALUE:
-                #Ignore infinite bucket from stats. it will skew the final result
-                continue
+            if s[0][2] > util.BIG_VALUE:
+                # Ignore the upper bound if it is exemely big
+                avg = s[0][1]
             else:
                 avg = (s[0][1] + s[0][2]) / 2
-                k = s[0][0]
-                l = dd.get(k, [])
-                l.append((avg, s[1]))
-                dd[k] = l
-                totals[k] = totals.get(k, 0) + s[1]
+            k = s[0][0]
+            l = dd.get(k, [])
+            l.append((avg, s[1]))
+            dd[k] = l
+            totals[k] = totals.get(k, 0) + s[1]
         return (dd, totals)
 
     def get_mc_stats_per_node(self, mc, stats):
