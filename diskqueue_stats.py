@@ -56,11 +56,11 @@ class DiskQueueTrend:
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 if a > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["high"])
+                    symptom = accessor["symptom"].format(util.pretty_float(a, 3), threshold_val["high"])
                     trend_error.append({"node":node, "level":"red", "value":symptom})
                     res.append((node, util.pretty_float(a)))
                 elif a > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(a), threshold_val["low"])
+                    symptom = accessor["symptom"].format(util.pretty_float(a, 3), threshold_val["low"])
                     trend_warn.append({"node":node, "level":"yellow", "value":symptom})
                     res.append((node, util.pretty_float(a)))
             if len(trend_error) > 0:
@@ -102,13 +102,13 @@ class ReplicationTrend:
                     res.append((active[0], 0))
                 else:
                     ratio = 100.0 * replica[1] / active[1] 
-                    delta = replica[1]
+                    delta = int(replica[1])
                     if ratio > threshold_val["percentage"]["high"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.pretty_float(ratio)))
                     elif delta > threshold_val["number"]["high"]:
-                        symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["high"])
+                        symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
                         num_error.append({"node":active[0], "value": symptom})
                         res.append((active[0], int(delta)))
                     elif ratio > threshold_val["percentage"]["low"]:
@@ -116,7 +116,7 @@ class ReplicationTrend:
                         num_warn.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.pretty_float(ratio)))
                     elif delta > threshold_val["number"]["low"]:
-                        symptom = accessor["symptom"].format(int(delta), threshold_val["number"]["low"])
+                        symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["low"]))
                         num_warn.append({"node":active[0], "value": symptom})
                         res.append((active[0], int(delta)))
                 active_total += active[1]

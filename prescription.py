@@ -38,7 +38,7 @@ Capsules = {
         "action" : "Replace problem node. If issue persists, please contact support@couchbase.com",
     },
     "EPEnginePerformance" : {
-        "cause" : "Poor engine Key Performance Indicators",
+        "cause" : "Poor ep-engine key performance indicators",
         "impact" : "To be defined",
         "action" : "Please contact support@couchbase.com",
     },

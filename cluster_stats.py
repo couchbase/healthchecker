@@ -184,7 +184,7 @@ class CacheMissRatio:
                 value = max(0, value)
                 total.append(value)
                 if value > thresholdval:
-                    symptom = accessor["symptom"].format(value, thresholdval)
+                    symptom = accessor["symptom"].format(util.pretty_float(value), thresholdval)
                     num_error.append({"node":node, "value":symptom})
                 trend.append((node, {"value" : util.pretty_float(value) + "%",
                                      "raw" : vals,
@@ -466,7 +466,8 @@ class CalcFragmentation:
                 for key, value in stats_info.iteritems():
                     if key == accessor["counter"]:
                         if accessor.has_key("threshold") and not isinstance(value, dict):
-                            if int(value) > threshold_val:
+                            value = int(value)
+                            if value > threshold_val:
                                 symptom = ""
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
@@ -483,7 +484,7 @@ class CalcFragmentation:
                             if accessor["unit"] == "time":
                                 trend.append((node, {"value":util.time_label(value), "raw":value}))
                             elif accessor["unit"] == "size":
-                                trend.append((node, {"value":util.size_label(int(value)), "raw":value}))
+                                trend.append((node, {"value":util.size_label(value), "raw":value}))
                             else:
                                 trend.append((node, value))
             if len(num_error) > 0:
@@ -510,7 +511,15 @@ class EPEnginePerformance:
                                 num_error.append({"node":node, "value": accessor["symptom"]})
                             else:
                                 if value > threshold_val:
-                                    symptom = accessor["symptom"].format(value, threshold_val)
+                                    if accessor.has_key("unit"):
+                                        if accessor["unit"] == "time":
+                                            symptom = accessor["symptom"].format(util.time_label(int(value)), util.time_label(threshold_val))
+                                        elif accessor["unit"] == "size":
+                                            symptom = accessor["symptom"].format(util.size_label(int(value)), util.size_label(threshold_val))
+                                        else:
+                                            symptom = accessor["symptom"].format(value, threshold_val)
+                                    else:
+                                        symptom = accessor["symptom"].format(value, threshold_val)
                                     num_error.append({"node":node, "value": symptom})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
@@ -595,7 +604,7 @@ ClusterCapsule = [
         {
             "name" : "cacheMissRatio",
             "description" : "Cache miss ratio",
-            "symptom" : "Cache miss ratio '{0}' is higher than threshold '{1}'",
+            "symptom" : "Cache miss ratio '{0}%' is higher than threshold '{1}%'",
             "counter" : "ep_cache_miss_rate",
             "scale" : "hour",
             "code" : "CacheMissRatio",
@@ -861,6 +870,7 @@ ClusterCapsule = [
             "description" : "Average item loaded time",
             "counter" : "ep_bg_load_avg",
             "code" : "EPEnginePerformance",
+            "unit" : "time",
             "threshold" : 100,
             "symptom" : "Average time '{0}' for items to be loaded is slower than '{1}'",  
             "formula" : "Avg(ep_bg_load_avg) > threshold",
@@ -870,6 +880,7 @@ ClusterCapsule = [
             "description" : "Average item waited time",
             "counter" : "ep_bg_wait_avg",
             "code" : "EPEnginePerformance",
+            "unit" : "time",
             "threshold" : 100,
             "symptom" : "Average wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
             "formula" : "Avg(ep_bg_wait_avg) > threshold",
