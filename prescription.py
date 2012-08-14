@@ -48,7 +48,7 @@ Capsules = {
         "action" : "Increase disk quota for buckets, or add nodes to cluster. Can remove and re-add a server to resolve a disk fragmentation issue. If issue persists please contact support@couchbase.com"
     },
     "ReplicationTrend" : {
-        "cause" : "Ratio of items in the replication queue and active items greater than threshold.",
+        "cause" : "Replication queue overloaded",
         "impact" : "If the nodes fails over, data will be missing on the replica. If you failover, information in the replication queue will be lost.",
         "action" : "Do not failover the node. Wait until replication queue is low to failover. If replication queue remains high, contact support@couchbase.com",
     },

@@ -505,10 +505,12 @@ class EPEnginePerformance:
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
                         if accessor.has_key("threshold"):
-                            if accessor["counter"] == "flusherState" and value != threshold_val:
-                                num_error.append({"node":node, "value": accessor["symptom"]})
-                            elif accessor["counter"] == "flusherCompleted" and value == threshold_val:
-                                num_error.append({"node":node, "value": accessor["symptom"]})
+                            if accessor["name"] == "flusherState":
+                                if value != threshold_val:
+                                    num_error.append({"node":node, "value": accessor["symptom"]})
+                            elif accessor["name"] == "flusherCompleted":
+                                if int(value) == threshold_val:
+                                    num_error.append({"node":node, "value": accessor["symptom"]})
                             else:
                                 if value > threshold_val:
                                     if accessor.has_key("unit"):
@@ -882,7 +884,7 @@ ClusterCapsule = [
             "code" : "EPEnginePerformance",
             "unit" : "time",
             "threshold" : 100,
-            "symptom" : "Average wait time '{0}' for items to be serviced by dispatcher is slower than '{1}'",
+            "symptom" : "Average waiting time '{0}' for items serviced by dispatcher is slower than '{1}'",
             "formula" : "Avg(ep_bg_wait_avg) > threshold",
         },
      ],

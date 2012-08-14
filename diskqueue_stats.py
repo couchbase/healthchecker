@@ -229,7 +229,7 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
-            "symptom" : "Number of backlog items for replication '{0}' is above threshold '{1}'",
+            "symptom" : "Number of backlog items or replication ratio '{0}' is above threshold '{1}'",
             "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) < threshold",
         }
      ],
