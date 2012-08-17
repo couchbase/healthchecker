@@ -39,7 +39,7 @@ Capsules = {
     },
     "EPEnginePerformance" : {
         "cause" : "Poor ep-engine key performance indicators",
-        "impact" : "To be defined",
+        "impact" : "Server performance is below expectation.",
         "action" : "Please contact support@couchbase.com",
     },
     "DiskQueueDiagnosis" : {

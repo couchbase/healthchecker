@@ -8,6 +8,11 @@ import itertools
 BIG_VALUE = 2 ** 60
 SMALL_VALUE = - (2 ** 60)
 
+def devisible(a, b):
+    if b == 0:
+        return False
+    return a % b == 0
+
 def hostport(hoststring, default_port=8091):
     """ finds the host and port given a host:port string """
     try:
@@ -39,7 +44,10 @@ def time_label(s):
         product = sz * product
         sizeMap.insert(0, (l, product))
     lbl, factor = itertools.dropwhile(lambda x: x[1] > s, sizeMap).next()
-    return '%.*f %s' % (2, s * 1.0/factor, lbl)
+    if devisible(s, factor):
+        return '%d %s' % (s / factor, lbl)
+    else:
+        return '%.*f %s' % (3, s * 1.0/factor, lbl)
 
 def size_label(s):
     if type(s) in (int, long, float, complex) :
@@ -48,18 +56,26 @@ def size_label(s):
         sizes=['', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']
         e = math.floor(math.log(abs(s), 1024))
         suffix = sizes[int(e)]
-        return "%.*f %s" % (2, s *1.0/(1024 ** math.floor(e)), suffix)
+        if devisible(s, 1024 ** math.floor(e)):
+            return '%d %s' % ( s / (1024 ** math.floor(e)), suffix)
+        else:
+            return "%.*f %s" % (3, s *1.0/(1024 ** math.floor(e)), suffix)
     else:
         return s
 
 def number_label(s):
     if type(s) in (int, long, float, complex) :
-        if s == 0:
+        if s < 1:
             return "0"
         sizes=['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion']
         e = math.floor(math.log(abs(s), 1000))
+        if e < 0:
+           e = 0
         suffix = sizes[int(e)]
-        return "%.*f %s" % (2, s *1.0/(1000 ** math.floor(e)), suffix)
+        if devisible(s, 1000 ** math.floor(e)):
+            return "%d %s" % (s / (1000 ** match.floor(e)), suffix)
+        else:
+            return "%.*f %s" % (2, s *1.0/(1000 ** math.floor(e)), suffix)
     else:
         return s
 

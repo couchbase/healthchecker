@@ -461,25 +461,31 @@ class CalcFragmentation:
             threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
+            num_warn = []
             trend = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key == accessor["counter"]:
                         if accessor.has_key("threshold") and not isinstance(value, dict):
                             value = int(value)
-                            if value > threshold_val:
+                            if value > threshold_val["low"]:
+                                val_threshold = threshold_val["low"]
+                                if value > threshold_val["high"]:
+                                    val_threshold = threshold_val["high"]
                                 symptom = ""
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
-                                        symptom = accessor["symptom"].format(util.time_label(value), util.time_label(threshold_val))
+                                        symptom = accessor["symptom"].format(util.time_label(value), util.time_label(val_threshold))
                                     elif accessor["unit"] == "size":
-                                        symptom = accessor["symptom"].format(util.size_label(value), util.size_label(threshold_val))
+                                        symptom = accessor["symptom"].format(util.size_label(value), util.size_label(val_threshold))
                                     else:
-                                        symptom = accessor["symptom"].format(value, threshold_val)
+                                        symptom = accessor["symptom"].format(value, val_threshold)
+                                else:
+                                    symptom = accessor["symptom"].format(value, val_threshold)
+                                if value > threshold_val["high"]:
                                     num_error.append({"node":node, "value": symptom})
                                 else:
-                                    symptom = accessor["symptom"].format(value, threshold_val)
-                                    num_error.append({"node":node, "value": symptom})
+                                    num_warn.append({"node":node, "value": symptom})
                         if accessor.has_key("unit"):
                             if accessor["unit"] == "time":
                                 trend.append((node, {"value":util.time_label(value), "raw":value}))
@@ -490,6 +496,10 @@ class CalcFragmentation:
             if len(num_error) > 0:
                 trend.append(("error", num_error))
                 result[bucket] = trend
+            elif len(num_warn) > 0:
+                trend.append(("warn", num_warn))
+                result[bucket] = trend
+
         return result
 
 class EPEnginePerformance:
@@ -501,6 +511,7 @@ class EPEnginePerformance:
             threshold_val = accessor["threshold"]
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             num_error = []
+            num_warn = []
             for node, stats_info in bucket_stats.iteritems():
                 for key, value in stats_info.iteritems():
                     if key.find(accessor["counter"]) >= 0:
@@ -512,19 +523,29 @@ class EPEnginePerformance:
                                 if int(value) == threshold_val:
                                     num_error.append({"node":node, "value": accessor["symptom"]})
                             else:
-                                if value > threshold_val:
+                                value = int(value)
+                                if value > threshold_val["low"]:
+                                    val_threshold = threshold_val["low"]
+                                    if value > threshold_val["high"]:
+                                        val_threshold = threshold_val["high"]
                                     if accessor.has_key("unit"):
                                         if accessor["unit"] == "time":
-                                            symptom = accessor["symptom"].format(util.time_label(int(value)), util.time_label(threshold_val))
+                                            symptom = accessor["symptom"].format(util.time_label(value), util.time_label(val_threshold))
                                         elif accessor["unit"] == "size":
-                                            symptom = accessor["symptom"].format(util.size_label(int(value)), util.size_label(threshold_val))
+                                            symptom = accessor["symptom"].format(util.size_label(value), util.size_label(val_threshold))
                                         else:
-                                            symptom = accessor["symptom"].format(value, threshold_val)
+                                            symptom = accessor["symptom"].format(value, val_threshold)
                                     else:
-                                        symptom = accessor["symptom"].format(value, threshold_val)
-                                    num_error.append({"node":node, "value": symptom})
+                                        symptom = accessor["symptom"].format(value, val_threshold)
+                                    if value > threshold_val["high"]:
+                                        num_error.append({"node":node, "value": symptom})
+                                    else:
+                                        num_warn.append({"node":node, "value": symptom})
             if len(num_error) > 0:
                 result[bucket] = {"error" : num_error}
+            elif len(num_warn) > 0:
+                result[bucket] = {"warn" : num_warn}
+
         return result
 
 class TotalDataSize:
@@ -793,12 +814,17 @@ ClusterCapsule = [
             "counter" : "total_fragmentation_bytes",
             "code" : "CalcFragmentation",
             "unit" : "size",
-            "threshold" : 1073741824,  # 1GB
+            "threshold" : {
+                "low" : 1073741824, # 1GB
+                "high" : 2147483648, # 2GB
+            },
             "symptom" : "Total memory fragmentation '{0}' is larger than '{1}'",
             "formula" : "total_fragmentation_bytes > threshold",
         },
       ],
       "indicator" : True,
+      "perNode" : True,
+      "perBucket" : True,
     },
     {"name" : "DiskFragmentation",
      "ingredients" : [
@@ -808,7 +834,10 @@ ClusterCapsule = [
             "counter" : "disk_del",
             "code" : "CalcFragmentation",
             "unit" : "time",
-            "threshold" : 1000,     #1ms
+            "threshold" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
             "symptom" : "Average disk delete time '{0}' is slower than '{1}'",
             "formula" : "Avg(disk_del) > threshold",
         },
@@ -818,7 +847,10 @@ ClusterCapsule = [
             "counter" : "disk_update",
             "code" : "CalcFragmentation",
             "unit" : "time",
-            "threshold" : 1000,     #1ms
+            "threshold" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
             "symptom" : "Average disk update time '{0}' is slower than '{1}'",
             "formula" : "Avg(disk_update) > threshold",
         },
@@ -829,7 +861,10 @@ ClusterCapsule = [
             "counter" : "disk_insert",
             "code" : "CalcFragmentation",
             "unit" : "time",
-            "threshold" : 1000,     #1ms
+            "threshold" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
             "symptom" : "Average disk insert time '{0}' is slower than '{1}'",
             "formula" : "Avg(disk_insert) > threshold",
         },
@@ -839,13 +874,17 @@ ClusterCapsule = [
             "counter" : "disk_commit",
             "code" : "CalcFragmentation",
             "unit" : "time",
-            "threshold" : 5000000,     #10s
+            "threshold" : {
+                "low" : 5000000,
+                "high" : 10000000,
+            },
             "symptom" : "Average disk commit time '{0}' is slower than '{1}'",
             "formula" : "Avg(disk_commit) > threshold",
         },
      ],
      "indicator" : True,
      "perBucket" : True,
+     "perNode" : True,
     },
     {"name" : "EPEnginePerformance",
      "ingredients" : [
@@ -873,7 +912,10 @@ ClusterCapsule = [
             "counter" : "ep_bg_load_avg",
             "code" : "EPEnginePerformance",
             "unit" : "time",
-            "threshold" : 100,
+            "threshold" : {
+                "low" : 100,
+                "high" : 500,
+            },
             "symptom" : "Average time '{0}' for items to be loaded is slower than '{1}'",  
             "formula" : "Avg(ep_bg_load_avg) > threshold",
         },
@@ -883,7 +925,10 @@ ClusterCapsule = [
             "counter" : "ep_bg_wait_avg",
             "code" : "EPEnginePerformance",
             "unit" : "time",
-            "threshold" : 100,
+            "threshold" : {
+                "low" : 100,
+                "high" : 500,
+            },
             "symptom" : "Average waiting time '{0}' for items serviced by dispatcher is slower than '{1}'",
             "formula" : "Avg(ep_bg_wait_avg) > threshold",
         },

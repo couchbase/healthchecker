@@ -17,17 +17,38 @@ ClusterCapsule = {
         "tapNack" : 500,
     },
     "MemoryFragmentation" : {
-        "totalFragmentation" : 1073741824, 
-        "diskDelete" : 1000,
-        "diskUpdate" : 1000,
-        "diskInsert" : 1000,
-        "diskCommit" : 5000000,
+        "totalFragmentation" : {
+                "low" : 1073741824, # 1GB
+                "high" : 2147483648, # 2GB
+            },
+        "diskDelete" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
+        "diskUpdate" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
+        "diskInsert" : {
+                "low" : 1000, #1ms
+                "high" : 5000,
+            },
+        "diskCommit" : {
+                "low" : 5000000,
+                "high" : 10000000,
+            },
     },
     "EPEnginePerformance" : {
         "flusherState" : "running",
         "flusherCompleted" : 0,
-        "avgItemLoadTime" : 100,
-        "avgItemWaitTime" : 100,
+        "avgItemLoadTime" : {
+                "low" : 100,
+                "high" : 500,
+            },
+        "avgItemWaitTime" : {
+                "low" : 100,
+                "high" : 500,
+            },
     },
 }
 

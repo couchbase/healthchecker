@@ -278,14 +278,6 @@ NodeCapsule = [
             "formula" : "total_heap_bytes",
         },
         {
-            "name" : "totalFragmentation",
-            "description" : "Total memory fragmentation",
-            "counter" : "total_fragmentation_bytes",
-            "code" : "NodePerformanceStats",
-            "unit" : "size",
-            "formula" : "total_fragmentation_bytes",
-        },
-        {
             "name" : "totalInternalMemory",
             "description" : "Total internal memory usage",
             "counter" : "mem_used",
