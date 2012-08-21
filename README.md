@@ -14,6 +14,14 @@ To build the package, run
 
     make bdist
 
+Build on windows
+-------
+
+Make sure you install python and py2exe on your build machine
+
+To build the pacakge, run
+
+    make -f Makefile.mingw
 
 Run command
 ------------
