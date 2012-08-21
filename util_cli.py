@@ -73,7 +73,7 @@ def number_label(s):
            e = 0
         suffix = sizes[int(e)]
         if devisible(s, 1000 ** math.floor(e)):
-            return "%d %s" % (s / (1000 ** match.floor(e)), suffix)
+            return "%d %s" % (s / (1000 ** math.floor(e)), suffix)
         else:
             return "%.*f %s" % (2, s *1.0/(1000 ** math.floor(e)), suffix)
     else:
