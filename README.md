@@ -26,11 +26,10 @@ To build the pacakge, run
 Run command
 ------------
 
-    cbhealthcheck -h
-
-usage: cbhealthchecker CLUSTER USERNAME PASSWORD OPTIONS
+    cbhealthchecker CLUSTER USERNAME PASSWORD OPTIONS
 
 CLUSTER:
+
   --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
 
 USERNAME:
