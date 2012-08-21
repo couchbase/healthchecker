@@ -26,7 +26,24 @@ To build the pacakge, run
 Run command
 ------------
 
-    cbhealthcheck -c 10.101.10.1:8091 -u Administrator -p password -v
+    cbhealthcheck -h
 
-where `10.101.10.1` is the ipaddress of a node in the cluster, `Administrator` is the admin username of the cluster,
-`password` is the admin password of the cluster. `-v` means that you want to show the detail node information.
+usage: cbhealthchecker CLUSTER USERNAME PASSWORD OPTIONS
+
+CLUSTER:
+  --cluster=HOST[:PORT] or -c HOST[:PORT] Default port is 8091
+USERNAME:
+
+  `-u USERNAME`, --user=USERNAME       admin username of the cluster
+PASSWORD:
+  `-p PASSWORD`, --password=PASSWORD   admin password of the cluster
+OPTIONS:
+  `-b BUCKETNAME`, --bucket=BUCKETNAME Specific bucket name. Default is all buckets
+  `-i FILENAME`, --input=FILENAME      Construct report out of input JSON file
+  `-o FILENAME`, --output=FILENAME     Default output filename is 'health_report.html'
+  `-d` --debug                         Show diagnosis information
+  `-h` --help                          Show this help message and exit
+  `-v` --verbose                       Display detailed node level information
+  `-s SCALE`, --scale=SCALE            Specify stats scale, i.e. minute, hour, day, week, month and year
+                                       Default scale is 'day'
+  `-j` --jsononly                      Colllect data only but no analysis report generated
