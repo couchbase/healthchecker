@@ -63,7 +63,7 @@ class ARRatio:
                 res.append(("total", "no active items"))
             elif replica_total == 0:
                 res.append(("total", "no replica items"))
-                if stats_buffer.bucket_info[bucket]["bucketType"] != 'memcached':
+                if stats_buffer.bucket_info[bucket]["bucketType"] != 'memcached' and len(stats_buffer.nodes) > 1:
                     num_error.append({"node":"total", "value": "No replica items"})
             else:
                 ratio = active_total * 100.0 / replica_total
@@ -352,7 +352,7 @@ class NumVbuckt:
                 trend.append(("total", {"value" : sum(total), "raw":total}))
             if len(num_warn) > 0:
                 trend.append(("warn", num_warn))
-            if total_vbucket < threshold_val:
+            if total_vbucket < threshold_val and len(stats_buffer.nodes) > 1:
                 num_error = []
                 symptom = accessor["symptom"].format(total_vbucket, threshold_val)
                 num_error.append({"node": "total", "value": symptom})
