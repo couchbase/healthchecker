@@ -225,7 +225,6 @@ class ResidentItemRatio:
             data = []
             num_error = []
             for node, vals in nodeStats.iteritems():
-                a, b = util.linreg(timestamps, vals)
                 if len(vals) > 0:
                     # Take the lastest one as sample value
                     value = vals[-1]
@@ -236,7 +235,7 @@ class ResidentItemRatio:
                     symptom = accessor["symptom"].format(util.pretty_float(value) + "%", util.pretty_float(threshold_val) + "%")
                     num_error.append({"node":node, "value":symptom})
                 trend.append((node, {"value" : util.pretty_float(value) + "%",
-                                     "raw" : (samplesCount, vals),
+                                     "raw" : (samplesCount, vals[-25:]),
                                     }))
                 data.append(value)
             if len(nodeStats) > 0:
@@ -673,7 +672,7 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ResidentItemRatio",
             "threshold" : 30,
-            "symptom" : "Active resident item ratio '{0}' is less than '{1}'",
+            "symptom" : "Active resident item ratio '{0}' is below '{1}'",
             "formula" : "Last(vb_active_resident_items_ratio)",
         },
         {
@@ -683,7 +682,7 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ResidentItemRatio",
             "threshold" : 20,
-            "symptom" : "Replica resident item ratio '{0}' is less than '{1}'",
+            "symptom" : "Replica resident item ratio '{0}' is below '{1}'",
             "formula" : "Last(vb_replica_resident_items_ratio)",
         },
      ],

@@ -8,9 +8,9 @@ Capsules = {
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "ActiveReplicaResidentRatio" : {
-        "cause" : "",
+        "cause" : "Not enough memory in the cluster.",
         "impact" : "Performing failover will slow down nodes severely because it will likely require information stored on disk",
-        "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
+        "action" : "Increase disk quota for buckets, or add more nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "VBucketNumber" : {
         "cause" : "The number of vBuckets is less than the maximum number. This can occur if a node goes down.",
