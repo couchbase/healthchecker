@@ -60,8 +60,8 @@ NodeCapsule = {
 DiskQueueCapsule = {
     "DiskQueueDiagnosis" : {
         "avgDiskQueueLength" : {
-                "low" : 50000000,
-                "high" : 1000000000
+                "low" : 500000,
+                "high" : 1000000
             },
         "diskQueueTrend" : {
                 "low" : 0.01,

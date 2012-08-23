@@ -16,23 +16,33 @@ class AvgDiskQueue:
             values = stats_info[scale][accessor["counter"]]
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
+            total = []
             for node, vals in nodeStats.iteritems():
                 if samplesCount > 0:
                     avg = sum(vals) / samplesCount
                 else:
                     avg = 0
+                avg = int(avg)
                 if avg > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(int(avg), threshold_val["high"])
+                    symptom = accessor["symptom"].format(util.number_label(avg), util.number_label(threshold_val["high"]))
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
-                    res.append((node, int(avg)))
+                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
                 elif avg > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(int(avg), threshold_val["low"])
+                    symptom = accessor["symptom"].format(util.number_label(avg), util.number_label(threshold_val["low"]))
                     disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
-                    res.append((node, int(avg)))
+                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
+                else:
+                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
+                total.append(avg)
             if len(disk_queue_avg_error) > 0:
                 res.append(("error", disk_queue_avg_error))
             if len(disk_queue_avg_warn) > 0:
                 res.append(("warn", disk_queue_avg_warn))
+
+            if len(nodeStats) > 0:
+                rate = sum(total) / len(nodeStats)
+                res.append(("total", {"value" : util.number_label(rate),
+                                      "raw" : total}))
 
             result[bucket] = res
         return result
@@ -106,7 +116,7 @@ class ReplicationTrend:
                     if ratio > threshold_val["percentage"]["high"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
-                        res.append((active[0], util.pretty_float(ratio)))
+                        res.append((active[0], util.pretty_float(ratio) + "%"))
                     elif delta > threshold_val["number"]["high"]:
                         symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
                         num_error.append({"node":active[0], "value": symptom})
@@ -114,7 +124,7 @@ class ReplicationTrend:
                     elif ratio > threshold_val["percentage"]["low"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
-                        res.append((active[0], util.pretty_float(ratio)))
+                        res.append((active[0], util.pretty_float(ratio) + "%"))
                     elif delta > threshold_val["number"]["low"]:
                         symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["low"]))
                         num_warn.append({"node":active[0], "value": symptom})
@@ -127,11 +137,11 @@ class ReplicationTrend:
                 if ratio > threshold_val["percentage"]["high"]:
                     symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                     num_error.append({"node":"total", "value": symptom})
-                    res.append(("total", util.pretty_float(ratio)))
+                    res.append(("total", util.pretty_float(ratio) + "%"))
                 elif ratio  > threshold_val["percentage"]["low"]:
                     symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                     num_warn.append({"node":"total", "value": symptom})
-                    res.append(("total", util.pretty_float(ratio)))
+                    res.append(("total", util.pretty_float(ratio) + "%"))
             if len(num_error) > 0:
                 res.append(("error", num_error))
             if len(num_warn) > 0:
@@ -181,14 +191,14 @@ DiskQueueCapsule = [
      "ingredients" : [
         {
             "name" : "avgDiskQueueLength",
-            "description" : "Persistence severely behind",
+            "description" : "Average disk write queue length",
             "counter" : "disk_write_queue",
             "pernode" : True,
             "scale" : "minute",
             "code" : "AvgDiskQueue",
             "threshold" : {
-                "low" : 50000000,
-                "high" : 1000000000
+                "low" : 500000,
+                "high" : 1000000
             },
             "symptom" : "Disk write queue length '{0}' has reached '{1}' items",
             "formula" : "Avg(disk_write_queue) > threshold"
@@ -210,12 +220,13 @@ DiskQueueCapsule = [
      ],
      "indicator" : True,
      "perBucket" : True,
+     "perNode" : True,
     },
     {"name" : "ReplicationTrend",
      "ingredients" : [
         {
             "name" : "replicationTrend",
-            "description" : "Replication severely behind",
+            "description" : "Replication backlog size or replication ratio",
             "counter" : ["curr_items", "ep_tap_total_total_backlog_size"],
             "scale" : "hour",
             "code" : "ReplicationTrend",
@@ -229,8 +240,8 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
-            "symptom" : "Number of backlog items or replication ratio '{0}' is above threshold '{1}'",
-            "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) < threshold",
+            "symptom" : "Number of backlog items or replication ratio '{0}%' is above threshold '{1}%'",
+            "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) > threshold",
         }
      ],
      "perBucket" : True,

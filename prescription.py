@@ -4,11 +4,16 @@
 Capsules = {
     "CacheMissRatio" : {
         "cause" : "Too many requests for information that has already been ejected to disk.",
-        "impact" : "Results in too many fetchs from disk, causing poor performance and slower I/O.",
+        "impact" : "Results in too many fetches from disk, causing poor performance and slower I/O.",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
     "ActiveReplicaResidentRatio" : {
-        "cause" : "Not enough memory in the cluster.",
+        "cause" : "Too few replicated items",
+        "impact" : "Performing failover will slow down nodes severely because it will likely require information stored on disk",
+        "action" : "Increase disk quota for buckets, or add more nodes to cluster. If issue persists please contact support@couchbase.com",
+    },
+    "ResidentRatio" : {
+        "cause" : "Not enough RAM in the cluster.",
         "impact" : "Performing failover will slow down nodes severely because it will likely require information stored on disk",
         "action" : "Increase disk quota for buckets, or add more nodes to cluster. If issue persists please contact support@couchbase.com",
     },
@@ -43,7 +48,7 @@ Capsules = {
         "action" : "Please contact support@couchbase.com",
     },
     "DiskQueueDiagnosis" : {
-        "cause" : "Disk write queue overloaded",
+        "cause" : "Persistence severely behind",
         "impact" : "Data is available in memory but any data in the queue waiting to be persisted will be lost if the node goes down",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. Can remove and re-add a server to resolve a disk fragmentation issue. If issue persists please contact support@couchbase.com"
     },
