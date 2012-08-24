@@ -84,7 +84,6 @@ class ReplicationTrend:
     def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = 0
-        print accessor["type"]
         if threshold.has_key(accessor["name"]):
             threshold_val = threshold[accessor["name"]]
         else:
@@ -118,7 +117,6 @@ class ReplicationTrend:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.pretty_float(ratio) + "%"))
-                        print num_error
                     elif accessor["type"] == "number" and delta > threshold_val["number"]["high"]:
                         symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
                         num_error.append({"node":active[0], "value": symptom})
