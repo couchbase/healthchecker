@@ -24,7 +24,7 @@ def parse_opt():
     time_file_name = time.strftime('%Y-%m-%d_%H-%M-%S')
     (bucket, cluster, user, password, txtfile, htmlfile, statsfile, verbose, debug,
      inputfile, scale, statsonly) = ('all', '', '', '', time_file_name + '.txt',
-     time_file_name + '.html', time_file_name + '.json', False, False, '', 'day', False)
+     time_file_name + '.html', time_file_name + '.json', True, False, '', 'day', False)
 
     try:
         (opts, _args) = getopt.getopt(sys.argv[1:], 

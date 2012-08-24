@@ -43,14 +43,16 @@ class UtilTool:
     def isdict(self, obj):
         return isinstance(obj, dict)
 
-    def statsClass(self, status):
+    def statsClass(self, status, hasOkStatus=True):
         if status == "Error":
-            return "status-error"
+            return ["status-error", "Immediate action needed"]
         elif status == "Warning":
-            return "status-warning"
+            return ["status-warning", "Attention needed"]
         else:
-            return "status-ok"
-
+            if hasOkStatus:
+                return ["status-ok", "OK"]
+            else:
+                return ["", "OK"]
 class StatsAnalyzer:
     def __init__(self, log):
         self.log = log
@@ -59,7 +61,7 @@ class StatsAnalyzer:
 
         for bucket in stats_buffer.buckets.iterkeys():
             bucket_type =  stats_buffer.bucket_info[bucket]['bucketType']
-            bucket_list[bucket] = {"status":"OK", "type":bucket_type}
+            bucket_list[bucket] = {"status":"OK", "type":bucket_type, "anchor":None}
             bucket_symptoms[bucket] = []
             bucket_node_symptoms[bucket] = {}
             bucket_node_status[bucket] = {}
@@ -186,6 +188,7 @@ class StatsAnalyzer:
                                             for val in values["error"]:
                                                 bucket_node_status[bucket][val["node"]] = "Error"
                                                 bucket_list[bucket]["status"] = "Error"
+                                                bucket_list[bucket]["anchor"] = "counter_%s_%s_%s" % (bucket, val["node"], counter["name"])
                                         if values.has_key("warn"):
                                             if indicator_warn.has_key(counter["name"]) == False:
                                                 indicator_warn[counter["name"]] = []
@@ -217,6 +220,7 @@ class StatsAnalyzer:
                                                     bucket_node_status[bucket][node_val] = "Warning"
                                                 if bucket_list[bucket]["status"] == "OK":
                                                     bucket_list[bucket]["status"] = "Warning"
+                                                    bucket_list[bucket]["anchor"] = "counter_%s_%s_%s" % (bucket, node_val, counter["name"])
                                     elif type(values) is list:
                                         for val in values:
                                             if val[0] == "error":
@@ -243,6 +247,7 @@ class StatsAnalyzer:
                                                 for node in val[1]:
                                                     bucket_node_status[bucket][node["node"]] = "Error"
                                                     bucket_list[bucket]["status"] = "Error"
+                                                    bucket_list[bucket]["anchor"] = "counter_%s_%s_%s" % (bucket, node["node"], counter["name"])
                                             elif val[0] == "warn":
                                                 if indicator_warn.has_key(counter["name"]) == False:
                                                     indicator_warn[counter["name"]] = []
@@ -269,6 +274,7 @@ class StatsAnalyzer:
                                                         bucket_node_status[bucket][node["node"]] = "Warning"
                                                     if bucket_list[bucket]["status"] == "OK":
                                                         bucket_list[bucket]["status"] = "Warning"
+                                                        bucket_list[bucket]["anchor"] = "counter_%s_%s_%s" % (bucket, node["node"], counter["name"])
                     except Exception, err:
                         self.log.error("Exception launched when processing counter: {0}".format(counter["name"]))
                         traceback.print_exc()
