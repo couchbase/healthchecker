@@ -120,7 +120,7 @@ class ReplicationTrend:
                     elif accessor["type"] == "number" and delta > threshold_val["number"]["high"]:
                         symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
                         num_error.append({"node":active[0], "value": symptom})
-                        res.append((active[0], int(delta)))
+                        res.append((active[0], util.number_label(delta)))
                     elif accessor["type"] == "percentage" and ratio > threshold_val["percentage"]["low"]:
                         symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
@@ -128,7 +128,7 @@ class ReplicationTrend:
                     elif accessor["type"] == "number" and delta > threshold_val["number"]["low"]:
                         symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["low"]))
                         num_warn.append({"node":active[0], "value": symptom})
-                        res.append((active[0], int(delta)))
+                        res.append((active[0], util.number_label(delta)))
                 active_total += active[1]
                 replica_total += replica[1]
             if active_total > 0:
@@ -259,7 +259,7 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
-            "symptom" : "Number of backlog items '{0}%' is above threshold '{1}%'",
+            "symptom" : "Number of backlog items '{0}' is above threshold '{1}'",
             "formula" : "Avg(ep_tap_total_total_backlog_size) > threshold",
         }
      ],
