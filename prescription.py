@@ -52,8 +52,13 @@ Capsules = {
         "impact" : "Data is available in memory but any data in the queue waiting to be persisted will be lost if the node goes down",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. Can remove and re-add a server to resolve a disk fragmentation issue. If issue persists please contact support@couchbase.com"
     },
-    "ReplicationTrend" : {
+    "ReplicationNumTrend" : {
         "cause" : "Replication queue overloaded",
+        "impact" : "If the nodes fails over, data will be missing on the replica. If you failover, information in the replication queue will be lost.",
+        "action" : "Do not failover the node. Wait until replication queue is low to failover. If replication queue remains high, contact support@couchbase.com",
+    },
+    "ReplicationPercentageTrend" : {
+        "cause" : "Replication severely behind",
         "impact" : "If the nodes fails over, data will be missing on the replica. If you failover, information in the replication queue will be lost.",
         "action" : "Do not failover the node. Wait until replication queue is low to failover. If replication queue remains high, contact support@couchbase.com",
     },

@@ -222,11 +222,11 @@ DiskQueueCapsule = [
      "perBucket" : True,
      "perNode" : True,
     },
-    {"name" : "ReplicationTrend",
+    {"name" : "ReplicationPercentageTrend",
      "ingredients" : [
         {
-            "name" : "replicationTrend",
-            "description" : "Replication backlog size or replication ratio",
+            "name" : "replicationPercentageTrend",
+            "description" : "Replication backlog size to active item ratio",
             "counter" : ["curr_items", "ep_tap_total_total_backlog_size"],
             "scale" : "hour",
             "code" : "ReplicationTrend",
@@ -235,19 +235,36 @@ DiskQueueCapsule = [
                     "low" : 10.0,
                     "high" : 30.0,
                  },
-                "number" : {
-                    "low" : 50000,
-                    "high" : 100000,
-                },
             },
-            "symptom" : "Number of backlog items or replication ratio '{0}%' is above threshold '{1}%'",
+            "symptom" : "Number of backlog item to active item ratio '{0}%' is above threshold '{1}%'",
             "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) > threshold",
         }
      ],
      "perBucket" : True,
      "indicator" : True,
     },
-     {"name" : "DiskQueueDrainingAnalysis",
+    {"name" : "ReplicationNumTrend",
+     "ingredients" : [
+        {
+            "name" : "replicationNumTrend",
+            "description" : "Replication backlog size",
+            "counter" : ["curr_items", "ep_tap_total_total_backlog_size"],
+            "scale" : "hour",
+            "code" : "ReplicationTrend",
+            "threshold" : {
+                "number" : {
+                    "low" : 50000,
+                    "high" : 100000,
+                },
+            },
+            "symptom" : "Number of backlog items '{0}%' is above threshold '{1}%'",
+            "formula" : "Avg(ep_tap_total_total_backlog_size) > threshold",
+        }
+     ],
+     "perBucket" : True,
+     "indicator" : True,
+    },
+    {"name" : "DiskQueueDrainingAnalysis",
      "description" : "",
      "ingredients" : [
         {
