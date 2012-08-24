@@ -3,7 +3,9 @@ h1 {color: #A30A0A;}
 h2 {color: #345a8a;}
 h3 {color: #4f81bd;}
 ul ul {list-style: none}
-
+a:link {text-decoration: none;}
+a:hover {text-decoration:underline; }
+a:visited {text-decoration: none; }
 /** Couchbase sepcific styles **/
 .status-error, .status-warning, .status-ok {padding:3px 5px}
 .status-error {background: #f00;color:#fff;}
