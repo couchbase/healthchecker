@@ -274,7 +274,6 @@ class MemUsed:
                     avg = a * timestamps[-1]  + b
                     if avg <= 0:
                         avg = sum(vals) / samplesCount
-                    print util.size_label(vals[0]), ",", util.size_label(vals[-1]), "liner:", (a, b, util.size_label(avg))
                 else:
                     avg = 0
                 trend.append((node, {"value" : util.size_label(avg), "raw" : vals[-25:]}))
