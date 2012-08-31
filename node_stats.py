@@ -108,7 +108,6 @@ class CalcTrend:
             samplesCount = values["samplesCount"]
             trend = []
             for node, vals in nodeStats.iteritems():
-                #a, b = util.linreg(timestamps, vals)
                 if samplesCount > 0:
                     avg = sum(vals) / samplesCount
                 else:

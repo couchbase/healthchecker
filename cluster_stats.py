@@ -161,49 +161,58 @@ class OpsRatio:
 class CacheMissRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
-        cluster = []
         thresholdval = accessor["threshold"]
         if threshold.has_key("CacheMissRatio"):
             thresholdval = threshold["CacheMissRatio"]
+
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            values = stats_info[scale][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"][0]]
+            arr_values = stats_info[scale][accessor["counter"][1]]
+            curr_values = stats_info[scale][accessor["counter"][2]]
+
             timestamps = values["timestamp"]
-            timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
-            trend = []
-            total = []
-            data = []
-            num_error = []
-            for node, vals in nodeStats.iteritems():
-                #a, b = util.linreg(timestamps, vals)
-                if samplesCount > 0:
-                    value = sum(vals) / samplesCount
-                else:
-                    value = 0
-                value = max(0, value)
-                total.append(value)
-                if value > thresholdval:
-                    symptom = accessor["symptom"].format(util.pretty_float(value), thresholdval)
-                    num_error.append({"node":node, "value":symptom})
-                trend.append((node, {"value" : util.pretty_float(value) + "%",
-                                     "raw" : vals,
-                                    }))
-                data.append(value)
-            if len(nodeStats) > 0:
-                trend.append(("total", {"value" : util.pretty_float(sum(total) / len(nodeStats)) + "%",
-                                        "raw" : total}))
-            else:
-                trend.append(("total", util.pretty_float(sum(total)) + "%"))
-            trend.append(("variance", util.two_pass_variance(data)))
-            if len(num_error) > 0:
-                trend.append(("error", num_error))
 
-            cluster.append(sum(total))
+            trend = []
+            num_warn = []
+            for node, vals in nodeStats.iteritems():
+                arr_vals = arr_values["nodeStats"][node]
+                curr_vals = curr_values["nodeStats"][node]
+                if samplesCount > 0:
+                    node_avg_curr = sum(curr_vals) / samplesCount
+                else:
+                    node_avg_curr = 0
+                # Fine grained analysis
+                abnormal_segs = util.abnormal_extract(vals, thresholdval["CacheMissRate"])
+                abnormal_vals = []
+                for seg in abnormal_segs:
+                    begin_index = seg[0]
+                    seg_total = seg[1]
+                    if seg_total < thresholdval["recurrence"]:
+                        continue
+                    end_index = begin_index + seg_total
+
+                    cmr_avg = sum(vals[begin_index : end_index]) / seg_total
+                    arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
+                    curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
+
+                    if arr_avg < thresholdval["ActiveResidentItemsRatio"] and curr_avg > node_avg_curr:
+                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                                                             util.pretty_datetime(timestamps[end_index], True), 
+                                                             util.number_label(int(curr_avg)), 
+                                                             util.pretty_float(cmr_avg), 
+                                                             util.pretty_float(arr_avg))
+                        num_warn.append({"node":node, "value":symptom})
+                        abnormal_vals.append(cmr_avg)
+                if len(abnormal_vals) > 0:
+                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
+                                         "raw" : abnormal_vals}
+                                    ))
+            if len(num_warn) > 0:
+                trend.append(("warn", num_warn))
             result[bucket] = trend
-        if len(stats_buffer.buckets) > 0:
-            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
-                                 "raw" : cluster}
+
         return result
 
 class ResidentItemRatio:
@@ -628,11 +637,14 @@ ClusterCapsule = [
         {
             "name" : "cacheMissRatio",
             "description" : "Cache miss ratio",
-            "symptom" : "Cache miss ratio '{0}%' is higher than threshold '{1}%'",
-            "counter" : "ep_cache_miss_rate",
-            "scale" : "hour",
+            "symptom" : "From {0} to {1}, a higher item count '{2}' leads to high cache miss ratio '{3}%' and low residential ratio '{4}%'",
+            "counter" : ["ep_cache_miss_rate", "vb_active_resident_items_ratio", "curr_items"],
             "code" : "CacheMissRatio",
-            "threshold" : 2,
+            "threshold" : {
+                "CacheMissRate" : 2, # 2%
+                "ActiveResidentItemsRatio" : 30, # 30%
+                "recurrence" : 10
+            },
             "formula" : "Avg(ep_cache_miss_rate)",
         },
      ],

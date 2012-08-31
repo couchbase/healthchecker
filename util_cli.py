@@ -3,7 +3,11 @@
 
 import json
 import math
+import datetime
 import itertools
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
 
 BIG_VALUE = 2 ** 60
 SMALL_VALUE = - (2 ** 60)
@@ -120,8 +124,35 @@ def two_pass_variance(data):
     variance = sum2/(n - 1)
     return variance
 
+def abnormal_extract(vals, threshold):
+    abnormal = []
+    begin_index = -1
+    seg_count = 0
+
+    for index, sample in enumerate(vals):
+        if sample > threshold:
+            if begin_index < 0:
+                begin_index = index
+            seg_count += 1
+        else:
+            if begin_index >= 0:
+                abnormal.append((begin_index, seg_count))
+                begin_index = -1
+                seg_count = 0
+
+    if begin_index >= 0:
+        abnormal.append((begin_index, seg_count))
+    return abnormal
+
 def pretty_float(number, precision=2):
     return '%.*f' % (precision, number)
 
 def pretty_print(obj):
     return json.dumps(obj, indent=4, sort_keys=True)
+
+def pretty_datetime(number, timeonly=False):
+    if timeonly:
+        return str(datetime.datetime.fromtimestamp(number/1000).time())
+    else:
+        timestamp = datetime.datetime.fromtimestamp(number/1000)
+        return timestamp.strftime('%x') + ' ' + str(timestamp.time())

@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 ClusterCapsule = {
-    "CacheMissRatio" :  2,
+    "CacheMissRatio" :  {
+        "CacheMissRate" : 2,
+        "ActiveResidentItemsRatio" : 30,
+        "recurrence": 8,
+    },
     "ActiveReplicaResidentRatio" : {
         "activeReplicaResidentRatio" : 4,
         "activeResidentRatio" : 30,

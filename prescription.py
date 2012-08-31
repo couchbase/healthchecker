@@ -3,7 +3,7 @@
 
 Capsules = {
     "CacheMissRatio" : {
-        "cause" : "Too many requests for information that has already been ejected to disk.",
+        "cause" : "Too many requests for information that has already been ejected to disk",
         "impact" : "Results in too many fetches from disk, causing poor performance and slower I/O.",
         "action" : "Increase disk quota for buckets, or add nodes to cluster. If issue persists please contact support@couchbase.com",
     },
