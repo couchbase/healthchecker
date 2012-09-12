@@ -170,7 +170,10 @@ class DiskQueueDrainingRate:
                     avg = sum(vals) / samplesCount
                 else:
                     avg = 0
-                disk_len_vals = len_values["nodeStats"][node]
+                if node in len_values["nodeStats"]:
+                    disk_len_vals = len_values["nodeStats"][node]
+                else:
+                    continue
                 if samplesCount > 0:
                     len_avg = sum(disk_len_vals) / samplesCount
                 else:
