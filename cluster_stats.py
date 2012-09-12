@@ -396,19 +396,19 @@ class VbucketMapSanity:
                     if len_element != correct_len:
                         symptom = "vBucketMap element length {0} is not consistent to replica {1}".format(len_element, numReplica)
                         num_error.append({"node" : "total", "value" : symptom})
-                        trend.append((node, len_element))
+                        trend.append(("total", len_element))
                     for element in vbucket:
                         #check three - each vbucket index correctness
                         if element > len_serverMap - 1:
                             symptom = "vBucketMap element server index {0} can not be found in server list".format(element)
                             num_error.append({"node" : "total", "value" : symptom})
-                            trend.append((node, element))
+                            trend.append(("total", element))
                     #check four - check unqiueness for vbucket
                     new_set = set(vbucket)
                     if len(new_set) < len_element:
                         symptom = "vBucketMap element {0} violates index uniqueness".format(vbucket)
                         num_error.append({"node" : "total", "value" : symptom})
-                        trend.append((node, vbucket))
+                        trend.append(("total", vbucket))
             if len(num_error) > 0:
                 trend.append(("error", num_error))
             result[bucket] = trend
@@ -721,7 +721,7 @@ ClusterCapsule = [
             "scale" : "week",
             "counter" : ["cmd_get", "cmd_set", "delete_hits"],
             "code" : "OpsRatio",
-            "formula" : "Avg(cmd_get) : Avg(cmd_get) : Avg(delete_hits)",
+            "formula" : "Avg(cmd_get) : Avg(cmd_set) : Avg(delete_hits)",
         },
      ],
      "perBucket" : True,
