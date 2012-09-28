@@ -69,12 +69,13 @@ class ARRatio:
                     num_error.append({"node":"total", "value": "No replica items"})
             else:
                 ratio = active_total * 100.0 / replica_total
+
                 cluster.append(ratio)
                 res.append(("total", {"value" : util.pretty_float(ratio) + "%",
                                       "raw" : (active_total, replica_total)}))
                 delta = abs(100 - ratio)
                 if delta > threshold_val:
-                    symptom = accessor["symptom"].format(util.pretty_float(delta), util.pretty_float(threshold_val))
+                    symptom = accessor["symptom"].format(util.pretty_float(ratio), util.pretty_float(100 + threshold_val))
                     num_error.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
