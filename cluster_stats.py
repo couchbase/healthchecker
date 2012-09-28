@@ -29,6 +29,8 @@ class ARRatio:
         else:
             threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
             item_avg = {
                 "curr_items": [],
                 "vb_replica_curr_items": [],
@@ -77,8 +79,8 @@ class ARRatio:
             if len(num_error) > 0:
                 res.append(("error", num_error))
             result[bucket] = res
-        if len(stats_buffer.buckets) > 0:
-            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
+        if len(cluster) > 0:
+            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(cluster)) + "%",
                                  "raw" : cluster}
         return result
 
@@ -92,6 +94,8 @@ class OpsRatio:
         write_stats = []
         del_stats = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
             ops_avg = {
                 "cmd_get": [],
                 "cmd_set": [],
@@ -224,6 +228,8 @@ class ResidentItemRatio:
         else:
             threshold_val = accessor["threshold"]
         for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
             values = stats_info[scale][accessor["counter"]]
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
@@ -259,8 +265,8 @@ class ResidentItemRatio:
                 trend.append(("error", num_error))
 
             result[bucket] = trend
-        if len(stats_buffer.buckets) > 0:
-            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(stats_buffer.buckets)) + "%",
+        if len(cluster) > 0:
+            result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(cluster)) + "%",
                                  "raw" : cluster}
         return result
 
@@ -301,6 +307,8 @@ class ItemGrowth:
         result = {}
         cluster = []
         for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
             trend = []
             total = []
             values = stats_info[scale][accessor["counter"]]
@@ -323,8 +331,8 @@ class ItemGrowth:
             else:
                 cluster.append(0.0)
             result[bucket] = trend
-        if len(stats_buffer.buckets) > 0:
-            rate = sum(cluster) / len(stats_buffer.buckets)
+        if len(cluster) > 0:
+            rate = sum(cluster) / len(cluster)
             result["cluster"] = {"value" : util.number_label(rate) + " items per day",
                                  "raw" : cluster}
         return result
@@ -648,7 +656,7 @@ ClusterCapsule = [
             "formula" : "Avg(ep_cache_miss_rate)",
         },
      ],
-     "clusterwise" : True,
+     "clusterwise" : False,
      "perNode" : True,
      "perBucket" : True,
      "indicator" : True,
