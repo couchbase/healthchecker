@@ -220,8 +220,8 @@ NodeCapsule = [
             "formula" : "ep_tmp_oom_errors",
         },
      ],
-     "nodewise" : True,
-     "perBucket"  : True, 
+     "nodewise" : False,
+     "perBucket"  : False,
     },
     {"name" : "nodeStorageStats",
      "ingredients" : [
@@ -255,7 +255,7 @@ NodeCapsule = [
             "formula" : "num_checkpoint_items > threshold",
         },
      ],
-     "perBucket" : True,
+     "perBucket" : False,
     },
     {"name" : "AverageDocumentSize",
      "ingredients" : [
