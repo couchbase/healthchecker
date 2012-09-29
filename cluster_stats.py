@@ -361,20 +361,13 @@ class NumVbuckt:
                 else:
                     numVal = int(vals[-1])
                 total_vbucket += numVal
-                #if numVal > 0 and numVal < avg_threshold:
-                #    symptom = accessor["symptom"].format(numVal, avg_threshold)
-                #    num_warn.append({"node":node, "value": symptom})
-                trend.append((node, {"value" : numVal,"raw" : vals,}))
                 total.append(numVal)
-            if len(nodeStats) > 0:
-                trend.append(("total", {"value" : sum(total), "raw":total}))
-            if len(num_warn) > 0:
-                trend.append(("warn", num_warn))
             if total_vbucket < threshold_val and len(stats_buffer.nodes) > 1:
                 num_error = []
                 symptom = accessor["symptom"].format(total_vbucket, threshold_val)
                 num_error.append({"node": "total", "value": symptom})
                 trend.append(("error", num_error))
+                trend.append(("total", {"value" : total_vbucket, "raw":total}))
             result[bucket] = trend
         return result
 
