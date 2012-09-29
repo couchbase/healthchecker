@@ -69,6 +69,11 @@ def size_label(s):
 
 def number_label(s):
     if type(s) in (int, long, float, complex) :
+        if s < 0:
+            s = -s
+            flag = "-"
+        else:
+            flag = ""
         if s < 1:
             return "0"
         sizes=['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion']
@@ -77,9 +82,9 @@ def number_label(s):
            e = 0
         suffix = sizes[int(e)]
         if devisible(s, 1000 ** math.floor(e)):
-            return "%d %s" % (s / (1000 ** math.floor(e)), suffix)
+            return "%s%d %s" % (flag, s / (1000 ** math.floor(e)), suffix)
         else:
-            return "%.*f %s" % (2, s *1.0/(1000 ** math.floor(e)), suffix)
+            return "%s%.*f %s" % (flag, 2, s *1.0/(1000 ** math.floor(e)), suffix)
     else:
         return s
 

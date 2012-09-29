@@ -324,13 +324,12 @@ class ItemGrowth:
                 trend.append((node, {"value" : util.number_label(rate) + " items per day",
                                      "raw" : vals,
                                     }))
-            if len(nodeStats) > 0:
-                rate = sum(total) / len(nodeStats)
-                trend.append(("total", {"value" : util.number_label(rate) + " items per day",
+
+            rate = sum(total) / len(nodeStats)
+            trend.append(("total", {"value" : util.number_label(rate) + " items per day",
                                         "raw" : total}))
-                cluster.append(rate)
-            else:
-                cluster.append(0.0)
+            cluster.append(rate)
+
             result[bucket] = trend
         if len(cluster) > 0:
             rate = sum(cluster) / len(cluster)
