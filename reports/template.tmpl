@@ -69,7 +69,11 @@
       <tr>
         <td><a href="#bucket_${bucket}">$bucket</a></td>
         <td>$bucket_list[$bucket]["type"]</td>
+  #if $bucket_list[$bucket]["type"] == "memcached"
+        <td class="$bucket_status[0]">$bucket_status[1]</td>
+  #else
         <td class="$bucket_status[0]"><a href="#${bucket_list[$bucket]["anchor"]}">$bucket_status[1]</a></td>
+  #end if
       </tr>
 #end for
     </table>
@@ -125,6 +129,9 @@
 
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
+  #if $bucket_list[$bucket]["type"] == "memcached"
+    #continue
+  #end if
   #set $status = $bucket_list[$bucket]["status"]
       <a name="bucket_${bucket}"/>
       <p class="bucket">
