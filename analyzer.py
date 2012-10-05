@@ -316,7 +316,22 @@ class StatsAnalyzer:
             globals["versions"] = string.strip(f.read())
             f.close()
         except Exception:
-            pass
+            # Maybe it is a development environment, try to use 'git describe'
+            import subprocess
+            import platform
+
+            version_txt = None
+            try:
+                if platform.system() == 'Windows':
+                    version_txt = subprocess.Popen(["git.exe", "describe"],
+                                               stdout=subprocess.PIPE).communicate()[0]
+                else:
+                    version_txt = subprocess.Popen(["git", "describe"],
+                                                stdout=subprocess.PIPE).communicate()[0]
+            except Exception:
+                pass
+            if version_txt:
+                globals["versions"] = string.strip(version_txt)
 
         f = open(txtfile, 'w')
         report = {}
