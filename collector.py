@@ -248,7 +248,7 @@ class StatsCollector:
                             sys.exit(1)
 
     def get_ns_stats(self, bucketlist, server, port, user, password, bucketname, scale, opts):
-        stats_buffer.stats[scale] = stats_buffer.counters
+        stats_buffer.stats[scale] = copy.deepcopy(stats_buffer.counters)
         for bucket in bucketlist:
             bucket_name = bucket['name']
             if stats_buffer.bucket_info[bucket_name]["bucketType"] == 'memcached':
@@ -265,7 +265,8 @@ class StatsCollector:
                             json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
                             stats_buffer.buckets[bucket_name][scale][stat] = json
                         except Exception, err:
-                            traceback.print_exc()
+                            self.log.debug("%s doesn't exist from ns stats" % stat)
+                            pass
                 sys.stderr.write('\n')
 
     def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale, opts):

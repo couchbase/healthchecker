@@ -71,6 +71,8 @@ class StatsAnalyzer:
                 self.log.debug(pill['name'])
                 for counter in pill['ingredients']:
                     try:
+                        #eval_str = "{0}.{1}().run(counter, scale, threshold.{2})".format(package_name, counter['code'], capsule_name)
+                        #print eval_str
                         result = eval("{0}.{1}().run(counter, scale, threshold.{2})".format(package_name, counter['code'], capsule_name))
                         self.log.debug(counter)
                         if pill.has_key("clusterwise") and pill["clusterwise"] :

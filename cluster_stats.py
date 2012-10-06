@@ -600,6 +600,31 @@ class LeastDiskSpace:
         result["cluster"] = {"value" :symptom, "raw" : space}
         return result
 
+class CalcTrend:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_info[scale].has_key(accessor["counter"]) == False:
+                continue
+            values = stats_info[scale][accessor["counter"]]
+            timestamps = values["timestamp"]
+            timestamps = [x - timestamps[0] for x in timestamps]
+            nodeStats = values["nodeStats"]
+            samplesCount = values["samplesCount"]
+            trend = []
+            total = []
+            for node, vals in nodeStats.iteritems():
+                if samplesCount > 0:
+                    avg = sum(vals) / samplesCount
+                else:
+                    avg = 0
+                trend.append((node, util.pretty_float(avg)))
+                total.append(avg)
+            if len(total) > 0:
+                trend.append(("total", util.pretty_float(sum(total) / len(total))))
+            result[bucket] = trend
+        return result
+
 ClusterCapsule = [
     {"name" : "TotalDataSize",
      "ingredients" : [
@@ -956,5 +981,113 @@ ClusterCapsule = [
         },
      ],
      "indicator" : True,
+    },
+    {"name" : "XDCRPerformance",
+     "ingredients" : [
+        {
+            "name" : "xdrOps",
+            "description" : "XDCR dest ops per sec",
+            "counter" : "xdc_ops",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "xdcrReplicationQueue",
+            "description" : "XDCR replication queue",
+            "counter" : "replication_changes_left",
+            "code" : "CalcTrend",
+        },
+     ],
+     "perNode" : True,
+     "perBucket" : True,
+    },
+    {"name" : "IncomingXDCRPerformance",
+     "ingredients" : [
+        {
+            "name" : "xdrGetsPerSec",
+            "description" : "XDCR gets per sec.",
+            "counter" : "ep_num_ops_get_meta",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "xdrSetsPerSec",
+            "description" : "XDCR sets per sec.",
+            "counter" : "ep_num_ops_set_meta",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "xdrDelsPerSec",
+            "description" : "XDCR deletes per sec.",
+            "counter" : "ep_num_ops_del_meta",
+            "code" : "CalcTrend",
+        },
+     ],
+     "perNode" : True,
+     "perBucket" : True,
+    },
+    {"name" : "CompactionPerformance",
+     "ingredients" : [
+        {
+            "name" : "viewCompactPerc",
+            "description" : "Views fragmentation %",
+            "counter" : "couch_views_fragmentation",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "docCompactPerc",
+            "description" : "Docs fragmentation %",
+            "counter" : "couch_docs_fragmentation",
+            "code" : "CalcTrend",
+        },
+     ],
+     "perNode" : True,
+     "perBucket" : True,
+    },
+    {"name" : "ViewPerformance",
+     "ingredients" : [
+        {
+            "name" : "viewDataSize",
+            "description" : "View data size",
+            "counter" : "couch_views_data_size",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "viewDiskSize",
+            "description" : "View total disk size",
+            "counter" : "couch_views_actual_disk_size",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "viewOps",
+            "description" : "View reads per sec.",
+            "counter" : "couch_views_ops",
+            "code" : "CalcTrend",
+        },
+     ],
+     "perNode" : True,
+     "perBucket" : True,
+    },
+    {"name" : "DocStats",
+     "ingredients" : [
+        {
+            "name" : "docDataSize",
+            "description" : "Doc data size",
+            "counter" : "couch_docs_data_size",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "docDiskSize",
+            "description" : "Docs total disk size",
+            "counter" : "couch_total_disk_size",
+            "code" : "CalcTrend",
+        },
+        {
+            "name" : "docActualDiskSize",
+            "description" : "Docs actual disk size",
+            "counter" : "couch_docs_actual_disk_size",
+            "code" : "CalcTrend",
+        },
+     ],
+     "perNode" : True,
+     "perBucket" : True,
     },
 ]
