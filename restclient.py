@@ -64,16 +64,10 @@ class RestClient:
         if response.status == 401:
             print 'ERROR: unable to access the REST API - please check your username (-u) and password (-p)'
             sys.exit(2)
-        print 'ERROR: %s (%d) %s' % (opts['error_msg'],
-                                     response.status, response.reason)
+        #print 'ERROR: %s (%d) %s' % (opts['error_msg'],
+        #                             response.status, response.reason)
 
-        output_json = json.loads(response.read())
-        print output_json
-        if "errors" in output_json:
-            for error_code,error_message in output_json["errors"].iteritems():
-                print "ERROR: %s" % error_message
-
-        sys.exit(2)
+        raise ValueEerror()
 
     def bootStrap(self, headers):
         """ First REST call needed for info for later REST calls.

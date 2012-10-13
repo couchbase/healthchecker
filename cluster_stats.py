@@ -607,6 +607,8 @@ class CalcTrend:
             if stats_info[scale].has_key(accessor["counter"]) == False:
                 continue
             values = stats_info[scale][accessor["counter"]]
+            if values is None:
+                continue
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]

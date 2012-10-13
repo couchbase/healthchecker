@@ -266,6 +266,7 @@ class StatsCollector:
                             stats_buffer.buckets[bucket_name][scale][stat] = json
                         except Exception, err:
                             self.log.debug("%s doesn't exist from ns stats" % stat)
+                            stats_buffer.buckets[bucket_name][scale][stat] = None
                             pass
                 sys.stderr.write('\n')
 
