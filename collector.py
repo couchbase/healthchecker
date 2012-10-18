@@ -190,7 +190,7 @@ class StatsCollector:
                             dd, totals = self.process_histogram_data(node_stats)
                         else:
                             for key in stats.iterkeys():
-                                if key.find("timging_") >= 0:
+                                if key.find("timing_") >= 0 or key.find("timging_") >= 0:
                                     node_stats = stats[key]
                                     dd, totals = self.process_histogram_data(node_stats)
                                     break
@@ -200,7 +200,7 @@ class StatsCollector:
                                 for lbl,v in dd[k]:
                                     ccount += v * lbl
                                 stats[k] = ccount / totals[k]
-                        stats["timging_"] = node_stats
+                        stats["timing_"] = node_stats
                     else:
                         for key, val in node_stats.items():
                             stats[key] = val
