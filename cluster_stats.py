@@ -620,10 +620,27 @@ class CalcTrend:
                     avg = sum(vals) / samplesCount
                 else:
                     avg = 0
-                trend.append((node, util.pretty_float(avg)))
+                if accessor.has_key("unit") and avg:
+                    if accessor["unit"] == "time":
+                        trend.append((node, util.time_label(avg)))
+                    elif accessor["unit"] == "number":
+                        trend.append((node, util.number_label(avg)))
+                    elif accessor["unit"] == "size":
+                        trend.append((node, util.size_label(avg)))
+                    else:
+                        trend.append((node, util.pretty_float(avg)))
                 total.append(avg)
             if len(total) > 0:
-                trend.append(("total", util.pretty_float(sum(total) / len(total))))
+                total_avg = sum(total) / len(total)
+                if accessor.has_key("unit") and total_avg:
+                    if accessor["unit"] == "time":
+                        trend.append(("total", util.time_label(total_avg)))
+                    elif accessor["unit"] == "number":
+                        trend.append((node, util.number_label(total_avg)))
+                    elif accessor["unit"] == "size":
+                        trend.append((node, util.size_label(total_avg)))
+                    else:
+                        trend.append(("total", util.pretty_float(total_avg)))
             result[bucket] = trend
         return result
 
@@ -991,12 +1008,14 @@ ClusterCapsule = [
             "description" : "XDCR dest ops per sec",
             "counter" : "xdc_ops",
             "code" : "CalcTrend",
+            "unit" : "number",
         },
         {
             "name" : "xdcrReplicationQueue",
             "description" : "XDCR replication queue",
             "counter" : "replication_changes_left",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
      ],
      "perNode" : True,
@@ -1009,18 +1028,21 @@ ClusterCapsule = [
             "description" : "XDCR gets per sec.",
             "counter" : "ep_num_ops_get_meta",
             "code" : "CalcTrend",
+            "unit" : "number",
         },
         {
             "name" : "xdrSetsPerSec",
             "description" : "XDCR sets per sec.",
             "counter" : "ep_num_ops_set_meta",
             "code" : "CalcTrend",
+            "unit" : "number",
         },
         {
             "name" : "xdrDelsPerSec",
             "description" : "XDCR deletes per sec.",
             "counter" : "ep_num_ops_del_meta",
             "code" : "CalcTrend",
+            "unit" : "number",
         },
      ],
      "perNode" : True,
@@ -1051,18 +1073,21 @@ ClusterCapsule = [
             "description" : "View data size",
             "counter" : "couch_views_data_size",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
         {
             "name" : "viewDiskSize",
             "description" : "View total disk size",
             "counter" : "couch_views_actual_disk_size",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
         {
             "name" : "viewOps",
             "description" : "View reads per sec.",
             "counter" : "couch_views_ops",
             "code" : "CalcTrend",
+            "unit" : "number",
         },
      ],
      "perNode" : True,
@@ -1075,18 +1100,21 @@ ClusterCapsule = [
             "description" : "Doc data size",
             "counter" : "couch_docs_data_size",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
         {
             "name" : "docDiskSize",
             "description" : "Docs total disk size",
             "counter" : "couch_total_disk_size",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
         {
             "name" : "docActualDiskSize",
             "description" : "Docs actual disk size",
             "counter" : "couch_docs_actual_disk_size",
             "code" : "CalcTrend",
+            "unit" : "size",
         },
      ],
      "perNode" : True,
