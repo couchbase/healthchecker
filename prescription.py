@@ -37,10 +37,10 @@ Capsules = {
         "impact" : "Overuse of RAM for a node, causing ejections to disk. Possible system out of memory errors; OS may shutdown Couchbase Server.",
         "action" : "Remove problem node, and add again the node to cluster. If issue persists, please contact support@couchbase.com",
     },
-    "DiskFragmentation" : {
-        "cause" : "Severe IO issue possibly caused by disk fragmentation",
+    "DiskPerformance" : {
+        "cause" : "Severe IO issue possibly caused by slow disk drive",
         "impact" : "OS may shutdown Couchbase Server if memory grows in persistence queues due to slow disk I/O.",
-        "action" : "Replace problem node. If issue persists, please contact support@couchbase.com",
+        "action" : "Use SSD hard disk or replace problem node. If issue persists, please contact support@couchbase.com",
     },
     "EPEnginePerformance" : {
         "cause" : "Poor ep-engine key performance indicators",

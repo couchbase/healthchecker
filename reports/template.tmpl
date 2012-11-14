@@ -30,7 +30,7 @@
     <h2>Couchbase &#8211; Alerts</h2>
   #for $counter in sorted($indicator_error.keys())
     #set $error_list = $indicator_error[$counter]
-    #for $error_values in $error_list:
+    #for $error_values in $error_list
       <h4>$error_values["description"] - <strong class="status-error">$error_values["cause"]</strong></h4>
       <ul>
       #for $err_val in sorted($error_values["value"])
@@ -41,7 +41,13 @@
         <li>Symptom in <em><a href="#bucket_$error_values["bucket"]">$error_values["bucket"]</a></em> bucket on <em><a href="#node_${error_values["bucket"]}_${err_val["node"]}">$err_val["node"]:</a></em>
         #end if
           <ul>
-            <li><strong>$err_val["value"]</strong></li>
+            #if isinstance($err_val["value"], list)
+              #for $val in $err_val["value"]
+              <li><strong>$val</strong></li>
+              #end for
+            #else
+              <li><strong>$err_val["value"]</strong></li>
+            #end if
           </ul>
         </li>
       #end for
@@ -210,7 +216,13 @@
         <li>Symptom in <em><a href="#bucket_$warn_values["bucket"]">$warn_values["bucket"]</a></em> bucket on <em><a href="#node_${warn_values["bucket"]}_${warn_val["node"]}">$warn_val["node"]</a></em>:
         #end if
           <ul>
-            <li><strong>$warn_val["value"]</strong></li>
+            #if isinstance($warn_val["value"], list)
+              #for $val in $warn_val["value"]
+              <li><strong>$val</strong></li>
+              #end for
+            #else
+              <li><strong>$warn_val["value"]</strong></li>
+            #end if
           </ul>
         </li>
       #end for

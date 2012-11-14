@@ -24,20 +24,22 @@ ClusterCapsule = {
         "totalFragmentation" : {
                 "low" : 1073741824, # 1GB
                 "high" : 2147483648, # 2GB
-            },
-        "diskDelete" : {
+            }
+    },
+    "DiskPerformance" : {
+        "disk_del" : {
                 "low" : 1000, #1ms
                 "high" : 5000,
             },
-        "diskUpdate" : {
+        "disk_update" : {
                 "low" : 1000, #1ms
                 "high" : 5000,
             },
-        "diskInsert" : {
+        "disk_insert" : {
                 "low" : 1000, #1ms
                 "high" : 5000,
             },
-        "diskCommit" : {
+        "disk_commit" : {
                 "low" : 5000000,
                 "high" : 10000000,
             },

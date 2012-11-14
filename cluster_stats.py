@@ -196,8 +196,8 @@ class CacheMissRatio:
                     seg_total = seg[1]
                     if seg_total < thresholdval["recurrence"]:
                         continue
-                    end_index = begin_index + seg_total
 
+                    end_index = begin_index + seg_total-1
                     cmr_avg = sum(vals[begin_index : end_index]) / seg_total
                     arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
                     curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
@@ -504,6 +504,62 @@ class CalcFragmentation:
                                 trend.append((node, {"value":util.size_label(value), "raw":value}))
                             else:
                                 trend.append((node, value))
+            if len(num_error) > 0:
+                trend.append(("error", num_error))
+                result[bucket] = trend
+            elif len(num_warn) > 0:
+                trend.append(("warn", num_warn))
+                result[bucket] = trend
+
+        return result
+
+class DiskPerformance:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        if threshold.has_key("DiskPerformance"):
+            threshold_val = threshold["DiskPerformance"]
+        else:
+            threshold_val = accessor["threshold"]
+        for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
+            num_error = []
+            num_warn = []
+            trend = []
+            for node, stats_info in bucket_stats.iteritems():
+                symptoms_error = []
+                symptoms_warn = []
+                for key, value in stats_info.iteritems():
+                    if key in accessor["counter"]:
+                        if accessor.has_key("threshold") and not isinstance(value, dict):
+                            value = int(value)
+                            if value > threshold_val[key]["low"]:
+                                val_threshold = threshold_val[key]["low"]
+                                if value > threshold_val[key]["high"]:
+                                    val_threshold = threshold_val[key]["high"]
+                                symptom = ""
+                                if accessor.has_key("unit"):
+                                    if accessor["unit"] == "time":
+                                        symptom = accessor["symptom"][key].format(util.time_label(value), util.time_label(val_threshold))
+                                    elif accessor["unit"] == "size":
+                                        symptom = accessor["symptom"][key].format(util.size_label(value), util.size_label(val_threshold))
+                                    else:
+                                        symptom = accessor["symptom"][key].format(value, val_threshold)
+                                else:
+                                    symptom = accessor["symptom"][key].format(value, val_threshold)
+                                if value > threshold_val[key]["high"]:
+                                    symptoms_error.append(symptom)
+                                else:
+                                    symptoms_warn.append(symptom)
+                        if accessor.has_key("unit"):
+                            if accessor["unit"] == "time":
+                                trend.append((node, {"counter":key, "value":util.time_label(value), "raw":value}))
+                            elif accessor["unit"] == "size":
+                                trend.append((node, {"counter":key, "value":util.size_label(value), "raw":value}))
+                            else:
+                                trend.append((node, value))
+                if len(symptoms_error) > 0:
+                    num_error.append({"node":node, "value": symptoms_error})
+                if len(symptoms_warn) > 0:
+                    num_warn.append({"node":node, "value": symptoms_warn})
             if len(num_error) > 0:
                 trend.append(("error", num_error))
                 result[bucket] = trend
@@ -892,65 +948,33 @@ ClusterCapsule = [
       "perNode" : True,
       "perBucket" : True,
     },
-    {"name" : "DiskFragmentation",
+    {"name" : "DiskPerformance",
      "ingredients" : [
         {
-            "name" : "diskDelete",
-            "description" : "Average disk delete time",
-            "counter" : "disk_del",
-            "code" : "CalcFragmentation",
+            "name" : "diskPerformance",
+            "description" : "Disk IO Performance",
+            "counter" : ["disk_del", "disk_update", "disk_insert", "disk_commit"],
+            "code" : "DiskPerformance",
             "unit" : "time",
             "threshold" : {
-                "low" : 1000, #1ms
-                "high" : 5000,
+                "disk_del" : {"low": 1000, "high": 5000},
+                "disk_update" : {"low": 1000, "high": 5000},
+                "disk_insert" : {"low": 1000, "high": 5000},
+                "disk_commit" : {"low": 5000000, "high": 10000000},
             },
-            "symptom" : "Average disk delete time '{0}' is slower than '{1}'",
-            "formula" : "Avg(disk_del) > threshold",
-        },
-        {
-            "name" : "diskUpdate",
-            "description" : "Average disk update time",
-            "counter" : "disk_update",
-            "code" : "CalcFragmentation",
-            "unit" : "time",
-            "threshold" : {
-                "low" : 1000, #1ms
-                "high" : 5000,
+            "symptom" : {
+                "disk_del": "Average disk delete time '{0}' is slower than '{1}'",
+                "disk_update": "Average disk update time '{0}' is slower than '{1}'",
+                "disk_insert": "Average disk insert time '{0}' is slower than '{1}'",
+                "disk_commit": "Average disk commit time '{0}' is slower than '{1}'",
             },
-            "symptom" : "Average disk update time '{0}' is slower than '{1}'",
-            "formula" : "Avg(disk_update) > threshold",
-        },
-        {
-            "name" : "diskInsert",
-            "description" : "Average disk insert time",
-            "type" : "python",
-            "counter" : "disk_insert",
-            "code" : "CalcFragmentation",
-            "unit" : "time",
-            "threshold" : {
-                "low" : 1000, #1ms
-                "high" : 5000,
-            },
-            "symptom" : "Average disk insert time '{0}' is slower than '{1}'",
-            "formula" : "Avg(disk_insert) > threshold",
-        },
-        {
-            "name" : "diskCommit",
-            "description" : "Average disk commit time",
-            "counter" : "disk_commit",
-            "code" : "CalcFragmentation",
-            "unit" : "time",
-            "threshold" : {
-                "low" : 5000000,
-                "high" : 10000000,
-            },
-            "symptom" : "Average disk commit time '{0}' is slower than '{1}'",
-            "formula" : "Avg(disk_commit) > threshold",
+            "formula" : "Avg(%counter) > threshold",
         },
      ],
-     "indicator" : True,
-     "perBucket" : True,
+     "clusterwise" : False,
      "perNode" : True,
+     "perBucket" : True,
+     "indicator" : True,
     },
     {"name" : "EPEnginePerformance",
      "ingredients" : [

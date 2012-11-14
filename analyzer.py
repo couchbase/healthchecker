@@ -127,13 +127,18 @@ class StatsAnalyzer:
                                             counter_status = "Warning"
                                         if val[0] in node_error:
                                             counter_status = "Error"
+                                            
+                                        if isinstance(val[1], dict) and val[1].has_key("counter"):
+                                            description = "%s - %s" % (counter["description"], val[1]["counter"])
+                                        else:
+                                            description = counter["description"]
                                         if counter.has_key("formula"):
-                                            bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
+                                            bucket_node_symptoms[bucket][val[0]].append({"description" : description, 
                                                                                          "value" : val[1], 
                                                                                          "status":counter_status,
                                                                                          "formula":counter["formula"]})
                                         else:
-                                            bucket_node_symptoms[bucket][val[0]].append({"description" : counter["description"], 
+                                            bucket_node_symptoms[bucket][val[0]].append({"description" : description, 
                                                                                          "value" : val[1], 
                                                                                          "status":counter_status,
                                                                                          "formula":"N/A"})
