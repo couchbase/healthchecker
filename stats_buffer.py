@@ -31,6 +31,7 @@ counters = {
         'curr_items' : {},
         'delete_hits' : {},
         'disk_write_queue' : {},
+        'ep_bg_fetched' : {},
         'ep_cache_miss_rate' : {},
         'ep_num_ops_del_meta' : {},
         'ep_num_ops_get_meta' : {},
