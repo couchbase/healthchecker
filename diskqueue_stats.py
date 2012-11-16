@@ -13,27 +13,52 @@ class AvgDiskQueue:
             disk_queue_avg_error = []
             disk_queue_avg_warn = []
             res = []
-            values = stats_info[scale][accessor["counter"]]
+            values = stats_info[scale][accessor["counter"][0]]
+            curr_values = stats_info[scale][accessor["counter"][1]]
+            cmdset_values = stats_info[scale][accessor["counter"][2]]
+ q
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
+            timestamps = values["timestamp"]
             total = []
             for node, vals in nodeStats.iteritems():
+                curr_vals = curr_values["nodeStats"][node]
+                cmdset_vals = cmdset_values["nodeStats"][node]
                 if samplesCount > 0:
-                    avg = sum(vals) / samplesCount
+                    node_avg_dwq = sum(vals) / samplesCount
+                    node_avg_curr = sum(curr_vals) / samplesCount
+                    node_avg_cmdset = sum(cmdset_vals) / samplesCount
                 else:
-                    avg = 0
-                avg = int(avg)
-                if avg > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(util.number_label(avg), util.number_label(threshold_val["high"]))
-                    disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
-                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
-                elif avg > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(util.number_label(avg), util.number_label(threshold_val["low"]))
-                    disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
-                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
-                else:
-                    res.append((node, {"value":util.number_label(avg), "raw":vals}))
-                total.append(avg)
+                    node_avg_curr = 0
+                    node_avg_cmdest = 0
+
+                abnormal_segs = util.abnormal_extract(vals, threshold_val["disk_write_queue"]["low"])
+                abnormal_vals = []
+                for seg in abnormal_segs:
+                    begin_index = seg[0]
+                    seg_total = seg[1]
+                    if seg_total < threshold_val["recurrence"]:
+                        continue
+
+                    end_index = begin_index + seg_total
+                    cmdset_avg = sum(cmdset_vals[begin_index : end_index]) / seg_total
+                    curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
+                    dwq_avg = sum(vals[begin_index : end_index]) / seg_total
+
+                    if curr_avg > node_avg_curr and cmdset_avg > node_avg_cmdset:
+                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                                                             util.pretty_datetime(timestamps[end_index-1]),
+                                                             util.number_label(int(cmdset_avg)),
+                                                             util.number_label(int(curr_avg)), 
+                                                             util.number_label(dwq_avg))
+                        abnormal_vals.append(dwq_avg)
+                        if dwq_avg > threshold_val["disk_write_queue"]["high"]:
+                            disk_queue_avg_error.append({"node":node, "value":symptom})
+                        else:
+                            disk_queue_avg_warn.append({"node":node, "level":"yellow", "value":symptom})
+                if len(abnormal_vals) > 0:
+                    res.append((node, {"value":util.number_label(dwq_avg), "raw":abnormal_vals}))
+                total.append(node_avg_dwq)
             if len(disk_queue_avg_error) > 0:
                 res.append(("error", disk_queue_avg_error))
             if len(disk_queue_avg_warn) > 0:
@@ -188,6 +213,84 @@ class DiskQueueDrainingRate:
             result[bucket] = res
         return result
 
+class PerformanceDiagnosis_diskread:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        thresholdval = accessor["threshold"]
+        if threshold.has_key("PerformanceDiagnosis_one"):
+            thresholdval = threshold["PerformanceDiagnosis_one"]
+
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_info[scale].get(accessor["counter"][0], None) is None:
+                return result
+
+            diskRead_values = stats_info[scale][accessor["counter"][0]]
+            cacheMissRate_values = stats_info[scale][accessor["counter"][1]]
+            arr_values = stats_info[scale][accessor["counter"][2]]
+            memUsed_values = stats_info[scale][accessor["counter"][3]]
+            curr_values = stats_info[scale][accessor["counter"][4]]
+            cmdSet_values = stats_info[scale][accessor["counter"][5]]
+
+            timestamps = diskRead_values["timestamp"]
+            samplesCount = diskRead_values["samplesCount"]
+
+            trend = []
+            num_warn = []
+            for node, vals in diskRead_values["nodeStats"].iteritems():
+                diskRead_vals = diskRead_values["nodeStats"][node]
+                cacheMissRate_vals = cacheMissRate_values["nodeStats"][node]
+                arr_vals = arr_values["nodeStats"][node]
+                memUsed_vals = memUsed_values["nodeStats"][node]
+                curr_vals = curr_values["nodeStats"][node]
+                cmdSet_vals = cmdSet_values["nodeStats"][node]
+                if samplesCount > 0:
+                    node_avg_mem = sum(memUsed_vals) / samplesCount
+                    node_avg_curr = sum(curr_vals) / samplesCount
+                    node_avg_cmdset = sum(cmdSet_vals) / samplesCount
+                else:
+                    node_avg_curr = 0
+                # Fine grained analysis
+                abnormal_segs = util.abnormal_extract(diskRead_vals, thresholdval["ep_cache_miss_rate"])
+                abnormal_vals = []
+                for seg in abnormal_segs:
+                    begin_index = seg[0]
+                    seg_total = seg[1]
+                    if seg_total < thresholdval["recurrence"]:
+                        continue
+                    end_index = begin_index + seg_total
+
+                    diskread_avg = sum(diskRead_vals[begin_index : end_index]) / seg_total
+                    cmr_avg = sum(cacheMissRate_vals[begin_index : end_index]) / seg_total
+                    arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
+                    mem_avg = sum(memUsed_vals[begin_index : end_index]) / seg_total
+                    curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
+                    cmdSet_avg = sum(cmdSet_values[begin_index : end_index]) / seg_total
+
+                    if cmr_avg > thresholdval["ep_cache_miss_rate"] and \
+                       arr_avg < thresholdval["vb_active_resident_items_ratio"] and \
+                       mem_avg > node_avg_mem and \
+                       curr_avg > node_avg_curr and \
+                       cmdSet_avg > node_avg_cmdset:
+                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                                                             util.pretty_datetime(timestamps[end_index-1]),
+                                                             util.number_label(int(cmdSet_avg)),
+                                                             util.number_label(int(curr_avg)),
+                                                             util.number_label(int(mem_avg)),
+                                                             util.pretty_float(cmr_avg), 
+                                                             util.pretty_float(arr_avg),
+                                                             util.number_label(int(diskread_avg)))
+                        num_warn.append({"node":node, "value":symptom})
+                        abnormal_vals.append(diskread_avg)
+                if len(abnormal_vals) > 0:
+                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
+                                         "raw" : abnormal_vals}
+                                    ))
+            if len(num_warn) > 0:
+                trend.append(("warn", num_warn))
+            result[bucket] = trend
+
+        return result
+
 DiskQueueCapsule = [
     {"name" : "DiskQueueDiagnosis",
      "description" : "",
@@ -195,22 +298,20 @@ DiskQueueCapsule = [
         {
             "name" : "avgDiskQueueLength",
             "description" : "Average disk write queue length",
-            "counter" : "disk_write_queue",
-            "pernode" : True,
+            "counter" : ["disk_write_queue", "curr_items", "cmd_set"],
             "scale" : "minute",
             "code" : "AvgDiskQueue",
             "threshold" : {
-                "low" : 500000,
-                "high" : 1000000
+                "disk_write_queue" : {"low" : 500000, "high" : 1000000 },
+                "recurrence" : 10,
             },
-            "symptom" : "Disk write queue length '{0}' has reached '{1}' items",
+            "symptom" : "From {0} to {1}, a higher set/sec '{2}' leads to high item count '{3}' and long disk write queue length '{4}'",
             "formula" : "Avg(disk_write_queue) > threshold"
         },
         {
             "name" : "diskQueueTrend",
             "description" : "Persistence severely behind - disk write queue continues growing",
             "counter" : "disk_write_queue",
-            "pernode" : True,
             "scale" : "hour",
             "code" : "DiskQueueTrend",
             "threshold" : {
@@ -303,5 +404,29 @@ DiskQueueCapsule = [
      ],
      "indicator" : True,
      "perBucket" : True,
+    },
+    {"name" : "PerformanceDiagnosis_diskread",
+     "ingredients" : [
+        {
+            "name" : "performanceDiagnosis_diskread",
+            "description" : "Diagnosis lots of disk reads",
+            "symptom" : "From {0} to {1}, a high sets/sec jump '{2}' leads to a higher item count '{3}', high memory used '{4}, " \
+                        "high cache miss ratio '{5}%', low residential ratio '{6}%' and lots of disk reads '{7}'.",
+            "counter" : ["ep_bg_fetched","ep_cache_miss_rate", "vb_active_resident_items_ratio", "mem_used", "curr_items", "cmd_set"],
+            "code" : "PerformanceDiagnosis_diskread",
+            "threshold" : {
+                "ep_bg_fetched" : 50, # lots of disk reads
+                "ep_cache_miss_rate" : 2, # 2%  high
+                "vb_active_resident_items_ratio" : 30, # low 
+                "recurrence" : 10
+            },
+            "formula" : "Avg(ep_cache_miss_rate)",
+        },
+     ],
+     "clusterwise" : False,
+     "perNode" : True,
+     "perBucket" : True,
+     "indicator" : True,
+     "nodeDisparate" : True,
     },
 ]
