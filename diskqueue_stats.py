@@ -16,7 +16,7 @@ class AvgDiskQueue:
             values = stats_info[scale][accessor["counter"][0]]
             curr_values = stats_info[scale][accessor["counter"][1]]
             cmdset_values = stats_info[scale][accessor["counter"][2]]
- q
+
             nodeStats = values["nodeStats"]
             samplesCount = values["samplesCount"]
             timestamps = values["timestamp"]
@@ -217,8 +217,8 @@ class PerformanceDiagnosis_diskread:
     def run(self, accessor, scale, threshold=None):
         result = {}
         thresholdval = accessor["threshold"]
-        if threshold.has_key("PerformanceDiagnosis_one"):
-            thresholdval = threshold["PerformanceDiagnosis_one"]
+        if threshold.has_key("PerformanceDiagnosis_diskread"):
+            thresholdval = threshold["PerformanceDiagnosis_diskread"]
 
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_info[scale].get(accessor["counter"][0], None) is None:

@@ -62,9 +62,14 @@ Capsules = {
         "impact" : "If the nodes fails over, data will be missing on the replica. If you failover, information in the replication queue will be lost.",
         "action" : "Do not failover the node. Wait until replication queue is low to failover. If replication queue remains high, contact support@couchbase.com",
     },
-    "DiskQueueDrainingAnalysis" :{
+    "DiskQueueDrainingAnalysis" : {
         "cause" : "Drain rate from RAM to disk is too slow; can be caused by disk fragmentation.",
         "impact" : "Rate of data persisted from RAM to disk is too high.",
         "action" : "Do not failover until drain rate is faster. Increase disk quota, add nodes to cluster, or remove and re-add a node. Please contact support@couchbase.com",
+    },
+    "IncomingXDCRPerformance": {
+        "cause" : "Too few set operations compared to get operations, which can be caused by high cpu utilization.",
+        "impact" : "Poor XDCR performance",
+        "action" : "Please contact support@couchbase.com",
     },
 }

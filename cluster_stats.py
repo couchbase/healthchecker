@@ -660,7 +660,7 @@ class CalcTrend:
     def run(self, accessor, scale, threshold=None):
         result = {}
         for bucket, stats_info in stats_buffer.buckets.iteritems():
-            if stats_info[scale].has_key(accessor["counter"]) == False:
+            if not stats_info[scale].has_key(accessor["counter"]):
                 continue
             values = stats_info[scale][accessor["counter"]]
             if values is None:
@@ -698,6 +698,75 @@ class CalcTrend:
                     else:
                         trend.append(("total", util.pretty_float(total_avg)))
             result[bucket] = trend
+        return result
+
+class XdrOpsPerformance:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        if threshold.has_key("XdrOpsPerformance"):
+            threshold_val = threshold["XdrOpsPerformance"]
+        else:
+            threshold_val = accessor["threshold"]
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
+            if not (stats_info[scale].has_key(accessor["counter"][0]) and \
+                    stats_info[scale].has_key(accessor["counter"][1])):
+                continue
+
+            item_avg = {
+                accessor["counter"][0]: [],
+                accessor["counter"][1]: [],
+            }
+            num_error = []
+            num_warn = []
+            for counter in accessor["counter"]:
+                values = stats_info[scale][counter]
+                nodeStats = values["nodeStats"]
+                samplesCount = values["samplesCount"]
+                for node, vals in nodeStats.iteritems():
+                    if samplesCount > 0:
+                        avg = sum(vals) / samplesCount
+                    else:
+                        avg = 0
+                    item_avg[counter].append((node, avg))
+            res = []
+            get_total = set_total = 0
+            for get_ops, set_ops in zip(item_avg[accessor["counter"][0]], item_avg[accessor["counter"][1]]):
+                if set_ops[1] == 0:
+                    if get_ops[1] == 0:
+                        res.append((get_ops[0], "No XDCR operations"))
+                    else:
+                        res.append((get_ops[0], "No XDCR set operations"))
+                else:
+                    ratio = get_ops[1] / set_ops[1]
+                    res.append((get_ops[0], {"value" : util.pretty_float(ratio), 
+                                            "raw" : (get_ops[1],set_ops[1]),
+                                           }))
+                get_total += get_ops[1]
+                set_total += set_ops[1]
+            if get_total == 0:
+                res.append(("total", "no XDCR get operations"))
+            elif set_total == 0:
+                res.append(("total", "no XDCR set operations"))
+            else:
+                ratio = get_total / set_total
+
+                res.append(("total", {"value" : util.pretty_float(ratio) + "%",
+                                      "raw" : (get_total, set_total)}))
+
+                if ratio > threshold_val["high"]:
+                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["high"])
+                    num_error.append({"node":"total", "value": symptom})
+                elif ratio > threshold_val["low"]:
+                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["low"])
+                    num_warn.append({"node":"total", "value": symptom})
+            if len(num_error) > 0:
+                res.append(("error", num_error))
+            if len(num_warn) > 0:
+                res.append(("warn", num_warn))
+            result[bucket] = res
+
         return result
 
 ClusterCapsule = [
@@ -1025,10 +1094,10 @@ ClusterCapsule = [
      ],
      "indicator" : True,
     },
-    {"name" : "XDCRPerformance",
+    {"name" : "OutgoingXDCRPerformance",
      "ingredients" : [
         {
-            "name" : "xdrOps",
+            "name" : "outgoingXdrOps",
             "description" : "XDCR dest ops per sec",
             "counter" : "xdc_ops",
             "code" : "CalcTrend",
@@ -1048,25 +1117,16 @@ ClusterCapsule = [
     {"name" : "IncomingXDCRPerformance",
      "ingredients" : [
         {
-            "name" : "xdrGetsPerSec",
-            "description" : "XDCR gets per sec.",
-            "counter" : "ep_num_ops_get_meta",
-            "code" : "CalcTrend",
-            "unit" : "number",
-        },
-        {
-            "name" : "xdrSetsPerSec",
-            "description" : "XDCR sets per sec.",
-            "counter" : "ep_num_ops_set_meta",
-            "code" : "CalcTrend",
-            "unit" : "number",
-        },
-        {
-            "name" : "xdrDelsPerSec",
-            "description" : "XDCR deletes per sec.",
-            "counter" : "ep_num_ops_del_meta",
-            "code" : "CalcTrend",
-            "unit" : "number",
+            "name" : "incomingXdrPerformance",
+            "description" : "Incoming XDCR performance ",
+            "counter" : ["ep_num_ops_get_meta", "ep_num_ops_set_meta"],
+            "code" : "XdrOpsPerformance",
+            "threshold" : {
+                "low" : 2,
+                "high" : 10
+            },
+            "symptom" : "Get ops to set ops ratio '{0}%' is bigger than '{1}%'. Too few set operations.",
+            "formula" : "Avg(ep_num_ops_get_meta) / Avg(ep_num_ops_set_meta)",
         },
      ],
      "perNode" : True,

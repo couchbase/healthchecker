@@ -56,6 +56,10 @@ ClusterCapsule = {
                 "high" : 500,
             },
     },
+    "XdrOpsPerformance" : {
+        "low" : 2,
+        "high" : 10,
+    }
 }
 
 NodeCapsule = {
