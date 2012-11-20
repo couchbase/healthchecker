@@ -264,7 +264,7 @@ class PerformanceDiagnosis_diskread:
                     arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
                     mem_avg = sum(memUsed_vals[begin_index : end_index]) / seg_total
                     curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
-                    cmdSet_avg = sum(cmdSet_values[begin_index : end_index]) / seg_total
+                    cmdSet_avg = sum(cmdSet_vals[begin_index : end_index]) / seg_total
 
                     if cmr_avg > thresholdval["ep_cache_miss_rate"] and \
                        arr_avg < thresholdval["vb_active_resident_items_ratio"] and \
