@@ -72,4 +72,9 @@ Capsules = {
         "impact" : "Poor XDCR performance",
         "action" : "Please contact support@couchbase.com",
     },
+    "PerformanceDiagnosis_diskread": {
+        "cause" : "Frequent disk reads caused by high item amount and limited memory space.",
+        "impact" : "Poor server performance",
+        "action" : "Please contact support@couchbase.com",
+    },
 }

@@ -1,6 +1,74 @@
 import stats_buffer
 import util_cli as util
 
+class SyndromeDetector:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        thresholdval = accessor["threshold"]
+        if threshold.has_key(accessor["name"]):
+            thresholdval = threshold[accessor["name"]]
+
+        main_counter = accessor["counter"][0]
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            values = {}
+            for counter in accessor["counter"]:
+                values[counter] = stats_info[scale][counter]
+
+            #First one is the main counter we run against
+            timestamps = values[main_counter]["timestamp"]
+            nodeStats = values[main_counter]["nodeStats"]
+            samplesCount = values[main_counter]["samplesCount"]
+
+            trend = []
+            num_warn = []
+            for node, vals in nodeStats.iteritems():
+                #arr_vals = arr_values["nodeStats"][node]
+                #curr_vals = curr_values["nodeStats"][node]
+                vals = {}
+                for counter in accessor["counter"]:
+                    vals[counter] = values["nodeStats"][node]
+
+                node_avg = {}
+                #if samplesCount > 0:
+                #    node_avg_curr = sum(curr_vals) / samplesCount
+                #else:
+                #    node_avg_curr = 0
+
+                # Fine grained analysis
+                abnormal_segs = util.abnormal_extract(vals[main_counter], thresholdval[main_counter])
+                abnormal_vals = []
+                for seg in abnormal_segs:
+                    begin_index = seg[0]
+                    seg_total = seg[1]
+                    if seg_total < thresholdval["recurrence"]:
+                        continue
+                    end_index = begin_index + seg_total
+
+                    seg_avg = {}
+                    for counter in accessor["counter"]:
+                        #cmr_avg = sum(vals[begin_index : end_index]) / seg_total
+                        #arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
+                        #curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
+                        seg_avg[counter] = sum(vals[counter][begin_index : end_index]) / seg_total
+
+                    if arr_avg < thresholdval["ActiveResidentItemsRatio"] and curr_avg > node_avg_curr:
+                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                                                             util.pretty_datetime(timestamps[end_index-1], True), 
+                                                             util.number_label(int(curr_avg)), 
+                                                             util.pretty_float(cmr_avg), 
+                                                             util.pretty_float(arr_avg))
+                        num_warn.append({"node":node, "value":symptom})
+                        abnormal_vals.append(cmr_avg)
+                if len(abnormal_vals) > 0:
+                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
+                                         "raw" : abnormal_vals}
+                                    ))
+            if len(num_warn) > 0:
+                trend.append(("warn", num_warn))
+            result[bucket] = trend
+
+        return result
+
 class DGMRatio:
     def run(self, accessor, scale, threshold=None):
         result = []
@@ -733,26 +801,17 @@ class XdrOpsPerformance:
             res = []
             get_total = set_total = 0
             for get_ops, set_ops in zip(item_avg[accessor["counter"][0]], item_avg[accessor["counter"][1]]):
-                if set_ops[1] == 0:
-                    if get_ops[1] == 0:
-                        res.append((get_ops[0], "No XDCR operations"))
-                    else:
-                        res.append((get_ops[0], "No XDCR set operations"))
-                else:
+                if get_ops[1] > 0 and set_ops[1] > 0:
                     ratio = get_ops[1] / set_ops[1]
                     res.append((get_ops[0], {"value" : util.pretty_float(ratio), 
                                             "raw" : (get_ops[1],set_ops[1]),
                                            }))
                 get_total += get_ops[1]
                 set_total += set_ops[1]
-            if get_total == 0:
-                res.append(("total", "no XDCR get operations"))
-            elif set_total == 0:
-                res.append(("total", "no XDCR set operations"))
-            else:
+            if get_total > 0 and set_total > 0:
                 ratio = get_total / set_total
 
-                res.append(("total", {"value" : util.pretty_float(ratio) + "%",
+                res.append(("total", {"value" : util.pretty_float(ratio) + " : 1",
                                       "raw" : (get_total, set_total)}))
 
                 if ratio > threshold_val["high"]:
@@ -811,8 +870,8 @@ ClusterCapsule = [
             "counter" : ["ep_cache_miss_rate", "vb_active_resident_items_ratio", "curr_items"],
             "code" : "CacheMissRatio",
             "threshold" : {
-                "CacheMissRate" : 2, # 2%
-                "ActiveResidentItemsRatio" : 30, # 30%
+                "CacheMissRate" : 3, # 2%
+                "ActiveResidentItemsRatio" : 25, # 30%
                 "recurrence" : 10
             },
             "formula" : "Avg(ep_cache_miss_rate)",
@@ -1098,7 +1157,7 @@ ClusterCapsule = [
      "ingredients" : [
         {
             "name" : "outgoingXdrOps",
-            "description" : "XDCR dest ops per sec",
+            "description" : "Cross data center replication operation per sec",
             "counter" : "xdc_ops",
             "code" : "CalcTrend",
             "unit" : "number",
@@ -1118,14 +1177,14 @@ ClusterCapsule = [
      "ingredients" : [
         {
             "name" : "incomingXdrPerformance",
-            "description" : "Incoming XDCR performance ",
+            "description" : "Incoming XDCR Get/Set ops ratio",
             "counter" : ["ep_num_ops_get_meta", "ep_num_ops_set_meta"],
             "code" : "XdrOpsPerformance",
             "threshold" : {
                 "low" : 2,
                 "high" : 10
             },
-            "symptom" : "Get ops to set ops ratio '{0}%' is bigger than '{1}%'. Too few set operations.",
+            "symptom" : "Get to Set ops ratio '{0}' is bigger than '{1}'. Too few set operations.",
             "formula" : "Avg(ep_num_ops_get_meta) / Avg(ep_num_ops_set_meta)",
         },
      ],
@@ -1135,16 +1194,28 @@ ClusterCapsule = [
     {"name" : "CompactionPerformance",
      "ingredients" : [
         {
-            "name" : "viewCompactPerc",
+            "name" : "viewCompactPercentage",
             "description" : "Views fragmentation %",
             "counter" : "couch_views_fragmentation",
             "code" : "CalcTrend",
+            "threshold" : {
+                "couch_views_fragmentation" : 90,
+                "recurrence" : 15,
+            },
+            "symptom" : "From {0} to {1}, views fragmentation '{2}%' is contineously higher than '{3}%'.",
+            "formula" : "Avg(couch_views_fragmentation) > threshold",
         },
         {
-            "name" : "docCompactPerc",
+            "name" : "docCompactPercentage",
             "description" : "Docs fragmentation %",
             "counter" : "couch_docs_fragmentation",
             "code" : "CalcTrend",
+            "threshold" : {
+                "couch_views_fragmentation" : 50,
+                "recurrence" : 15,
+            },
+            "symptom" : "From {0} to {1}, docs fragmentation '{2}%' is contineously higher than '{3}%'.",
+            "formula" : "Avg(couch_docs_fragmentation) > threshold",
         },
      ],
      "perNode" : True,

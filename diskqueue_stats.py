@@ -250,7 +250,7 @@ class PerformanceDiagnosis_diskread:
                 else:
                     node_avg_curr = 0
                 # Fine grained analysis
-                abnormal_segs = util.abnormal_extract(diskRead_vals, thresholdval["ep_cache_miss_rate"])
+                abnormal_segs = util.abnormal_extract(diskRead_vals, thresholdval["ep_bg_fetched"])
                 abnormal_vals = []
                 for seg in abnormal_segs:
                     begin_index = seg[0]
@@ -273,7 +273,6 @@ class PerformanceDiagnosis_diskread:
                        cmdSet_avg > node_avg_cmdset:
                         symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1]),
-                                                             util.number_label(int(cmdSet_avg)),
                                                              util.number_label(int(curr_avg)),
                                                              util.number_label(int(mem_avg)),
                                                              util.pretty_float(cmr_avg), 
@@ -410,17 +409,17 @@ DiskQueueCapsule = [
         {
             "name" : "performanceDiagnosis_diskread",
             "description" : "Diagnosis lots of disk reads",
-            "symptom" : "From {0} to {1}, a high sets/sec jump '{2}' leads to a higher item count '{3}', high memory used '{4}, " \
-                        "high cache miss ratio '{5}%', low residential ratio '{6}%' and lots of disk reads '{7}'.",
+            "symptom" : "From {0} to {1}, a high item count '{2}', high memory used '{3}', " \
+                        "high cache miss ratio '{4}%', and low residential ratio '{5}%' lead to above average disk reads '{6}'.",
             "counter" : ["ep_bg_fetched","ep_cache_miss_rate", "vb_active_resident_items_ratio", "mem_used", "curr_items", "cmd_set"],
             "code" : "PerformanceDiagnosis_diskread",
             "threshold" : {
-                "ep_bg_fetched" : 50, # lots of disk reads
+                "ep_bg_fetched" : 10, # lots of disk reads
                 "ep_cache_miss_rate" : 2, # 2%  high
                 "vb_active_resident_items_ratio" : 30, # low 
                 "recurrence" : 10
             },
-            "formula" : "Avg(ep_cache_miss_rate)",
+            "formula" : "Avg(ep_bg_fetched)",
         },
      ],
      "clusterwise" : False,

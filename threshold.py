@@ -3,9 +3,9 @@
 
 ClusterCapsule = {
     "CacheMissRatio" :  {
-        "CacheMissRate" : 2,
-        "ActiveResidentItemsRatio" : 30,
-        "recurrence": 8,
+        "CacheMissRate" : 3,
+        "ActiveResidentItemsRatio" : 25,
+        "recurrence": 10,
     },
     "ActiveReplicaResidentRatio" : {
         "activeReplicaResidentRatio" : 4,
@@ -98,5 +98,11 @@ DiskQueueCapsule = {
             "diskLength" : 100000,
         },
     },
+    "PerformanceDiagnosis_diskread" : {
+        "ep_bg_fetched" : 10,
+        "ep_cache_miss_rate" : 2,
+        "vb_active_resident_items_ratio" : 30,
+        "recurrence" : 10,
+    }
 }
 
