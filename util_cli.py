@@ -129,13 +129,22 @@ def two_pass_variance(data):
     variance = sum2/(n - 1)
     return variance
 
-def abnormal_extract(vals, threshold):
+def abnormal_extract(vals, threshold, op = '>='):
     abnormal = []
     begin_index = -1
     seg_count = 0
 
+    func = {'>=' : lambda x, y: x >= y,
+            '>' : lambda x, y: x > y,
+            '==' : lambda x, y: x == y,
+            '<' : lambda x, y: x < y,
+            '!=' : lambda x, y: x != y,
+           }.get(op, None)
+    if func is None:
+        return abnormal
+
     for index, sample in enumerate(vals):
-        if sample > threshold:
+        if func(sample,threshold):
             if begin_index < 0:
                 begin_index = index
             seg_count += 1

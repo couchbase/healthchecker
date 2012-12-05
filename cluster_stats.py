@@ -9,6 +9,7 @@ class SyndromeDetector:
             thresholdval = threshold[accessor["name"]]
 
         main_counter = accessor["counter"][0]
+
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = {}
             for counter in accessor["counter"]:
@@ -35,7 +36,7 @@ class SyndromeDetector:
                 #    node_avg_curr = 0
 
                 # Fine grained analysis
-                abnormal_segs = util.abnormal_extract(vals[main_counter], thresholdval[main_counter])
+                abnormal_segs = util.abnormal_extract(vals[main_counter], thresholdval[main_counter], accessor.get("op", ">="))
                 abnormal_vals = []
                 for seg in abnormal_segs:
                     begin_index = seg[0]
@@ -45,13 +46,17 @@ class SyndromeDetector:
                     end_index = begin_index + seg_total
 
                     seg_avg = {}
+                    b = True
                     for counter in accessor["counter"]:
                         #cmr_avg = sum(vals[begin_index : end_index]) / seg_total
                         #arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
                         #curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
                         seg_avg[counter] = sum(vals[counter][begin_index : end_index]) / seg_total
+                        b &= util.evalfunc(thresholdval[counter][0], seg_avg[counter], thresholdval[counter][1])
+                        if not b:
+                            break
 
-                    if arr_avg < thresholdval["ActiveResidentItemsRatio"] and curr_avg > node_avg_curr:
+                    if b:
                         symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1], True), 
                                                              util.number_label(int(curr_avg)), 
@@ -788,8 +793,11 @@ class XdrOpsPerformance:
             }
             num_error = []
             num_warn = []
+            #print util.pretty_print(stats_info)
             for counter in accessor["counter"]:
                 values = stats_info[scale][counter]
+                if not values:
+                    return result
                 nodeStats = values["nodeStats"]
                 samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
