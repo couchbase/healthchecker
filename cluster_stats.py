@@ -18,16 +18,14 @@ class SyndromeDetector:
             #First one is the main counter we run against
             timestamps = values[main_counter]["timestamp"]
             nodeStats = values[main_counter]["nodeStats"]
-            samplesCount = values[main_counter]["samplesCount"]
+            #samplesCount = values[main_counter]["samplesCount"]
 
             trend = []
             num_warn = []
             for node, vals in nodeStats.iteritems():
-                #arr_vals = arr_values["nodeStats"][node]
-                #curr_vals = curr_values["nodeStats"][node]
                 vals = {}
                 for counter in accessor["counter"]:
-                    vals[counter] = values["nodeStats"][node]
+                    vals[counter] = values[counter]["nodeStats"][node]
 
                 node_avg = {}
                 #if samplesCount > 0:
@@ -36,7 +34,7 @@ class SyndromeDetector:
                 #    node_avg_curr = 0
 
                 # Fine grained analysis
-                abnormal_segs = util.abnormal_extract(vals[main_counter], thresholdval[main_counter], accessor.get("op", ">="))
+                abnormal_segs = util.abnormal_extract(vals[main_counter], thresholdval[main_counter][1], thresholdval[main_counter][0])
                 abnormal_vals = []
                 for seg in abnormal_segs:
                     begin_index = seg[0]
@@ -47,23 +45,21 @@ class SyndromeDetector:
 
                     seg_avg = {}
                     b = True
+                    seg_tuple = ()
                     for counter in accessor["counter"]:
-                        #cmr_avg = sum(vals[begin_index : end_index]) / seg_total
-                        #arr_avg = sum(arr_vals[begin_index : end_index]) / seg_total
-                        #curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
                         seg_avg[counter] = sum(vals[counter][begin_index : end_index]) / seg_total
-                        b &= util.evalfunc(thresholdval[counter][0], seg_avg[counter], thresholdval[counter][1])
+                        seg_tuple += (util.pretty_float(seg_avg[counter]), )
+                        b &= util.evalfunc(thresholdval[counter][1], seg_avg[counter], thresholdval[counter][0])
                         if not b:
                             break
 
                     if b:
-                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
-                                                             util.pretty_datetime(timestamps[end_index-1], True), 
-                                                             util.number_label(int(curr_avg)), 
-                                                             util.pretty_float(cmr_avg), 
-                                                             util.pretty_float(arr_avg))
+                        seg_tuple = (util.pretty_datetime(timestamps[begin_index]),) + seg_tuple
+                        seg_tuple = (util.pretty_datetime(timestamps[end_index-1], True),) + seg_tuple
+                        symptom = accessor["symptom"] % seg_tuple
+
                         num_warn.append({"node":node, "value":symptom})
-                        abnormal_vals.append(cmr_avg)
+                        abnormal_vals.append(seg_avg[main_counter])
                 if len(abnormal_vals) > 0:
                     trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
                                          "raw" : abnormal_vals}
@@ -869,360 +865,31 @@ ClusterCapsule = [
      "perNode" : False,
      "perBucket" : False,
     },
-   {"name" : "CacheMissRatio",
-     "ingredients" : [
-        {
-            "name" : "cacheMissRatio",
-            "description" : "Cache miss ratio",
-            "symptom" : "From {0} to {1}, a higher item count '{2}' leads to high cache miss ratio '{3}%' and low residential ratio '{4}%'",
-            "counter" : ["ep_cache_miss_rate", "vb_active_resident_items_ratio", "curr_items"],
-            "code" : "CacheMissRatio",
-            "threshold" : {
-                "CacheMissRate" : 3, # 2%
-                "ActiveResidentItemsRatio" : 25, # 30%
-                "recurrence" : 10
-            },
-            "formula" : "Avg(ep_cache_miss_rate)",
-        },
-     ],
-     "clusterwise" : False,
-     "perNode" : True,
-     "perBucket" : True,
-     "indicator" : True,
-     "nodeDisparate" : True,
-    },
-    {"name" : "DGM",
-     "ingredients" : [
-        {
-            "name" : "dgm",
-            "description" : "Disk to memory ratio",
-            "code" : "DGMRatio",
-            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
-        },
-     ],
-     "clusterwise" : True,
-     "perNode" : False,
-     "perBucket" : False,
-    },
-    {"name" : "ActiveReplicaResidentRatio",
-     "ingredients" : [
-        {
-            "name" : "activeReplicaResidentRatio",
-            "description" : "Active to replica resident ratio",
-            "counter" : ["curr_items", "vb_replica_curr_items"],
-            "scale" : "minute",
-            "code" : "ARRatio",
-            "threshold" : 5,
-            "symptom" : "Active to replica resident ratio '{0}%' is bigger than '{1}%'",
-            "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
-        },
-     ],
-     "clusterwise" : True,
-     "perNode" : True,
-     "perBucket" : True,
-     "indicator" : True,
-    },
-    {"name" : "ResidentRatio",
-     "ingredients" : [
-        {
-            "name" : "activeResidentRatio",
-            "description" : "Active resident ratio",
-            "counter" : "vb_active_resident_items_ratio",
-            "scale" : "minute",
-            "code" : "ResidentItemRatio",
-            "threshold" : 30,
-            "symptom" : "Active resident item ratio '{0}' is below '{1}'",
-            "formula" : "Last(vb_active_resident_items_ratio)",
-        },
-        {
-            "name" : "replicaResidentRatio",
-            "description" : "Replica resident ratio",
-            "counter" : "vb_replica_resident_items_ratio",
-            "scale" : "minute",
-            "code" : "ResidentItemRatio",
-            "threshold" : 20,
-            "symptom" : "Replica resident item ratio '{0}' is below '{1}'",
-            "formula" : "Last(vb_replica_resident_items_ratio)",
-        },
-     ],
-     "clusterwise" : True,
-     "perNode" : True,
-     "perBucket" : True,
-     "indicator" : True,
-    },
-    {"name" : "OPSPerformance",
-     "ingredients" : [
-        {
-            "name" : "opsPerformance",
-            "description" : "Read/Write/Delete ops ratio",
-            "scale" : "week",
-            "counter" : ["cmd_get", "cmd_set", "delete_hits"],
-            "code" : "OpsRatio",
-            "formula" : "Avg(cmd_get) : Avg(cmd_set) : Avg(delete_hits)",
-        },
-     ],
-     "perBucket" : True,
-     "clusterwise" : True,
-    },
-    {"name" : "GrowthRate",
-     "ingredients" : [
-        {
-            "name" : "dataGrowthRateForItems",
-            "description" : "Average data growth rate for items",
-            "counter" : "curr_items",
-            "scale" : "day",
-            "code" : "ItemGrowth",
-            "formula" : "Linear(curr_items)",
-        },
-     ],
-     "clusterwise" : True,
-     "perBucket" : True,
-     "perNode" : True,
-    },
-    {"name" : "VBucketNumber",
-     "ingredients" : [
-        {
-            "name" : "activeVbucketNumber",
-            "description" : "Active VBucket number",
-            "counter" : "vb_active_num",
-            "scale" : "hour",
-            "code" : "NumVbuckt",
-            "threshold" : 1024,
-            "symptom" : "Number of active vBuckets '{0}' is less than '{1}' per node",
-            "formula" : "Avg(vb_active_num)",
-        },
-        {
-            "name" : "replicaVBucketNumber",
-            "description" : "Replica VBucket number",
-            "counter" : "vb_replica_num",
-            "scale" : "hour",
-            "code" : "NumVbuckt",
-            "threshold" : 1024,
-            "symptom" : "Number of replica vBuckets '{0}' is less than '{1}' per node", 
-            "formula" : "Avg(vb_replica_num)",
-        },
-     ],
-     "indicator" : True,
-     "perBucket" : True,
-     "perNode" : True,
-    },
-    {"name" : "VBucketServerMap",
-     "ingredients" : [
-        {
-            "name" : "vbucketMap",
-            "description" : "Sanity checks for vBucket map",
-            "code" : "VbucketMapSanity",
-            "threshold" : 1024,
-            "formula" : "",
-        },
-        {
-            "name" : "vbucketServerList",
-            "description" : "Sanity checks for vBucket server list",
-            "code" : "VbucketServerListSanity",
-            "formula" : "",
-        },
-     ],
-     "indicator" : True,
-     "perBucket" : True,
-    },
-    {"name" : "MemoryUsage",
-     "ingredients" : [
-        {
-            "name" : "memoryUsage",
-            "description" : "Memory usage",
-            "counter" : "mem_used",
-            "scale" : "hour",
-            "code" : "MemUsed",
-            "formula" : "Avg(mem_used)",
-        },
-     ],
-     "perNode" : True,
-     "perBucket" : True,
-     "nodeDisparate" : True,
-    },
-    {"name" : "RebalancePerformance",
-     "ingredients" : [
-        {
-            "name" : "highBackfillRemaing",
-            "description" : "Tap queue backfill remaining is too high",
-            "counter" : "ep_tap_queue_backfillremaining",
-            "code" : "RebalanceStuck",
-            "threshold" : 10000,
-            "symptom" : "'{0}' occurrences showing tap queue backfill remainings higher than threshold '{1}'",
-            "formula" : "Total(ep_tap_queue_backfillremaining > threshold)",
-        },
-        {
-            "name" : "tapNack",
-            "description" : "Number of Tap stream backoff",
-            "counter" : "num_tap_nack",
-            "code" : "RebalanceStuck",
-            "threshold" : 500,
-            "symptom" : "'{0}' occurrences showing tap stream backoffs received higher than threshold '{1}'",
-            "formula" : "Total(num_tap_nack > threshold)",
-        },
-     ],
-     "indicator" : True,
-     "perBucket" : True,
-    },
-    {"name" : "MemoryFragmentation",
-     "ingredients" : [
-        {
-            "name" : "totalFragmentation",
-            "description" : "Total memory fragmentation",
-            "counter" : "total_fragmentation_bytes",
-            "code" : "CalcFragmentation",
-            "unit" : "size",
-            "threshold" : {
-                "low" : 1073741824, # 1GB
-                "high" : 2147483648, # 2GB
-            },
-            "symptom" : "Total memory fragmentation '{0}' is larger than '{1}'",
-            "formula" : "total_fragmentation_bytes > threshold",
-        },
-      ],
-      "indicator" : True,
-      "perNode" : True,
-      "perBucket" : True,
-    },
-    {"name" : "DiskPerformance",
-     "ingredients" : [
-        {
-            "name" : "diskPerformance",
-            "description" : "Disk IO Performance",
-            "counter" : ["disk_del", "disk_update", "disk_insert", "disk_commit"],
-            "code" : "DiskPerformance",
-            "unit" : "time",
-            "threshold" : {
-                "disk_del" : {"low": 1000, "high": 5000},
-                "disk_update" : {"low": 1000, "high": 5000},
-                "disk_insert" : {"low": 1000, "high": 5000},
-                "disk_commit" : {"low": 5000000, "high": 10000000},
-            },
-            "symptom" : {
-                "disk_del": "Average disk delete time '{0}' is slower than '{1}'",
-                "disk_update": "Average disk update time '{0}' is slower than '{1}'",
-                "disk_insert": "Average disk insert time '{0}' is slower than '{1}'",
-                "disk_commit": "Average disk commit time '{0}' is slower than '{1}'",
-            },
-            "formula" : "Avg(%counter) > threshold",
-        },
-     ],
-     "clusterwise" : False,
-     "perNode" : True,
-     "perBucket" : True,
-     "indicator" : True,
-    },
-    {"name" : "EPEnginePerformance",
-     "ingredients" : [
-        {
-            "name" : "flusherState",
-            "description" : "Engine flusher state",
-            "counter" : "ep_flusher_state",
-            "code" : "EPEnginePerformance",
-            "threshold" : "running",
-            "symptom" : "The flusher is not running",
-            "formula" : "ep_flusher_state == True",
-        },
-        {
-            "name" : "flusherCompleted",
-            "description" : "Flusher completed",
-            "counter" : "ep_flusher_num_completed",
-            "code" : "EPEnginePerformance",
-            "threshold" : 0,
-            "symptom" : "The flusher is not persisting any items",
-            "formula" : "ep_flusher_num_completed == 0",
-        },
-        {
-            "name" : "avgItemLoadTime",
-            "description" : "Average item loaded time",
-            "counter" : "ep_bg_load_avg",
-            "code" : "EPEnginePerformance",
-            "unit" : "time",
-            "threshold" : {
-                "low" : 100,
-                "high" : 500,
-            },
-            "symptom" : "Average item loaded time '{0}' is slower than '{1}'",
-            "formula" : "Avg(ep_bg_load_avg) > threshold",
-        },
-        {
-            "name" : "avgItemWaitTime",
-            "description" : "Average item waited time",
-            "counter" : "ep_bg_wait_avg",
-            "code" : "EPEnginePerformance",
-            "unit" : "time",
-            "threshold" : {
-                "low" : 100,
-                "high" : 500,
-            },
-            "symptom" : "Average waiting time '{0}' for items serviced by dispatcher is slower than '{1}'",
-            "formula" : "Avg(ep_bg_wait_avg) > threshold",
-        },
-     ],
-     "indicator" : True,
-    },
-    {"name" : "OutgoingXDCRPerformance",
-     "ingredients" : [
-        {
-            "name" : "outgoingXdrOps",
-            "description" : "Cross data center replication operation per sec",
-            "counter" : "xdc_ops",
-            "code" : "CalcTrend",
-            "unit" : "number",
-        },
-        {
-            "name" : "xdcrReplicationQueue",
-            "description" : "XDCR replication queue",
-            "counter" : "replication_changes_left",
-            "code" : "CalcTrend",
-            "unit" : "size",
-        },
-     ],
-     "perNode" : True,
-     "perBucket" : True,
-    },
-    {"name" : "IncomingXDCRPerformance",
-     "ingredients" : [
-        {
-            "name" : "incomingXdrPerformance",
-            "description" : "Incoming XDCR Get/Set ops ratio",
-            "counter" : ["ep_num_ops_get_meta", "ep_num_ops_set_meta"],
-            "code" : "XdrOpsPerformance",
-            "threshold" : {
-                "low" : 2,
-                "high" : 10
-            },
-            "symptom" : "Get to Set ops ratio '{0}' is bigger than '{1}'. Too few set operations.",
-            "formula" : "Avg(ep_num_ops_get_meta) / Avg(ep_num_ops_set_meta)",
-        },
-     ],
-     "perNode" : True,
-     "perBucket" : True,
-    },
+
     {"name" : "CompactionPerformance",
      "ingredients" : [
         {
             "name" : "viewCompactPercentage",
             "description" : "Views fragmentation %",
-            "counter" : "couch_views_fragmentation",
-            "code" : "CalcTrend",
+            "counter" : ["couch_views_fragmentation"],
+            "code" : "SyndromeDetector",
             "threshold" : {
-                "couch_views_fragmentation" : 90,
+                "couch_views_fragmentation" : [">=", 90],
                 "recurrence" : 15,
             },
-            "symptom" : "From {0} to {1}, views fragmentation '{2}%' is contineously higher than '{3}%'.",
+            "symptom" : "From %s to %s, views fragmentation '%.2f%' is contineously higher than '%d%'.",
             "formula" : "Avg(couch_views_fragmentation) > threshold",
         },
         {
             "name" : "docCompactPercentage",
             "description" : "Docs fragmentation %",
-            "counter" : "couch_docs_fragmentation",
-            "code" : "CalcTrend",
+            "counter" : ["couch_docs_fragmentation"],
+            "code" : "SyndromeDetector",
             "threshold" : {
-                "couch_views_fragmentation" : 50,
+                "couch_docs_fragmentation" : [">=", 50],
                 "recurrence" : 15,
             },
-            "symptom" : "From {0} to {1}, docs fragmentation '{2}%' is contineously higher than '{3}%'.",
+            "symptom" : "From %s to %s, docs fragmentation '%.2f%' is contineously higher than '%d%'.",
             "formula" : "Avg(couch_docs_fragmentation) > threshold",
         },
      ],

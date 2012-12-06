@@ -274,14 +274,14 @@ class PerformanceDiagnosis_diskread:
                         symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1]),
                                                              util.number_label(int(curr_avg)),
-                                                             util.number_label(int(mem_avg)),
+                                                             util.size_label(int(mem_avg)),
                                                              util.pretty_float(cmr_avg), 
                                                              util.pretty_float(arr_avg),
                                                              util.number_label(int(diskread_avg)))
                         num_warn.append({"node":node, "value":symptom})
                         abnormal_vals.append(diskread_avg)
                 if len(abnormal_vals) > 0:
-                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
+                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)),
                                          "raw" : abnormal_vals}
                                     ))
             if len(num_warn) > 0:
@@ -408,7 +408,7 @@ DiskQueueCapsule = [
      "ingredients" : [
         {
             "name" : "performanceDiagnosis_diskread",
-            "description" : "Diagnosis lots of disk reads",
+            "description" : "Lots of disk reads",
             "symptom" : "From {0} to {1}, a high item count '{2}', high memory used '{3}', " \
                         "high cache miss ratio '{4}%', and low residential ratio '{5}%' lead to above average disk reads '{6}'.",
             "counter" : ["ep_bg_fetched","ep_cache_miss_rate", "vb_active_resident_items_ratio", "mem_used", "curr_items", "cmd_set"],
