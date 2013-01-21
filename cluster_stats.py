@@ -13,6 +13,8 @@ class SyndromeDetector:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             values = {}
             for counter in accessor["counter"]:
+                if not stats_info[scale].has_key(counter):
+                    return result
                 values[counter] = stats_info[scale][counter]
 
             #First one is the main counter we run against
@@ -88,6 +90,46 @@ class DGMRatio:
             ratio = 0
         return {"value" : util.pretty_float(ratio) + "%",
                 "raw" : (hdd_total, ram_total)}
+
+class RAMLimit:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+
+        xdcr = 2000
+        os = 500
+        for node, nodeinfo in stats_buffer.nodes.iteritems():
+            if nodeinfo["status"] != "healthy":
+                continue
+            if nodeinfo["version"].split(".") >= ["2", "0", "0"]:
+                required = xdcr + os + nodeinfo['memory']['quota']
+            else:
+                required = os + nodeinfo['memory']['quota']
+
+            if required > nodeinfo['memory']['total']:
+                symptom = accessor["symptom"].format(util.size_label(required), util.size_label(nodeinfo['memory']['total']))
+                result[node] = symptom
+        return result
+
+class CPUCoreLimit:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
+            total_view = getattr(stats_buffer.bucket_info[bucket], "numView", 0)
+            for node, nodeinfo in stats_buffer.nodes.iteritems():
+                if nodeinfo["status"] != "healthy":
+                    continue
+                if nodeinfo["version"].split(".") >= ["2", "0", "0"]:
+                    total_core_required = 3 + total_view
+                else:
+                    total_core_required = 2
+                #TODO:  nodeinfo["num_processor"]
+                node_processor = getattr(nodeinfo, "num_processor", 1)
+                if total_core_required > node_processor:
+                    symptom = accessor["symptom"].format(total_core_required, node_processor)
+                    result[node] = symptom
+        return result
 
 class ARRatio:
     def run(self, accessor, scale, threshold=None):
@@ -893,6 +935,27 @@ ClusterCapsule = [
             "name" : "dgm",
             "description" : "Disk to memory ratio",
             "code" : "DGMRatio",
+            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
+        },
+     ],
+     "clusterwise" : True,
+     "perNode" : False,
+     "perBucket" : False,
+    },
+    {"name" : "MinimumLimit",
+     "ingredients" : [
+        {
+            "name" : "RamLimit",
+            "description" : "Minimum ram required",
+            "code" : "RAMLimit",
+            "symptom" : "RAM size '{0}' doesn't meet the minimum requirement '{1}' to run Couchbase Server effectively",
+            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
+        },
+        {
+            "name" : "CPUCoreLimit",
+            "description" : "Minimum CPU core number required",
+            "code" : "CPUCoreLimit",
+            "symptom" : "Number of CPU processors '{0}' doesn't meet the minimum requirement '{1}' to run Couchbase Server effectively",
             "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
      ],

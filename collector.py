@@ -39,6 +39,7 @@ class StatsCollector:
         nodeStats['os'] = nodeInfo['os']
         nodeStats['uptime'] = nodeInfo['uptime']
         nodeStats['version'] = nodeInfo['version']
+        nodeStats['num_processor'] = 1 #TODO: read from cbcollectinfo
 
         #memory
         nodeStats['memory'] = {}
@@ -147,6 +148,8 @@ class StatsCollector:
                     for key in bucketStats.iterkeys():
                         bucketinfo['bucketStats'][key] = bucketStats[key]
 
+                    bucketinfo['numView'] = self.number_bucketddocs(server, port, user, password, bucketname, opts)
+
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
 
                     # get bucket related stats
@@ -154,6 +157,18 @@ class StatsCollector:
                     json = c.runCmd('bucket-stats', server, port, user, password, opts)
                     stats_buffer.buckets_summary[bucket_name] = json
             return bucketlist
+        except Exception, err:
+            traceback.print_exc()
+            sys.exit(1)
+
+    def number_bucketddocs(self, server, port, user, password, bucketname, opts):
+        try:
+            docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts)
+            total = 0
+            for doc in docs["rows"]:
+                total += len(doc["json"]["views"].iterkeys())
+
+            return total
         except Exception, err:
             traceback.print_exc()
             sys.exit(1)
