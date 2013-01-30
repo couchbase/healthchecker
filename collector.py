@@ -148,7 +148,8 @@ class StatsCollector:
                     for key in bucketStats.iterkeys():
                         bucketinfo['bucketStats'][key] = bucketStats[key]
 
-                    bucketinfo['numView'] = self.number_bucketddocs(server, port, user, password, bucketname, opts)
+                    bucketinfo['numDdoc'], bucketinfo['numView'] = \
+                        self.number_bucketddocs(server, port, user, password, bucket_name, opts)
 
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
 
@@ -163,12 +164,22 @@ class StatsCollector:
 
     def number_bucketddocs(self, server, port, user, password, bucketname, opts):
         try:
-            docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts)
-            total = 0
-            for doc in docs["rows"]:
-                total += len(doc["json"]["views"].iterkeys())
-
-            return total
+            opts_tmp = opts
+            opts_tmp.append(('-b', bucketname))
+            docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts_tmp)
+            total_ddocs = 0
+            total_view = 0
+            if docs:
+                for row in docs["rows"]:
+                    if row["doc"]["meta"]["id"].find("_design/dev_") >= 0:
+                        continue
+                    total_ddocs += 1
+                    total_view += len(row["doc"]["json"]["views"])
+            
+            if total_ddocs:
+                total_view /= total_ddocs
+            print (total_ddocs, total_view)
+            return (total_ddocs, total_view)
         except Exception, err:
             traceback.print_exc()
             sys.exit(1)

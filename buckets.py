@@ -14,7 +14,7 @@ rest_cmds = {
     'bucket-get': '/pools/default/buckets',
     'bucket-stats': '/pools/default/buckets/{0}/stats?zoom=hour',
     'bucket-node-stats': '/pools/default/buckets/{0}/stats/{1}?zoom={2}',
-	'bucket-ddocs': '/pools/default/buckets/{0}/ddocs'
+    'bucket-ddocs': '/pools/default/buckets/{0}/ddocs'
     }
 methods = {
     'bucket-list': 'GET',
@@ -25,7 +25,7 @@ methods = {
     'bucket-get': 'GET',
     'bucket-stats': 'GET',
     'bucket-node-stats': 'GET',
-	'bucket-ddocs': 'GET'
+    'bucket-ddocs': 'GET'
     }
 
 class Buckets:
@@ -102,6 +102,8 @@ class Buckets:
             self.rest_cmd = self.rest_cmd + bucketname
         if cmd == 'bucket-flush':
             self.rest_cmd = self.rest_cmd + '/controller/doFlush'
+        if cmd == 'bucket-ddocs':
+            self.rest_cmd = self.rest_cmd.format(bucketname)
 
         opts = {}
         opts['error_msg'] = "unable to %s; please check your username (-u) and password (-p);" % cmd

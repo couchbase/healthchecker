@@ -116,7 +116,8 @@ class CPUCoreLimit:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
                 continue
-            total_view = getattr(stats_buffer.bucket_info[bucket], "numView", 0)
+            total_view = stats_buffer.bucket_info[bucket].get("numDdoc", 0) * \
+                         stats_buffer.bucket_info[bucket].get("numView", 0)
             for node, nodeinfo in stats_buffer.nodes.iteritems():
                 if nodeinfo["status"] != "healthy":
                     continue
@@ -129,6 +130,22 @@ class CPUCoreLimit:
                 if total_core_required > node_processor:
                     symptom = accessor["symptom"].format(total_core_required, node_processor)
                     result[node] = symptom
+        return result
+
+class DesignDocStats:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
+                continue
+
+            res = []
+            total_ddoc = stats_buffer.bucket_info[bucket].get("numDdoc", None)
+            total_view = stats_buffer.bucket_info[bucket].get("numView", None)
+            if total_ddoc is not None and total_view is not None:
+                res.append(("total", accessor["symptom"].format(total_ddoc, total_view)))
+                result[bucket] = res
+
         return result
 
 class ARRatio:
@@ -1037,6 +1054,18 @@ ClusterCapsule = [
      "clusterwise" : True,
      "perBucket" : True,
      "perNode" : True,
+    },
+     {"name" : "DesignDocStats",
+     "ingredients" : [
+        {
+            "name" : "designDocStats",
+            "description" : "Average view number within design doc",
+            "scale" : "day",
+            "code" : "DesignDocStats",
+            "symptom" : "Total {0} design docs , {1} views / design doc",
+        },
+     ],
+     "perBucket" : True,
     },
     {"name" : "VBucketNumber",
      "ingredients" : [
