@@ -46,12 +46,12 @@ class SyndromeDetector:
                     end_index = begin_index + seg_total
 
                     seg_avg = {}
-                    b = True
+                    b = False
                     seg_tuple = ()
                     for counter in accessor["counter"]:
                         seg_avg[counter] = sum(vals[counter][begin_index : end_index]) / seg_total
                         seg_tuple += (util.pretty_float(seg_avg[counter]), )
-                        b &= util.evalfunc(thresholdval[counter][1], seg_avg[counter], thresholdval[counter][0])
+                        #b &= util.evalfunc(thresholdval[counter][1], seg_avg[counter], thresholdval[counter][0])
                         if not b:
                             break
 
