@@ -294,6 +294,7 @@ class OpsRatio:
 class CacheMissRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
+        cluster = []
         thresholdval = accessor["threshold"]
         if threshold.has_key("CacheMissRatio"):
             thresholdval = threshold["CacheMissRatio"]
@@ -309,7 +310,13 @@ class CacheMissRatio:
 
             trend = []
             num_warn = []
+            total = []
             for node, vals in nodeStats.iteritems():
+                if len(vals) > 0:
+                    last_val = vals[-1]
+                else:
+                    last_val = 0
+                total.append(last_val)
                 arr_vals = arr_values["nodeStats"][node]
                 curr_vals = curr_values["nodeStats"][node]
                 if samplesCount > 0:
@@ -338,14 +345,19 @@ class CacheMissRatio:
                                                              util.pretty_float(arr_avg))
                         num_warn.append({"node":node, "value":symptom})
                         abnormal_vals.append(cmr_avg)
-                if len(abnormal_vals) > 0:
-                    trend.append((node, {"value" : util.pretty_float(sum(abnormal_vals)/len(abnormal_vals)) + "%",
-                                         "raw" : abnormal_vals}
-                                    ))
+                trend.append((node, {"value": util.pretty_float(last_val) + "%",
+                                     "raw": (samplesCount, vals[-20:])}))
+            if len(nodeStats) > 0:
+                total_val = sum(total) / len(nodeStats)
+                cluster.append(total_val)
+                trend.append(("total", {"value": util.pretty_float(total_val)+"%", "raw": total_val}))
             if len(num_warn) > 0:
                 trend.append(("warn", num_warn))
             result[bucket] = trend
 
+        if len(cluster) > 0:
+            result["cluster"] = {"value": util.pretty_float(sum(cluster)/len(cluster)) + "%",
+                                 "raw": cluster}
         return result
 
 class ResidentItemRatio:
@@ -940,7 +952,7 @@ ClusterCapsule = [
             "formula" : "Avg(ep_cache_miss_rate)",
         },
      ],
-     "clusterwise" : False,
+     "clusterwise" : True,
      "perNode" : True,
      "perBucket" : True,
      "indicator" : True,
