@@ -149,6 +149,44 @@ class NodePerformanceStats:
             result[bucket] = stats
         return result
 
+class AvgDocSize:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        if threshold.has_key(accessor["name"]):
+            threshold_val = threshold[accessor["name"]]
+        elif accessor.has_key("threshold"):
+            threshold_val = accessor["threshold"]
+        else:
+            threshold_val = None
+        for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
+            stats = []
+            for node, stats_info in bucket_stats.iteritems():
+                if accessor["counter"][0] not in stats_info.keys():
+                    stats.append((node, "N/A"))
+                    continue
+                for key, value in stats_info.iteritems():
+                    if isinstance(value, dict):
+                        continue
+                    if key.find(accessor["counter"][0]) >= 0:
+                        if accessor["counter"][1] in stats_info and \
+                            accessor["counter"][2] in stats_info:
+                            total_item_resident = int(stats_info[accessor["counter"][1]]) -\
+                                                  int(stats_info[accessor["counter"][2]])
+                            if total_item_resident:
+                                value = float(value) / total_item_resident
+                            else:
+                                value = 0
+
+                        if accessor.has_key("unit"):
+                            if accessor["unit"] == "time":
+                                stats.append((node, util.time_label(value)))
+                            elif accessor["unit"] == "size":
+                                stats.append((node, util.size_label(int(value))))
+                        else:
+                            stats.append((node, (key,value)))
+            result[bucket] = stats
+        return result
+
 NodeCapsule = [
     {"name" : "NodeStatus",
      "ingredients" : [
@@ -262,10 +300,10 @@ NodeCapsule = [
         {
             "name" : "averageDocumentSize",
             "description" : "Average document size",
-            "counter" : "item_alloc_sizes",
-            "code" : "NodePerformanceStats",
+            "counter" : ["ep_value_size", "curr_items_tot", "ep_num_non_resident"],
+            "code" : "AvgDocSize",
             "unit" : "size",
-            "formula" : "Avg(item_alloc_sizes)",
+            "formula" : "ep_kv_size",
         },
      ],
      "perBucket" : True,
