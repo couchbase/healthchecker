@@ -167,13 +167,14 @@ class ARRatio:
             for counter in accessor["counter"]:
                 values = stats_info[scale][counter]
                 nodeStats = values["nodeStats"]
-                samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
+                    samplesCount = len(vals)
                     if samplesCount > 0:
                         avg = sum(vals) / samplesCount
                     else:
                         avg = 0
                     item_avg[counter].append((node, avg))
+
             res = []
             active_total = replica_total = 0
             for active, replica in zip(item_avg['curr_items'], item_avg['vb_replica_curr_items']):
@@ -233,8 +234,8 @@ class OpsRatio:
             for counter in accessor["counter"]:
                 values = stats_info[scale][counter]
                 nodeStats = values["nodeStats"]
-                samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
+                    samplesCount = len(vals)
                     if samplesCount > 0:
                         avg = sum(vals) / samplesCount
                     else:
@@ -306,14 +307,14 @@ class CacheMissRatio:
 
             timestamps = values["timestamp"]
             nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
 
             trend = []
             num_warn = []
             total = []
             for node, vals in nodeStats.iteritems():
-                if len(vals) > 0:
-                    last_val = vals[-1]
+                samplesCount = len(vals)
+                if samplesCount > 0:
+                    last_val = abs(vals[-1])
                 else:
                     last_val = 0
                 total.append(last_val)
@@ -348,7 +349,7 @@ class CacheMissRatio:
                 trend.append((node, {"value": util.pretty_float(last_val) + "%",
                                      "raw": (samplesCount, vals[-20:])}))
             if len(nodeStats) > 0:
-                total_val = sum(total) / len(nodeStats)
+                total_val = abs(sum(total) / len(nodeStats))
                 cluster.append(total_val)
                 trend.append(("total", {"value": util.pretty_float(total_val)+"%", "raw": total_val}))
             if len(num_warn) > 0:
@@ -375,13 +376,13 @@ class ResidentItemRatio:
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
             trend = []
             total = []
             data = []
             num_error = []
             for node, vals in nodeStats.iteritems():
-                if len(vals) > 0:
+                samplesCount = len(vals)
+                if samplesCount > 0:
                     # Take the lastest one as sample value
                     value = vals[-1]
                 else:
@@ -419,13 +420,12 @@ class MemUsed:
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
             trend = []
             total = 0
             data = []
             for node, vals in nodeStats.iteritems():
+                samplesCount = len(vals)
                 if len(timestamps) > 0:
-                    #avg = sum(vals) / samplesCount
                     a, b = util.linreg(timestamps, vals)
                     avg = a * timestamps[-1]  + b
                     if avg <= 0:
@@ -456,7 +456,6 @@ class ItemGrowth:
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 rate = a * ratio
@@ -808,10 +807,10 @@ class CalcTrend:
             timestamps = values["timestamp"]
             timestamps = [x - timestamps[0] for x in timestamps]
             nodeStats = values["nodeStats"]
-            samplesCount = values["samplesCount"]
             trend = []
             total = []
             for node, vals in nodeStats.iteritems():
+                samplesCount = len(vals)
                 if samplesCount > 0:
                     avg = sum(vals) / samplesCount
                 else:
@@ -866,8 +865,8 @@ class XdrOpsPerformance:
                 if not values:
                     return result
                 nodeStats = values["nodeStats"]
-                samplesCount = values["samplesCount"]
                 for node, vals in nodeStats.iteritems():
+                    samplesCount = len(vals)
                     if samplesCount > 0:
                         avg = sum(vals) / samplesCount
                     else:
