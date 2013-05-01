@@ -17,8 +17,8 @@ pythonlib_DATA = \
     diskqueue_stats.py \
     info.py \
     listservers.py \
-    mc_bin_client.py \
-    memcacheConstants.py \
+    cb_bin_client.py \
+    couchbaseConstants.py \
     node_stats.py \
     prescription.py \
     restclient.py \
