@@ -73,7 +73,7 @@ class StatsAnalyzer:
                     try:
                         #eval_str = "{0}.{1}().run(counter, scale, threshold.{2})".format(package_name, counter['code'], capsule_name)
                         #print eval_str
-                        result = eval("{0}.{1}().run(counter, scale, threshold.{2})".format(package_name, counter['code'], capsule_name))
+                        result = eval("%s.%s().run(counter, scale, threshold.%s)" % (package_name, counter['code'], capsule_name))
                         self.log.debug(counter)
                         if pill.has_key("clusterwise") and pill["clusterwise"] :
                             if isinstance(result, dict):
@@ -283,7 +283,7 @@ class StatsAnalyzer:
                                                         bucket_list[bucket]["status"] = "Warning"
                                                         bucket_list[bucket]["anchor"] = "counter_%s_%s_%s" % (bucket, node["node"], counter["name"])
                     except Exception, err:
-                        self.log.error("Exception launched when processing counter: {0}".format(counter["name"]))
+                        self.log.error("Exception launched when processing counter: %s" % counter["name"])
                         traceback.print_exc()
 
         if len(indicator_error) > 0:

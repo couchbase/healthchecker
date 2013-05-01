@@ -109,16 +109,16 @@ class DbAccesor:
 
     def create_or_update_node(self, host, port, status, master):
         sqlstmt = """INSERT OR REPLACE INTO ServerNode (host,port,status, master) 
-                 VALUES( '{0}', {1}, '{2}', '{3}' )"""
-        self.cursor.execute(sqlstmt.format(host, port, status, master))
+                 VALUES( '%s', %s, '%s', '%s' )"""
+        self.cursor.execute(sqlstmt % (host, port, status, master))
         return self.cursor.lastrowid
 
     def process_node_stats(self, nodeId, nodeInfo):
         sqlstmt = """ UPDATE ServerNode
-                  SET portDirect={0}, portProxy={1}, clusterMembership='{2}',
-                      os='{3}', uptime={4}, version='{5}'
-                  WHERE serverId = {6}"""
-        self.cursor.execute(sqlstmt.format(nodeInfo['ports']['direct'],
+                  SET portDirect=%s, portProxy=%s, clusterMembership='%s',
+                      os='%s', uptime=%s, version='%s'
+                  WHERE serverId = %s"""
+        self.cursor.execute(sqlstmt % (nodeInfo['ports']['direct'],
                    nodeInfo['ports']['proxy'],
                    nodeInfo['clusterMembership'],
                    nodeInfo['os'],
@@ -129,9 +129,9 @@ class DbAccesor:
         #memory
         sqlstmt = """ INSERT OR REPLACE INTO MemoryInfo 
             (allocated, reserved, free, quota, total, serverId)
-            VALUES({0}, {1}, {2}, {3}, {4}, {5})"""
+            VALUES(%s, %s, %s, %s, %s, %s)"""
 
-        self.cursor.execute(sqlstmt.format(nodeInfo['mcdMemoryAllocated'],
+        self.cursor.execute(sqlstmt % (nodeInfo['mcdMemoryAllocated'],
                     nodeInfo['mcdMemoryReserved'],
                     nodeInfo['memoryFree'],
                     nodeInfo['memoryQuota'],
@@ -141,13 +141,13 @@ class DbAccesor:
         #storageInfo
         sqlstmt = """ INSERT OR REPLACE INTO StorageInfo
             (type, free, quotaTotal, total, used, usedbyData, serverId)
-            VALUES('{0}', {1}, {2}, {3}, {4}, {5}, {6})"""
+            VALUES('%s', %s, %s, %s, %s, %s, %s)"""
 
         if nodeInfo['storageTotals'] is not None:
             #print nodeInfo
             hdd = nodeInfo['storageTotals']['hdd']
             if hdd is not None:
-                self.cursor.execute(sqlstmt.format('hdd',
+                self.cursor.execute(sqlstmt % ('hdd',
                         hdd['free'],
                         hdd['quotaTotal'],
                         hdd['total'],
@@ -156,7 +156,7 @@ class DbAccesor:
                         nodeId));
             ram = nodeInfo['storageTotals']['ram']
             if ram is not None:
-                self.cursor.execute(sqlstmt.format('ram',
+                self.cursor.execute(sqlstmt % ('ram',
                         hdd['free'],
                         hdd['quotaTotal'],
                         hdd['total'],
@@ -167,7 +167,7 @@ class DbAccesor:
         #system stats
         sqlstmt = """ INSERT OR REPLACE INTO SystemSTats 
             (cpuUtilization, swapTotal, swapUsed, currentItems, currentItemsTotal, replicaCurrentItems, serverId)
-            VALUES({0}, {1}, {2}, {3}, {4}, {5}, {6})"""
+            VALUES(%s, %s, %s, %s, %s, %s, %s)"""
         if nodeInfo['interestingStats'] is not None:
             if nodeInfo['interestingStats'].has_key('curr_items'):
                 curr_items = nodeInfo['interestingStats']['curr_items']
@@ -185,8 +185,8 @@ class DbAccesor:
             curr_items = 0
             curr_items_tot = 0
             vb_rep_curr_items = 0
-        self.cursor.execute(sqlstmt.format(nodeInfo['systemStats']['cpu_utilization_rate'],
-                    nodeInfo['systemStats']['swap_total'],
+        self.cursor.execute(sqlstmt % (nodeInfo['systemStats']['cpu_utilization_rate'],
+                    nodeInfo['systemStats']['swaptotal'],
                     nodeInfo['systemStats']['swap_used'],
                     curr_items,
                     curr_items_tot,
@@ -198,8 +198,8 @@ class DbAccesor:
     def process_bucket(self, bucket, master):
         sqlstmt = """INSERT OR REPLACE INTO Bucket 
                     (name, type, authType, saslPassword, numReplica, ramQuota, master) 
-                    VALUES('{0}', '{1}', '{2}', '{3}', {4}, {5}, '{6}')"""
-        self.cursor.execute(sqlstmt.format(bucket['name'],
+                    VALUES('%s', '%s', '%s', '%s', %s, %s, '%s')"""
+        self.cursor.execute(sqlstmt % (bucket['name'],
                     bucket['bucketType'],
                     bucket['authType'],
                     bucket['saslPassword'],
@@ -210,9 +210,9 @@ class DbAccesor:
 
         sqlstmt = """INSERT INTO BucketStats 
             (diskUsed, memUsed, diskFetch, quotaPercentUsed, opsPerSec, itemCount, bucketId)
-            VALUES({0}, {1}, {2}, {3}, {4}, {5}, {6})"""
+            VALUES(%s, %s, %s, %s, %s, %s, %s)"""
         bucketStats = bucket['basicStats']
-        self.cursor.execute(sqlstmt.format(bucketStats['diskUsed'],
+        self.cursor.execute(sqlstmt % (bucketStats['diskUsed'],
             bucketStats['memUsed'],
             bucketStats['diskFetches'],
             bucketStats['quotaPercentUsed'],
@@ -224,7 +224,7 @@ class DbAccesor:
     def process_bucket_stats(self, bucket_id, json):
         sqlstmt = """INSERT OR REPLACE INTO BucketOps
                     (getOps, setOps, delOps, diskWriteQueue, bucketId)
-                    VALUES({0}, {1}, {2}, {3}, {4})"""
+                    VALUES(%s, %s, %s, %s, %s)"""
         #print "op", json["op"]
         #print "op/sample", json["op"]["samples"]
         #print "op/sample/cmd_get", json["op"]["samples"]["cmd_get"]
@@ -237,12 +237,12 @@ class DbAccesor:
         del_avg = sum(json["op"]["samples"]["delete_hits"]) / total_samples
         disk_write_queue_avg = sum(json["op"]["samples"]["disk_write_queue"]) / total_samples
         #print get_avg, set_avg, del_avg, disk_write_queue_avg
-        self.cursor.execute(sqlstmt.format(get_avg, set_avg, del_avg, disk_write_queue_avg, bucket_id))
+        self.cursor.execute(sqlstmt % (get_avg, set_avg, del_avg, disk_write_queue_avg, bucket_id))
 
     def process_bucket_node_stats(self, bucket_id, node_name, stat, jason):
         sqlstmt = """INSERT OR REPLACE INTO BucketOps
                     (getOps, setOps, delOps, diskWriteQueue, bucketId)
-                    VALUES({0}, {1}, {2}, {3}, {4})"""
+                    VALUES(%s, %s, %s, %s, %s)"""
         #print "op", json["op"]
         #print "op/sample", json["op"]["samples"]
         #print "op/sample/cmd_get", json["op"]["samples"]["cmd_get"]
@@ -254,7 +254,7 @@ class DbAccesor:
         #del_avg = sum(json["op"]["samples"]["delete_hits"]) / total_samples
         #disk_write_queue_avg = sum(json["op"]["samples"]["disk_write_queue"]) / total_samples
         #print get_avg, set_avg, del_avg, disk_write_queue_avg
-        #self.cursor.execute(sqlstmt.format(get_avg, set_avg, del_avg, disk_write_queue_avg, bucket_id))
+        #self.cursor.execute(sqlstmt % (get_avg, set_avg, del_avg, disk_write_queue_avg, bucket_id))
 
     def extract_result(self, rows, multi_row):
         if rows is not None:
@@ -272,8 +272,8 @@ class DbAccesor:
 
     def browse_table(self, table):
         print "TABLE:", table
-        stmt = "SELECT * from {0}"
-        self.cursor.execute(stmt.format(table))
+        stmt = "SELECT * from %s"
+        self.cursor.execute(stmt % table)
         rows = self.cursor.fetchall()
         for row in rows:
             print row

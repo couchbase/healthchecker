@@ -46,7 +46,7 @@ class AvgDiskQueue:
                     dwq_avg = sum(vals[begin_index : end_index]) / seg_total
 
                     if curr_avg > node_avg_curr and cmdset_avg > node_avg_cmdset:
-                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                        symptom = accessor["symptom"] % (util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1]),
                                                              util.number_label(int(cmdset_avg)),
                                                              util.number_label(int(curr_avg)), 
@@ -91,11 +91,11 @@ class DiskQueueTrend:
             for node, vals in nodeStats.iteritems():
                 a, b = util.linreg(timestamps, vals)
                 if a > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(a, 3), threshold_val["high"])
+                    symptom = accessor["symptom"] % (util.pretty_float(a, 3), threshold_val["high"])
                     trend_error.append({"node":node, "level":"red", "value":symptom})
                     res.append((node, util.pretty_float(a)))
                 elif a > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(a, 3), threshold_val["low"])
+                    symptom = accessor["symptom"] % (util.pretty_float(a, 3), threshold_val["low"])
                     trend_warn.append({"node":node, "level":"yellow", "value":symptom})
                     res.append((node, util.pretty_float(a)))
             if len(trend_error) > 0:
@@ -139,19 +139,19 @@ class ReplicationTrend:
                     ratio = 100.0 * replica[1] / active[1] 
                     delta = int(replica[1])
                     if accessor["type"] == "percentage" and ratio > threshold_val["percentage"]["high"]:
-                        symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
+                        symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["percentage"]["high"])
                         num_error.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.pretty_float(ratio) + "%"))
                     elif accessor["type"] == "number" and delta > threshold_val["number"]["high"]:
-                        symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
+                        symptom = accessor["symptom"] % (util.number_label(delta), util.number_label(threshold_val["number"]["high"]))
                         num_error.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.number_label(delta)))
                     elif accessor["type"] == "percentage" and ratio > threshold_val["percentage"]["low"]:
-                        symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
+                        symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["percentage"]["low"])
                         num_warn.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.pretty_float(ratio) + "%"))
                     elif accessor["type"] == "number" and delta > threshold_val["number"]["low"]:
-                        symptom = accessor["symptom"].format(util.number_label(delta), util.number_label(threshold_val["number"]["low"]))
+                        symptom = accessor["symptom"] % (util.number_label(delta), util.number_label(threshold_val["number"]["low"]))
                         num_warn.append({"node":active[0], "value": symptom})
                         res.append((active[0], util.number_label(delta)))
                 active_total += active[1]
@@ -160,11 +160,11 @@ class ReplicationTrend:
                 ratio = replica_total * 100.0 / active_total
                 cluster += ratio
                 if accessor["type"] == "percentage" and ratio > threshold_val["percentage"]["high"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["high"])
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["percentage"]["high"])
                     num_error.append({"node":"total", "value": symptom})
                     res.append(("total", util.pretty_float(ratio) + "%"))
                 elif accessor["type"] == "percentage" and ratio  > threshold_val["percentage"]["low"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["percentage"]["low"])
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["percentage"]["low"])
                     num_warn.append({"node":"total", "value": symptom})
                     res.append(("total", util.pretty_float(ratio) + "%"))
             if len(num_error) > 0:
@@ -204,7 +204,7 @@ class DiskQueueDrainingRate:
                 else:
                     len_avg = 0
                 if avg < threshold_val["drainRate"] and len_avg > threshold_val["diskLength"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(avg), threshold_val["drainRate"], int(len_avg), threshold_val["diskLength"])
+                    symptom = accessor["symptom"] % (util.pretty_float(avg), threshold_val["drainRate"], int(len_avg), threshold_val["diskLength"])
                     disk_queue_avg_error.append({"node":node, "level":"red", "value":symptom})
                     res.append((node, (util.pretty_float(avg), int(len_avg))))
 
@@ -271,7 +271,7 @@ class PerformanceDiagnosis_diskread:
                        mem_avg > node_avg_mem and \
                        curr_avg > node_avg_curr and \
                        cmdSet_avg > node_avg_cmdset:
-                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                        symptom = accessor["symptom"] % (util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1]),
                                                              util.number_label(int(curr_avg)),
                                                              util.size_label(int(mem_avg)),
@@ -304,7 +304,7 @@ DiskQueueCapsule = [
                 "disk_write_queue" : {"low" : 500000, "high" : 1000000 },
                 "recurrence" : 10,
             },
-            "symptom" : "From {0} to {1}, a higher set/sec '{2}' leads to high item count '{3}' and long disk write queue length '{4}'",
+            "symptom" : "From %s to %s, a higher set/sec '%s' leads to high item count '%s' and long disk write queue length '%s'",
             "formula" : "Avg(disk_write_queue) > threshold"
         },
         {
@@ -317,7 +317,7 @@ DiskQueueCapsule = [
                 "low" : 0.01,
                 "high" : 0.25
             },
-            "symptom" : "Disk write queue growing trend '{0}' is above threshold '{1}'",
+            "symptom" : "Disk write queue growing trend '%s' is above threshold '%s'",
             "formula" : "Linear(disk_write_queue) > threshold",
         },
      ],
@@ -340,7 +340,7 @@ DiskQueueCapsule = [
                     "high" : 30.0,
                  },
             },
-            "symptom" : "Number of backlog item to active item ratio '{0}%' is above threshold '{1}%'",
+            "symptom" : "Number of backlog item to active item ratio '%s%%' is above threshold '%s%%'",
             "formula" : "Avg(ep_tap_total_total_backlog_size) / Avg(curr_items) > threshold",
         }
      ],
@@ -362,7 +362,7 @@ DiskQueueCapsule = [
                     "high" : 100000,
                 },
             },
-            "symptom" : "Number of backlog items '{0}' is above threshold '{1}'",
+            "symptom" : "Number of backlog items '%s' is above threshold '%s'",
             "formula" : "Avg(ep_tap_total_total_backlog_size) > threshold",
         }
      ],
@@ -383,7 +383,7 @@ DiskQueueCapsule = [
                 "drainRate" : 0,
                 "diskLength" : 100000,
             },
-            "symptom" : "Active disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
+            "symptom" : "Active disk queue draining rate '%s' is below threshold '%s' and length '%s' is bigger than '%s'",
             "formula" : "Avg(vb_active_queue_drain) < threshold AND Avg(disk_write_queue) > threshold",
         },
         {
@@ -397,7 +397,7 @@ DiskQueueCapsule = [
                 "drainRate" : 0,
                 "diskLength" : 100000,
             },
-            "symptom" : "Replica disk queue draining rate '{0} is below threshold '{1}' and length '{2}' is bigger than '{3}'",
+            "symptom" : "Replica disk queue draining rate '%s' is below threshold '%s' and length '%s' is bigger than '%s'",
             "formula" : "Avg(vb_replica_queue_drain) < threshold AND Avg(disk_write_queue) > threshold"
         },
      ],
@@ -409,8 +409,8 @@ DiskQueueCapsule = [
         {
             "name" : "performanceDiagnosis_diskread",
             "description" : "Lots of disk reads",
-            "symptom" : "From {0} to {1}, a high item count '{2}', high memory used '{3}', " \
-                        "high cache miss ratio '{4}%', and low residential ratio '{5}%' lead to above average disk reads '{6}'.",
+            "symptom" : "From %s to %s, a high item count '%s', high memory used '%s', " \
+                        "high cache miss ratio '%s%%', and low residential ratio '%s%%' lead to above average disk reads '%s'.",
             "counter" : ["ep_bg_fetched","ep_cache_miss_rate", "vb_active_resident_items_ratio", "mem_used", "curr_items", "cmd_set"],
             "code" : "PerformanceDiagnosis_diskread",
             "threshold" : {

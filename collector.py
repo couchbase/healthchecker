@@ -178,7 +178,6 @@ class StatsCollector:
             
             if total_ddocs:
                 total_view /= total_ddocs
-            print (total_ddocs, total_view)
             return (total_ddocs, total_view)
         except Exception, err:
             traceback.print_exc()

@@ -14,7 +14,6 @@ import base64
 import simplejson as json
 import string
 
-from StringIO import StringIO
 
 class RestClient:
     def __init__(self, server, port, opts= {}):
@@ -52,7 +51,7 @@ class RestClient:
                        method,
                        response,
                        opts={ 'success_msg':'',
-                              'error_msg':''}):
+                              'error_msg':'' }):
         """ parse response in standard way.
             """
         if response.status in [200, 201, 202, 204, 302]:
@@ -64,10 +63,17 @@ class RestClient:
         if response.status == 401:
             print 'ERROR: unable to access the REST API - please check your username (-u) and password (-p)'
             sys.exit(2)
-        #print 'ERROR: %s (%d) %s' % (opts['error_msg'],
-        #                             response.status, response.reason)
 
-        raise ValueEerror()
+        print 'ERROR: %s (%d) %s' % (opts['error_msg'],
+                                     response.status, response.reason)
+
+        output_json = json.loads(response.read())
+        print output_json
+        if "errors" in output_json:
+            for error_code,error_message in output_json["errors"].iteritems():
+                print "ERROR: %s" % error_message
+
+        sys.exit(2)
 
     def bootStrap(self, headers):
         """ First REST call needed for info for later REST calls.
@@ -146,9 +152,7 @@ class RestClient:
     def jsonMessage(self, data):
         return json.JSONEncoder().encode(data)
 
-    def restCmd(self, method, uri, user='', password='',
-                opts={ 'success_msg':'',
-                       'error_msg':''}):
+    def restCmd(self, method, uri, user='', password='', opts={}):
         if method == None:
             method = 'GET'
 

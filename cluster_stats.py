@@ -106,7 +106,7 @@ class RAMLimit:
                 required = os + nodeinfo['memory']['quota']
 
             if required > nodeinfo['memory']['total']:
-                symptom = accessor["symptom"].format(util.size_label(required), util.size_label(nodeinfo['memory']['total']))
+                symptom = accessor["symptom"] % (util.size_label(required), util.size_label(nodeinfo['memory']['total']))
                 result[node] = symptom
         return result
 
@@ -128,7 +128,7 @@ class CPUCoreLimit:
                 #TODO:  nodeinfo["num_processor"]
                 node_processor = getattr(nodeinfo, "num_processor", 1)
                 if total_core_required > node_processor:
-                    symptom = accessor["symptom"].format(total_core_required, node_processor)
+                    symptom = accessor["symptom"] % (total_core_required, node_processor)
                     result[node] = symptom
         return result
 
@@ -143,7 +143,7 @@ class DesignDocStats:
             total_ddoc = stats_buffer.bucket_info[bucket].get("numDdoc", None)
             total_view = stats_buffer.bucket_info[bucket].get("numView", None)
             if total_ddoc is not None and total_view is not None:
-                res.append(("total", accessor["symptom"].format(total_ddoc, total_view)))
+                res.append(("total", accessor["symptom"] % (total_ddoc, total_view)))
                 result[bucket] = res
 
         return result
@@ -204,7 +204,7 @@ class ARRatio:
                                       "raw" : (active_total, replica_total)}))
                 delta = abs(100 - ratio)
                 if delta > threshold_val:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio), util.pretty_float(100 + threshold_val))
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), util.pretty_float(100 + threshold_val))
                     num_error.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -254,7 +254,7 @@ class OpsRatio:
                     write_total += write_ratio
                     del_ratio = delete[1] * 100.0 / count
                     del_total += del_ratio
-                    res.append((read[0], {"value":"{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5)),
+                    res.append((read[0], {"value":"%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5)),
                                           "raw":(read[1], write[1], delete[1]),
                                          }))
                     read_cluster.append(read[1])
@@ -274,7 +274,7 @@ class OpsRatio:
                 read_ratio = read_total * 100.0 / count + .5
                 write_ratio = write_total * 100.0 / count + .5
                 del_ratio = del_total * 100.0 / count + .5
-            res.append(("total", {"value" :"{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio)),
+            res.append(("total", {"value" :"%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio), int(write_ratio), int(del_ratio)),
                                   "raw" : (read_total, write_total, del_total)}))
             read_stats.append(read_total)
             write_stats.append(write_total)
@@ -288,7 +288,7 @@ class OpsRatio:
             read_ratio = sum(read_cluster) * 100.0 / count + .5
             write_ratio = sum(write_cluster) * 100.0 / count + .5
             del_ratio = sum(del_cluster) * 100 / count + .5
-        result["cluster"] = {"value" : "{0}% reads : {1}% writes : {2}% deletes".format(int(read_ratio), int(write_ratio), int(del_ratio)),
+        result["cluster"] = {"value" : "%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio), int(write_ratio), int(del_ratio)),
                              "raw" : (read_stats, write_stats, del_stats)}
         return result
 
@@ -339,7 +339,7 @@ class CacheMissRatio:
                     curr_avg = sum(curr_vals[begin_index : end_index]) / seg_total
 
                     if arr_avg < thresholdval["ActiveResidentItemsRatio"] and curr_avg > node_avg_curr:
-                        symptom = accessor["symptom"].format(util.pretty_datetime(timestamps[begin_index]), 
+                        symptom = accessor["symptom"] % (util.pretty_datetime(timestamps[begin_index]), 
                                                              util.pretty_datetime(timestamps[end_index-1], True), 
                                                              util.number_label(int(curr_avg)), 
                                                              util.pretty_float(cmr_avg), 
@@ -389,7 +389,7 @@ class ResidentItemRatio:
                     value = 0
                 total.append(value)
                 if value > 0 and value < threshold_val:
-                    symptom = accessor["symptom"].format(util.pretty_float(value) + "%", util.pretty_float(threshold_val) + "%")
+                    symptom = accessor["symptom"] % (util.pretty_float(value) + "%", util.pretty_float(threshold_val) + "%")
                     num_error.append({"node":node, "value":symptom})
                 trend.append((node, {"value" : util.pretty_float(value) + "%",
                                      "raw" : (samplesCount, vals[-25:]),
@@ -400,7 +400,7 @@ class ResidentItemRatio:
                 cluster.append(total_val)
                 trend.append(("total", {"value" : util.pretty_float(total_val) + "%", "raw" : total}))
                 if total_val > 0 and total_val < threshold_val:
-                    symptom = accessor["symptom"].format(util.pretty_float(total_val) + "%", util.pretty_float(threshold_val) + "%")
+                    symptom = accessor["symptom"] % (util.pretty_float(total_val) + "%", util.pretty_float(threshold_val) + "%")
                     num_error.append({"node": "total", "value":symptom})
             trend.append(("variance", util.two_pass_variance(data)))
             if len(num_error) > 0:
@@ -503,7 +503,7 @@ class NumVbuckt:
                 total.append(numVal)
             if total_vbucket < threshold_val and len(stats_buffer.nodes) > 1:
                 num_error = []
-                symptom = accessor["symptom"].format(total_vbucket, threshold_val)
+                symptom = accessor["symptom"] % (total_vbucket, threshold_val)
                 num_error.append({"node": "total", "value": symptom})
                 trend.append(("error", num_error))
                 trend.append(("total", {"value" : total_vbucket, "raw":total}))
@@ -525,7 +525,7 @@ class VbucketMapSanity:
             # check one - vbucket map length
             len_map = len(vbucketMap)
             if len_map != accessor["threshold"]:
-                symptom = "vBucketMap length {0} is not equal to {1}".format(len_map, accessor["threshold"])
+                symptom = "vBucketMap length %s is not equal to %s" % (len_map, accessor["threshold"])
                 num_error.append({"node" : "total", "value" : symptom})
 
             correct_len = numReplica + 1
@@ -534,19 +534,19 @@ class VbucketMapSanity:
                     len_element = len(vbucket)
                     #check two - each vbucket map correctness
                     if len_element != correct_len:
-                        symptom = "vBucketMap element length {0} is not consistent to replica {1}".format(len_element, numReplica)
+                        symptom = "vBucketMap element length %s is not consistent to replica %s" % (len_element, numReplica)
                         num_error.append({"node" : "total", "value" : symptom})
                         trend.append(("total", len_element))
                     for element in vbucket:
                         #check three - each vbucket index correctness
                         if element > len_serverMap - 1:
-                            symptom = "vBucketMap element server index {0} can not be found in server list".format(element)
+                            symptom = "vBucketMap element server index %s can not be found in server list" % element
                             num_error.append({"node" : "total", "value" : symptom})
                             trend.append(("total", element))
                     #check four - check unqiueness for vbucket
                     new_set = set(vbucket)
                     if len(new_set) < len_element:
-                        symptom = "vBucketMap element {0} violates index uniqueness".format(vbucket)
+                        symptom = "vBucketMap element %s violates index uniqueness" % vbucket
                         num_error.append({"node" : "total", "value" : symptom})
                         trend.append(("total", vbucket))
             if len(num_error) > 0:
@@ -568,7 +568,7 @@ class VbucketServerListSanity:
             serverMap = bucketinfo['vBucketServerMap']['serverList']
             new_set = set(serverMap)
             if len(new_set) < len(serverMap):
-                symptom = "vBucketMap server list {0} violates node uniqueness".format(serverMap)
+                symptom = "vBucketMap server list %s violates node uniqueness" % serverMap
                 num_error.append({"node" : "total", "value" : symptom})
                 trend.append((node, serverMap))
             if len(num_error) > 0:
@@ -594,7 +594,7 @@ class RebalanceStuck:
                         if int(value) > threshold_val:
                             warnings.append(value)
                 if len(warnings) > 0:
-                    symptom = accessor["symptom"].format(len(warnings), threshold_val)
+                    symptom = accessor["symptom"] % (len(warnings), threshold_val)
                     num_warn.append({"node":node, "value": symptom})
                     res.append((node, {"value":symptom, "raw":warnings}))
             if len(num_warn) > 0:
@@ -625,13 +625,13 @@ class CalcFragmentation:
                                 symptom = ""
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
-                                        symptom = accessor["symptom"].format(util.time_label(value), util.time_label(val_threshold))
+                                        symptom = accessor["symptom"] % (util.time_label(value), util.time_label(val_threshold))
                                     elif accessor["unit"] == "size":
-                                        symptom = accessor["symptom"].format(util.size_label(value), util.size_label(val_threshold))
+                                        symptom = accessor["symptom"] % (util.size_label(value), util.size_label(val_threshold))
                                     else:
-                                        symptom = accessor["symptom"].format(value, val_threshold)
+                                        symptom = accessor["symptom"] % (value, val_threshold)
                                 else:
-                                    symptom = accessor["symptom"].format(value, val_threshold)
+                                    symptom = accessor["symptom"] % (value, val_threshold)
                                 if value > threshold_val["high"]:
                                     num_error.append({"node":node, "value": symptom})
                                 else:
@@ -677,13 +677,13 @@ class DiskPerformance:
                                 symptom = ""
                                 if accessor.has_key("unit"):
                                     if accessor["unit"] == "time":
-                                        symptom = accessor["symptom"][key].format(util.time_label(value), util.time_label(val_threshold))
+                                        symptom = accessor["symptom"][key] % (util.time_label(value), util.time_label(val_threshold))
                                     elif accessor["unit"] == "size":
-                                        symptom = accessor["symptom"][key].format(util.size_label(value), util.size_label(val_threshold))
+                                        symptom = accessor["symptom"][key] % (util.size_label(value), util.size_label(val_threshold))
                                     else:
-                                        symptom = accessor["symptom"][key].format(value, val_threshold)
+                                        symptom = accessor["symptom"][key] % (value, val_threshold)
                                 else:
-                                    symptom = accessor["symptom"][key].format(value, val_threshold)
+                                    symptom = accessor["symptom"][key] % (value, val_threshold)
                                 if value > threshold_val[key]["high"]:
                                     symptoms_error.append(symptom)
                                 else:
@@ -736,13 +736,13 @@ class EPEnginePerformance:
                                         val_threshold = threshold_val["high"]
                                     if accessor.has_key("unit"):
                                         if accessor["unit"] == "time":
-                                            symptom = accessor["symptom"].format(util.time_label(value), util.time_label(val_threshold))
+                                            symptom = accessor["symptom"] % (util.time_label(value), util.time_label(val_threshold))
                                         elif accessor["unit"] == "size":
-                                            symptom = accessor["symptom"].format(util.size_label(value), util.size_label(val_threshold))
+                                            symptom = accessor["symptom"] % (util.size_label(value), util.size_label(val_threshold))
                                         else:
-                                            symptom = accessor["symptom"].format(value, val_threshold)
+                                            symptom = accessor["symptom"] % (value, val_threshold)
                                     else:
-                                        symptom = accessor["symptom"].format(value, val_threshold)
+                                        symptom = accessor["symptom"] % (value, val_threshold)
                                     if value > threshold_val["high"]:
                                         num_error.append({"node":node, "value": symptom})
                                     else:
@@ -791,7 +791,7 @@ class LeastDiskSpace:
                     least["node"] = node
                     least["space"] = nodeinfo['StorageInfo']['hdd']['free']
                 space.append((node, nodeinfo['StorageInfo']['hdd']['free']))
-        symptom = accessor["symptom"].format(least["node"], util.size_label(least["space"]))
+        symptom = accessor["symptom"] % (least["node"], util.size_label(least["space"]))
         result["cluster"] = {"value" :symptom, "raw" : space}
         return result
 
@@ -889,10 +889,10 @@ class XdrOpsPerformance:
                                       "raw" : (get_total, set_total)}))
 
                 if ratio > threshold_val["high"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["high"])
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["high"])
                     num_error.append({"node":"total", "value": symptom})
                 elif ratio > threshold_val["low"]:
-                    symptom = accessor["symptom"].format(util.pretty_float(ratio), threshold_val["low"])
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), threshold_val["low"])
                     num_warn.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -927,7 +927,7 @@ ClusterCapsule = [
             "name" : "minFreeDiskSpace",
             "description" : "Node with least available disk space",
             "code" : "LeastDiskSpace",
-            "symptom" : "'{0}' with space '{1}'",
+            "symptom" : "'%s' with space '%s'",
             "formula" : "Min(Storage['hdd']['free'])",
         },
      ],
@@ -940,7 +940,7 @@ ClusterCapsule = [
         {
             "name" : "cacheMissRatio",
             "description" : "Cache miss ratio",
-            "symptom" : "From {0} to {1}, a higher item count '{2}' leads to high cache miss ratio '{3}%' and low residential ratio '{4}%'",
+            "symptom" : "From %s to %s, a higher item count '%s' leads to high cache miss ratio '%s%%' and low residential ratio '%s%%'",
             "counter" : ["ep_cache_miss_rate", "vb_active_resident_items_ratio", "curr_items"],
             "code" : "CacheMissRatio",
             "threshold" : {
@@ -976,14 +976,14 @@ ClusterCapsule = [
             "name" : "RamLimit",
             "description" : "Minimum ram required",
             "code" : "RAMLimit",
-            "symptom" : "RAM size '{0}' doesn't meet the minimum requirement '{1}' to run Couchbase Server effectively",
+            "symptom" : "RAM size '%s' doesn't meet the minimum requirement '%s' to run Couchbase Server effectively",
             "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
         {
             "name" : "CPUCoreLimit",
             "description" : "Minimum CPU core number required",
             "code" : "CPUCoreLimit",
-            "symptom" : "Number of CPU processors '{0}' doesn't meet the minimum requirement '{1}' to run Couchbase Server effectively",
+            "symptom" : "Number of CPU processors '%s' doesn't meet the minimum requirement '%s' to run Couchbase Server effectively",
             "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
      ],
@@ -1000,7 +1000,7 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ARRatio",
             "threshold" : 5,
-            "symptom" : "Active to replica resident ratio '{0}%' is bigger than '{1}%'",
+            "symptom" : "Active to replica resident ratio '%s%%' is bigger than '%s%%'",
             "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
         },
      ],
@@ -1018,7 +1018,7 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ResidentItemRatio",
             "threshold" : 30,
-            "symptom" : "Active resident item ratio '{0}' is below '{1}'",
+            "symptom" : "Active resident item ratio '%s' is below '%s'",
             "formula" : "Last(vb_active_resident_items_ratio)",
         },
         {
@@ -1028,7 +1028,7 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ResidentItemRatio",
             "threshold" : 20,
-            "symptom" : "Replica resident item ratio '{0}' is below '{1}'",
+            "symptom" : "Replica resident item ratio '%s' is below '%s'",
             "formula" : "Last(vb_replica_resident_items_ratio)",
         },
      ],
@@ -1073,7 +1073,7 @@ ClusterCapsule = [
             "description" : "Average view number within design doc",
             "scale" : "day",
             "code" : "DesignDocStats",
-            "symptom" : "Total {0} design docs , {1} views / design doc",
+            "symptom" : "Total %s design docs , %s views / design doc",
         },
      ],
      "perBucket" : True,
@@ -1087,7 +1087,7 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "NumVbuckt",
             "threshold" : 1024,
-            "symptom" : "Number of active vBuckets '{0}' is less than '{1}' per node",
+            "symptom" : "Number of active vBuckets '%s' is less than '%s' per node",
             "formula" : "Avg(vb_active_num)",
         },
         {
@@ -1097,7 +1097,7 @@ ClusterCapsule = [
             "scale" : "hour",
             "code" : "NumVbuckt",
             "threshold" : 1024,
-            "symptom" : "Number of replica vBuckets '{0}' is less than '{1}' per node", 
+            "symptom" : "Number of replica vBuckets '%s' is less than '%s' per node", 
             "formula" : "Avg(vb_replica_num)",
         },
      ],
@@ -1147,7 +1147,7 @@ ClusterCapsule = [
             "counter" : "ep_tap_queue_backfillremaining",
             "code" : "RebalanceStuck",
             "threshold" : 10000,
-            "symptom" : "'{0}' occurrences showing tap queue backfill remainings higher than threshold '{1}'",
+            "symptom" : "'%s' occurrences showing tap queue backfill remainings higher than threshold '%s'",
             "formula" : "Total(ep_tap_queue_backfillremaining > threshold)",
         },
         {
@@ -1156,7 +1156,7 @@ ClusterCapsule = [
             "counter" : "num_tap_nack",
             "code" : "RebalanceStuck",
             "threshold" : 500,
-            "symptom" : "'{0}' occurrences showing tap stream backoffs received higher than threshold '{1}'",
+            "symptom" : "'%s' occurrences showing tap stream backoffs received higher than threshold '%s'",
             "formula" : "Total(num_tap_nack > threshold)",
         },
      ],
@@ -1175,7 +1175,7 @@ ClusterCapsule = [
                 "low" : 1073741824, # 1GB
                 "high" : 2147483648, # 2GB
             },
-            "symptom" : "Total memory fragmentation '{0}' is larger than '{1}'",
+            "symptom" : "Total memory fragmentation '%s' is larger than '%s'",
             "formula" : "total_fragmentation_bytes > threshold",
         },
       ],
@@ -1198,10 +1198,10 @@ ClusterCapsule = [
                 "disk_commit" : {"low": 5000000, "high": 10000000},
             },
             "symptom" : {
-                "disk_del": "Average disk delete time '{0}' is slower than '{1}'",
-                "disk_update": "Average disk update time '{0}' is slower than '{1}'",
-                "disk_insert": "Average disk insert time '{0}' is slower than '{1}'",
-                "disk_commit": "Average disk commit time '{0}' is slower than '{1}'",
+                "disk_del": "Average disk delete time '%s' is slower than '%s'",
+                "disk_update": "Average disk update time '%s' is slower than '%s'",
+                "disk_insert": "Average disk insert time '%s' is slower than '%s'",
+                "disk_commit": "Average disk commit time '%s' is slower than '%s'",
             },
             "formula" : "Avg(%counter) > threshold",
         },
@@ -1241,7 +1241,7 @@ ClusterCapsule = [
                 "low" : 100,
                 "high" : 500,
             },
-            "symptom" : "Average item loaded time '{0}' is slower than '{1}'",
+            "symptom" : "Average item loaded time '%s' is slower than '%s'",
             "formula" : "Avg(ep_bg_load_avg) > threshold",
         },
         {
@@ -1254,7 +1254,7 @@ ClusterCapsule = [
                 "low" : 100,
                 "high" : 500,
             },
-            "symptom" : "Average waiting time '{0}' for items serviced by dispatcher is slower than '{1}'",
+            "symptom" : "Average waiting time '%s' for items serviced by dispatcher is slower than '%s'",
             "formula" : "Avg(ep_bg_wait_avg) > threshold",
         },
      ],
@@ -1291,7 +1291,7 @@ ClusterCapsule = [
                 "low" : 2,
                 "high" : 10
             },
-            "symptom" : "Get to Set ops ratio '{0}' is bigger than '{1}'. Too few set operations.",
+            "symptom" : "Get to Set ops ratio '%s' is bigger than '%s'. Too few set operations.",
             "formula" : "Avg(ep_num_ops_get_meta) / Avg(ep_num_ops_set_meta)",
         },
      ],
@@ -1309,7 +1309,7 @@ ClusterCapsule = [
                 "couch_views_fragmentation" : [">=", 90],
                 "recurrence" : 15,
             },
-            "symptom" : "From %s to %s, views fragmentation '%.2f%' is contineously higher than '%d%'.",
+            "symptom" : "From %s to %s, views fragmentation '%.2f%%' is contineously higher than '%d%%'.",
             "formula" : "Avg(couch_views_fragmentation) > threshold",
         },
         {
@@ -1321,7 +1321,7 @@ ClusterCapsule = [
                 "couch_docs_fragmentation" : [">=", 50],
                 "recurrence" : 15,
             },
-            "symptom" : "From %s to %s, docs fragmentation '%.2f%' is contineously higher than '%d%'.",
+            "symptom" : "From %s to %s, docs fragmentation '%.2f%%' is contineously higher than '%d%%'.",
             "formula" : "Avg(couch_docs_fragmentation) > threshold",
         },
      ],

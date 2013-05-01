@@ -232,7 +232,7 @@ NodeCapsule = [
             "threshold" : {
                 "high" : 1000,
             },
-            "symptom" : "Number of connections '{0}' reaches connection maximum '{1}'",
+            "symptom" : "Number of connections '%s' reaches connection maximum '%s'",
             "formula" : "Avg(curr_connections) > threshold",
         },
      ],
@@ -289,7 +289,7 @@ NodeCapsule = [
             "counter" : "num_checkpoint_items",
             "code" : "NodePerformanceStats",
             "threshold" : 1000,
-            "symptom" : "Number of items in a checkpoint '{0}' reaches threshold '{1}'",
+            "symptom" : "Number of items in a checkpoint '%s' reaches threshold '%s'",
             "formula" : "num_checkpoint_items > threshold",
         },
      ],

@@ -30,7 +30,7 @@ class OpsRatio:
                 read_ratio = read[2] *100 / total 
                 write_ratio = write[2] * 100 / total
                 del_ratio = delete[2] * 100 /total
-                result.append((read[0], read[1], "{0}% reads : {1}% writes : {2}% deletes".format(read_ratio, write_ratio, del_ratio)))
+                result.append((read[0], read[1], "%s%% reads : %s%% writes : %s%% deletes" % (read_ratio, write_ratio, del_ratio)))
 
         return result
 
@@ -59,7 +59,7 @@ class ARRatio:
             else:
                 active_ratio = active[1] *100 / total 
                 replica_ratio = replica[1] * 100 / total
-                result.append((active[0], "{0}:{1}".format(active_ratio, replica_ratio)))
+                result.append((active[0], "%s:%s" % (active_ratio, replica_ratio)))
 
         return result
 
