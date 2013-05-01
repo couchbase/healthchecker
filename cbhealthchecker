@@ -13,7 +13,6 @@ import collector
 import analyzer
 import stats_buffer
 import util_cli as util
-
 import node_map
 
 log = logging.getLogger('cbhealthchecker')
