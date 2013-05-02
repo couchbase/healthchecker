@@ -26,7 +26,7 @@ pythonlib_DATA = \
     threshold.py \
     usage.py \
     util_cli.py \
-    report-htm.tmpl
+    reports/template.tmpl
 
 pythonlib_SCRIPTS= $(PROJECT_NAME)
 
