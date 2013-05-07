@@ -6,10 +6,10 @@ import sys
 import traceback
 import copy
 import logging
+import simplejson as json
 
 import listservers
 import buckets
-#import node
 import info
 import util_cli as util
 import cb_bin_client
@@ -325,7 +325,6 @@ class StatsCollector:
             collected_data["buckets"] = stats_buffer.buckets
             self.write_file(os.path.join('reports', statsfile), collected_data)
         else:
-            import json
             json_data=open(inputfile)
             collected_data = json.load(json_data)
             json_data.close()

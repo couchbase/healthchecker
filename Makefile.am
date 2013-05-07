@@ -13,7 +13,8 @@ CLI_PYTHON_LIB = $(COUCHBASE_CLI)/buckets.py \
                  $(COUCHBASE_CLI)/restclient.py \
                  $(COUCHBASE_CLI)/simplejson \
                  $(COUCHBASE_CLI)/timeout.py \
-                 $(COUCHBASE_CLI)/usage.py
+                 $(COUCHBASE_CLI)/usage.py \
+                 $(COUCHBASE_CLI)/util_cli.py
 default:
 
 pythonlibdir=$(libdir)/python
@@ -26,8 +27,7 @@ pythonlib_DATA = \
     node_stats.py \
     prescription.py \
     stats_buffer.py \
-    threshold.py \
-    util_cli.py
+    threshold.py
 
 pythonlib_SCRIPTS= $(PROJECT_NAME)
 
