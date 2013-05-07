@@ -39,14 +39,14 @@ ${PYTHON_TOOLS}: wrapper/wrapper
 CLEANFILES = ${PYTHON_TOOLS}
 bin_SCRIPTS = ${PYTHON_TOOLS}
 
-EXTRA_DIST = $(pythonlib_DATA) $(pythonlib_SCRIPTS) reports LICENSE
+EXTRA_DIST = $(pythonlib_DATA) $(pythonlib_SCRIPTS) LICENSE
 
 clean-local:
 	rm -f membase*tar.gz
 	rm -rf $(TMP_DIR)
 
 install-data-hook:
-	cp -rf $(CHEETAH_LIB) $(CLI_PYTHON_LIB) $(pythonlibdir)
+	cp -rf $(CHEETAH_LIB) reports $(CLI_PYTHON_LIB) $(pythonlibdir)
 
 bdist:
 	test -d $(TMP_DIR) || mkdir $(TMP_DIR)
