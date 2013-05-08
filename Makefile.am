@@ -23,7 +23,9 @@ pythonlib_DATA = \
     bucket_stats.py \
     cluster_stats.py \
     collector.py \
+    dbaccessor.py \
     diskqueue_stats.py \
+    node_map.py \
     node_stats.py \
     prescription.py \
     stats_buffer.py \
