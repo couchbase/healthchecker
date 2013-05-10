@@ -98,20 +98,37 @@ OPTIONS:
 """
     sys.exit(2)
 
+def mk_outputdir(output_file):
+    path = os.path.dirname(output_file)
+    if not path:
+        path = os.path.join(os.getcwd(), 'reports')
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except:
+            return "Cannot create upper directories for file:%s\n" % path, None
+    return 0, path
+
 def main():
     (bucket, cluster, user, password, txtfile, htmlfile, statsfile, verbose, debug, inputfile, scale, statsonly, opts) = parse_opt()
+    rv, outputdir = mk_outputdir(htmlfile)
+    if rv:
+        sys.stderr.write(rv)
+        sys.exit(1)
 
     #make snapshot for the current cluster status
     retriever = collector.StatsCollector(log)
-    scale = retriever.collect_data(bucket, cluster, user, password, inputfile, statsfile, scale, opts)
+    scale = retriever.collect_data(bucket, cluster, user, password, inputfile, statsfile, scale, opts, outputdir)
     if statsonly:
-        sys.stderr.write("\nThe run finished successfully. Please find collected stats at 'reports/%s'.\n" % statsfile)
+        sys.stderr.write("\nThe run finished successfully. Please find collected stats at '%s'.\n" % \
+            os.path.join(outputdir, statsfile))
         sys.exit(0)
     else:
         #analyze the snapshot and historic data
         performer = analyzer.StatsAnalyzer(log)
         performer.run_analysis(scale)
-        performer.run_report(txtfile, htmlfile, verbose, scale, debug)
-        sys.stderr.write("\nThe run finished successfully. Please find html output at 'reports/%s' and text output at 'reports/%s'.\n" % (htmlfile, txtfile))
+        performer.run_report(txtfile, htmlfile, verbose, scale, debug, outputdir)
+        sys.stderr.write("\nThe run finished successfully. \nPlease find html output at '%s' and text output at '%s'.\n" % \
+            (os.path.join(outputdir, htmlfile), os.path.join(outputdir, txtfile)))
 if __name__ == '__main__':
     main()

@@ -1,18 +1,19 @@
+import datetime
+import fnmatch
+import logging
+import string
+import shutil
+import traceback
 import os
 import sys
-import datetime
-import logging
-import traceback
-import string
-import fnmatch
 
-import util_cli as util
 import cluster_stats
 import diskqueue_stats
 import node_stats
 import stats_buffer
 import threshold
 import prescription
+import util_cli as util
 
 from Cheetah.Template import Template
 
@@ -27,6 +28,8 @@ globals = {
     "report_time" : datetime.datetime.now(),
     "cluster_health" : "ok",
 }
+
+TEMPLATE_FILE = "template.tmpl"
 
 node_list = {}
 bucket_list = {}
@@ -293,10 +296,10 @@ class StatsAnalyzer:
         else:
             globals["cluster_health"] = "OK"
 
-    def run_report(self, txtfile, htmlfile, verbose, scale, debug):
+    def run_report(self, txtfile, htmlfile, verbose, scale, debug, output_dir):
         reports_dir = os.path.join(os.path.dirname(sys.argv[0]), 'reports')
-        txtfile = os.path.join(reports_dir, txtfile)
-        htmlfile = os.path.join(reports_dir, htmlfile)
+        txtfile = os.path.join(output_dir, txtfile)
+        htmlfile = os.path.join(output_dir, htmlfile)
 
         dict = {
             "util": UtilTool(),
@@ -318,27 +321,15 @@ class StatsAnalyzer:
         }
 
         # read the current version number
-        try:
-            f = open('VERSION.txt', 'r')
-            globals["versions"] = string.strip(f.read())
-            f.close()
-        except Exception:
-            # Maybe it is a development environment, try to use 'git describe'
-            import subprocess
-            import platform
-
-            version_txt = None
+        for fname in [os.path.join(os.path.dirname(sys.argv[0]), '..', '..', 'VERSION.txt'), \
+                      os.path.join(os.path.dirname(sys.argv[0]), '..', 'VERSION.txt'), \
+                      os.path.join(os.path.dirname(sys.argv[0]), 'VERSION.txt')]:
             try:
-                if platform.system() == 'Windows':
-                    version_txt = subprocess.Popen(["git.exe", "describe"],
-                                               stdout=subprocess.PIPE).communicate()[0]
-                else:
-                    version_txt = subprocess.Popen(["git", "describe"],
-                                                stdout=subprocess.PIPE).communicate()[0]
+                f = open(fname, 'r')
+                globals["versions"] = string.strip(f.read())
+                f.close()
             except Exception:
                 pass
-            if version_txt:
-                globals["versions"] = string.strip(version_txt)
 
         f = open(txtfile, 'w')
         report = {}
@@ -362,13 +353,24 @@ class StatsAnalyzer:
         #print util.pretty_print(bucket_node_symptoms)
 
         f = open(htmlfile, 'w')
-        print >> f, Template(file=os.path.join(reports_dir, "template.tmpl"), searchList=[dict])
+        print >> f, Template(file=os.path.join(reports_dir, TEMPLATE_FILE), searchList=[dict])
         f.close()
 
         # generate array/list of available reports for use via AJAX
         available_reports = [os.path.splitext(n)[0]
                              for n in fnmatch.filter(os.listdir('./reports/'),
                                                      '*.html')]
-        f = open(os.path.join(reports_dir, 'all.json'), 'w')
+        f = open(os.path.join(output_dir, 'all.json'), 'w')
         print >> f, util.pretty_print(available_reports)
         f.close()
+
+        #Need to copy support files for final report
+        normalize_report_dir = os.path.normpath(reports_dir)
+        normalize_output_dir = os.path.normpath(output_dir)
+        if normalize_output_dir != normalize_report_dir:
+            for item in os.listdir(normalize_report_dir):
+                if item != TEMPLATE_FILE:
+                    s = os.path.join(normalize_report_dir, item)
+                    d = os.path.join(normalize_output_dir, item)
+                    if os.path.isfile(s):
+                        shutil.copy2(s, d)
