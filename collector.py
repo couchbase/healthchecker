@@ -276,9 +276,9 @@ class StatsCollector:
         stats_buffer.stats[scale] = copy.deepcopy(stats_buffer.counters)
         for bucket in bucketlist:
             bucket_name = bucket['name']
-            if stats_buffer.bucket_info[bucket_name]["bucketType"] == 'memcached':
-                continue
             if bucketname == 'all' or bucket_name == bucketname:
+                if stats_buffer.bucket_info[bucket_name]["bucketType"] == 'memcached':
+                    continue
                 stats_buffer.buckets[bucket_name] = copy.deepcopy(stats_buffer.stats)
                 cmd = 'bucket-node-stats'
                 for scale, stat_set in stats_buffer.buckets[bucket_name].iteritems():
