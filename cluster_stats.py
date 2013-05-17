@@ -46,18 +46,17 @@ class SyndromeDetector:
                     end_index = begin_index + seg_total
 
                     seg_avg = {}
-                    b = False
+                    b = True
                     seg_tuple = ()
                     for counter in accessor["counter"]:
                         seg_avg[counter] = sum(vals[counter][begin_index : end_index]) / seg_total
-                        seg_tuple += (util.pretty_float(seg_avg[counter]), )
-                        #b &= util.evalfunc(thresholdval[counter][1], seg_avg[counter], thresholdval[counter][0])
+                        seg_tuple += (util.pretty_float(seg_avg[counter]), thresholdval[counter][1],)
+                        b &= util.evalfunc(seg_avg[counter], thresholdval[counter][1], thresholdval[counter][0])
                         if not b:
                             break
 
                     if b:
-                        seg_tuple = (util.pretty_datetime(timestamps[begin_index]),) + seg_tuple
-                        seg_tuple = (util.pretty_datetime(timestamps[end_index-1], True),) + seg_tuple
+                        seg_tuple = (util.pretty_datetime(timestamps[begin_index]), util.pretty_datetime(timestamps[end_index-1], True)) + seg_tuple
                         symptom = accessor["symptom"] % seg_tuple
 
                         num_warn.append({"node":node, "value":symptom})
@@ -1309,7 +1308,7 @@ ClusterCapsule = [
                 "couch_views_fragmentation" : [">=", 90],
                 "recurrence" : 15,
             },
-            "symptom" : "From %s to %s, views fragmentation '%.2f%%' is contineously higher than '%d%%'.",
+            "symptom" : "From %s to %s, views fragmentation '%s%%' is contineously higher than '%s%%'.",
             "formula" : "Avg(couch_views_fragmentation) > threshold",
         },
         {
@@ -1321,7 +1320,7 @@ ClusterCapsule = [
                 "couch_docs_fragmentation" : [">=", 50],
                 "recurrence" : 15,
             },
-            "symptom" : "From %s to %s, docs fragmentation '%.2f%%' is contineously higher than '%d%%'.",
+            "symptom" : "From %s to %s, docs fragmentation '%s%%' is contineously higher than '%s%%'.",
             "formula" : "Avg(couch_docs_fragmentation) > threshold",
         },
      ],
