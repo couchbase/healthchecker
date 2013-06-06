@@ -830,9 +830,9 @@ class CalcTrend:
                     if accessor["unit"] == "time":
                         trend.append(("total", util.time_label(total_avg)))
                     elif accessor["unit"] == "number":
-                        trend.append((node, util.number_label(total_avg)))
+                        trend.append(("total", util.number_label(total_avg)))
                     elif accessor["unit"] == "size":
-                        trend.append((node, util.size_label(total_avg)))
+                        trend.append(("total", util.size_label(total_avg)))
                     else:
                         trend.append(("total", util.pretty_float(total_avg)))
             result[bucket] = trend
