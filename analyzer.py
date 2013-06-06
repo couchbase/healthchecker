@@ -373,4 +373,7 @@ class StatsAnalyzer:
                     s = os.path.join(normalize_report_dir, item)
                     d = os.path.join(normalize_output_dir, item)
                     if os.path.isfile(s):
-                        shutil.copy2(s, d)
+                        try:
+                            shutil.copy2(s, d)
+                        except Exception:
+                            pass
