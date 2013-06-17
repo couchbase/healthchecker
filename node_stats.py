@@ -4,29 +4,72 @@ import util_cli as util
 
 class NodeList:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         for node, node_info in stats_buffer.nodes.iteritems():
             if node_info['status'] == "healthy":
-                result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']})
+                result[node] = {"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :node_info['version'], "os": node_info['os'], "status" :node_info['status']}
             else:
-                result.append({"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :"N/A", "os": "N/A", "status" :node_info['status']})
+                result[node] = {"host" : node_info['host'], "ip": node, "port": node_info['port'], "version" :"N/A", "os": "N/A", "status" :node_info['status']}
         return result
 
 class NumNodes:
     def run(self, accessor, scale, threshold=None):
-        return len(stats_buffer.nodes)
+        return {"total": len(stats_buffer.nodes)}
 
 class NumDownNodes:
     def run(self, accessor, scale, threshold=None):
-        return len(filter(lambda (a, b): b["status"]=="down" or b["status"]=="unhealthy", stats_buffer.nodes.items()))
+        return {"total": len(filter(lambda (a, b): b["status"]=="down" or b["status"]=="unhealthy", stats_buffer.nodes.items()))}
 
 class NumWarmupNodes:
     def run(self, accessor, scale, threshold=None):
-        return len(filter(lambda (a, b): b["status"]=="warmup", stats_buffer.nodes.items()))
+        return {"total": len(filter(lambda (a, b): b["status"]=="warmup", stats_buffer.nodes.items()))}
 
 class NumFailOverNodes:
     def run(self, accessor, scale, threshold=None):
-        return len(filter(lambda (a, b): b.has_key("clusterMembership") and b["clusterMembership"]!="active", stats_buffer.nodes.items()))
+        return {"total": len(filter(lambda (a, b): b.has_key("clusterMembership") and b["clusterMembership"]!="active", stats_buffer.nodes.items()))}
+
+class NodeSizing:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for node, values in stats_buffer.nodes.iteritems():
+            if values["status"] != "healthy":
+                continue
+            if isinstance(accessor["counter"], list):
+                val = values[accessor["category"]][accessor["counter"][0]] - values[accessor["category"]][accessor["counter"][1]]
+            else:
+                if accessor.has_key("suffix"):
+                    val = values[accessor["category"]][accessor["counter"]][accessor["suffix"]]
+                else:
+                    val = values[accessor["category"]][accessor["counter"]]
+        result[node] = val
+        if accessor.has_key("unit"):
+            if accessor["unit"] == "size":
+                result[node] = util.size_label(val)
+        return result
+
+class NodeSizingNone:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        return result
+
+class NodeSizingCacheMissRatio:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            values = stats_info[scale][accessor["counter"]]
+            timestamps = values["timestamp"]
+            timestamps = [x - timestamps[0] for x in timestamps]
+            nodeStats = values["nodeStats"]
+            samplesCount = values["samplesCount"]
+            for node, vals in nodeStats.iteritems():
+                trend = 0
+                if len(vals):
+                    trend, b = util.linreg(timestamps, vals)
+                if result.has_key(node):
+                    result[node].append((bucket, trend))
+                else:
+                    result[node] = [(bucket, trend)]
+        return result
 
 class BucketList:
     def run(self, accessor, scale, threshold=None):
@@ -38,43 +81,46 @@ class BucketList:
 
 class NodeStorageStats:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         for node, values in stats_buffer.nodes.iteritems():
             if values["status"] != "healthy":
                 continue
             if values["StorageInfo"].has_key("hdd"):
-                result.append({"ip": values["host"],
+                result[node] = {
+                           "ip": values["host"],
                            "port": values["port"],
                            "type" : "hdd",
                            "free": util.size_label(values["StorageInfo"]["hdd"]["free"]),
                            "quotaTotal" : util.size_label(values["StorageInfo"]["hdd"]["quotaTotal"]),
                            "used" : util.size_label(values["StorageInfo"]["hdd"]["used"]),
                            "usedByData" : util.size_label(values["StorageInfo"]["hdd"]["usedByData"]),
-                           "total" : util.size_label(values["StorageInfo"]["hdd"]["total"])})
+                           "total" : util.size_label(values["StorageInfo"]["hdd"]["total"])}
             if values["StorageInfo"].has_key("ram"):
-                result.append({"ip": values["host"],
+                result[node] = {
+                           "ip": values["host"],
                            "port": values["port"],
                            "type" : "ram",
                            "quotaTotal" : util.size_label(values["StorageInfo"]["ram"]["quotaTotal"]),
                            "used" : util.size_label(values["StorageInfo"]["ram"]["used"]),
                            "usedByData" : util.size_label(values["StorageInfo"]["ram"]["usedByData"]),
-                           "total" : util.size_label(values["StorageInfo"]["ram"]["total"])})
+                           "total" : util.size_label(values["StorageInfo"]["ram"]["total"])}
         return result
 
 class NodeSystemStats:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         for node, values in stats_buffer.nodes.iteritems():
             if values["status"] != "healthy":
                 continue
-            result.append({"ip": values["host"],
-                           "port": values["port"],
-                           "cpuUtilization" :util.pretty_float(values["systemStats"]["cpu_utilization_rate"]),
-                           "swapTotal": util.size_label(values["systemStats"]["swap_total"]),
-                           "swapUsed" : util.size_label(values["systemStats"]["swap_used"]),
-                           "currentItems" : values["systemStats"]["currentItems"],
-                           "currentItemsTotal" : values["systemStats"]["currentItemsTotal"],
-                           "replicaCurrentItems" : values["systemStats"]["replicaCurrentItems"]})
+            result[node] = {
+                    "ip": values["host"],
+                    "port": values["port"],
+                    "cpuUtilization" :util.pretty_float(values["systemStats"]["cpu_utilization_rate"]),
+                    "swapTotal": util.size_label(values["systemStats"]["swap_total"]),
+                    "swapUsed" : util.size_label(values["systemStats"]["swap_used"]),
+                    "currentItems" : values["systemStats"]["currentItems"],
+                    "currentItemsTotal" : values["systemStats"]["currentItemsTotal"],
+                    "replicaCurrentItems" : values["systemStats"]["replicaCurrentItems"]}
 
         return result
 
@@ -195,6 +241,11 @@ NodeCapsule = [
             "description" : "Node list",
             "code" : "NodeList",
         },
+      ],
+      "nodewise" : True,
+    },
+    {"name" : "NodeStatus",
+     "ingredients" : [
         {
             "name" : "numNodes",
             "description" : "Number of nodes",
@@ -217,9 +268,98 @@ NodeCapsule = [
         },
       ],
       "clusterwise" : False,
-      "nodewise" : True,
+      "nodewise" : False,
       "perNode" : False,
       "perBucket" : False,
+    },
+    {"name": "NodeSizing",
+     "ingredients": [
+        {
+            "name": "availableMemory",
+            "description": "Available Memory (RAM)",
+            "code": "NodeSizing",
+            "category": "memory",
+            "counter": "free",
+            "unit" : "size",
+        },
+        {
+            "name": "availableDisk",
+            "description": "Available Disk space",
+            "code": "NodeSizing",
+            "category": "StorageInfo",
+            "counter": "hdd",
+            "suffix": "free",
+            "unit" : "size",
+        },
+        {
+            "name": "availableSwap",
+            "description": "Available Swap space",
+            "code": "NodeSizing",
+            "category": "systemStats",
+            "counter": ["swap_total", "swap_used"],
+            "unit" : "size",
+        },
+        {
+            "name": "currSwap",
+            "description": "Current usage of Swap space",
+            "code": "NodeSizing",
+            "category": "systemStats",
+            "counter": "swap_used",
+            "unit" : "size",
+        },
+        {
+            "name": "currMemory",
+            "description": "Current usage of Memory (RAM)",
+            "code": "NodeSizing",
+            "category": "memory",
+            "counter": ["total", "free"],
+            "unit" : "size",
+        },
+        {
+            "name": "currDisk",
+            "description": "Current usage of Disk space",
+            "code": "NodeSizing",
+            "category": "StorageInfo",
+            "counter": "hdd",
+            "suffix": "used",
+            "unit" : "size",
+        },
+        {
+            "name": "cpuUsage",
+            "description": "Current usage of CPU",
+            "code": "NodeSizing",
+            "category": "systemStats",
+            "counter": "cpu_utilization_rate",
+        },
+        {
+            "name": "volumes",
+            "description": "List of Volumes",
+            "code": "NodeSizingNone",
+            "category": "systemStats",
+            "counter": "cpu_utilization_rate",
+        },
+        {
+            "name": "dataGrowth",
+            "description": "Data growth trend",
+            "code": "NodeSizingNone",
+            "category": "systemStats",
+            "counter": "cpu_utilization_rate",
+        },
+        {
+            "name": "memoryGrowth",
+            "description": "Amount of memory growth trend",
+            "code": "NodeSizingNone",
+            "category": "systemStats",
+            "counter": "cpu_utilization_rate",
+        },
+        {
+            "name": "cacheMissRatio",
+            "description": "Cachemiss ratio growth",
+            "code": "NodeSizingCacheMissRatio",
+            "counter": "ep_cache_miss_rate",
+        },
+     ],
+     "sizing": True,
     },
     {"name" : "NumberOfConnection",
     "ingredients" : [
@@ -236,7 +376,7 @@ NodeCapsule = [
             "formula" : "Avg(curr_connections) > threshold",
         },
      ],
-     "nodewise" : True,
+     "nodewise" : False,
      "perNode" : True,
     },
     {"name" : "OOMError",
@@ -269,7 +409,7 @@ NodeCapsule = [
             "code" : "NodeStorageStats",
         },
      ],
-     "nodewise" : True,
+     "sizing" : False,
     },
     {"name" : "nodeSystemStats",
      "ingredients" : [
@@ -279,7 +419,7 @@ NodeCapsule = [
             "code" : "NodeSystemStats",
         },
      ],
-     "nodewise" : True,
+     "sizing" : False,
     },
     {"name" : "checkpointPerformance",
      "ingredients" : [

@@ -41,6 +41,7 @@ node_symptoms = {}
 indicator_error = {}
 indicator_warn = {}
 node_disparate = {}
+sizing_symptoms = {}
 
 class UtilTool:
     def isdict(self, obj):
@@ -68,6 +69,10 @@ class StatsAnalyzer:
             bucket_symptoms[bucket] = []
             bucket_node_symptoms[bucket] = {}
             bucket_node_status[bucket] = {}
+
+        for node in stats_buffer.nodes.iterkeys():
+            node_list[node] = {}
+            sizing_symptoms[node] = []
 
         for capsule, package_name, capsule_name in capsules:
             for pill in capsule:
@@ -153,7 +158,13 @@ class StatsAnalyzer:
                             else:
                                 node_symptoms[counter["name"]] = {"description" : counter["description"], "value":result}
                         if pill.has_key("nodewise") and pill["nodewise"]:
-                            node_list[counter["name"]] = {"description" : counter["description"], "value":result}
+                            for node, values in result.iteritems():
+                                node_list[node] = {"description": counter["description"], "value": values}
+                        if pill.has_key("sizing") and pill["sizing"]:
+                            if result:
+                                for node, value in result.iteritems():
+                                    sizing_symptoms[node].append({"description": counter["description"], "value": value})
+
                         if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
                             for bucket,values in result.iteritems():
                                 if bucket == "cluster":
@@ -309,6 +320,7 @@ class StatsAnalyzer:
             "bucket_node_symptoms" : bucket_node_symptoms,
             "bucket_node_status" : bucket_node_status,
             "node_symptoms" : node_symptoms,
+            "sizing_symptoms": sizing_symptoms,
             "node_list" : node_list,
             "bucket_list" : bucket_list,
             "indicator_warn" : indicator_warn,
