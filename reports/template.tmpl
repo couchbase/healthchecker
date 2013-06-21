@@ -102,12 +102,25 @@
       </tr>
       <tr>
         <td colspan="4">
-            <h4>Size report</h4>
-            <ul>
-  #for $sizing in sorted($sizing_symptoms[$node_key])
-                <li>$sizing["description"]: $sizing["value"]</li>
+            <table id="embeded">
+                <tr>
+                <th>Category</th>
+                <th>Counter</th>
+                <th>Value</th>
+                </tr>
+  #for $category in sorted($sizing_symptoms[$node_key].keys())
+                <tr>
+                    <td>$category</td><td/><td/>
+                </tr>
+    #for $sizing in sorted($sizing_symptoms[$node_key][$category])
+                <tr>
+                   <td/>
+                   <td>$sizing["description"]</td>
+                   <td>$sizing["value"]</td>
+                </tr>
+    #end for
   #end for
-            </ul>
+            </table>
         </td>
       </tr>
 #end for

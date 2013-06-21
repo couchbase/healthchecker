@@ -35,12 +35,12 @@ class NodeSizing:
             if values["status"] != "healthy":
                 continue
             if isinstance(accessor["counter"], list):
-                val = values[accessor["category"]][accessor["counter"][0]] - values[accessor["category"]][accessor["counter"][1]]
+                val = values[accessor["countergroup"]][accessor["counter"][0]] - values[accessor["countergroup"]][accessor["counter"][1]]
             else:
                 if accessor.has_key("suffix"):
-                    val = values[accessor["category"]][accessor["counter"]][accessor["suffix"]]
+                    val = values[accessor["countergroup"]][accessor["counter"]][accessor["suffix"]]
                 else:
-                    val = values[accessor["category"]][accessor["counter"]]
+                    val = values[accessor["countergroup"]][accessor["counter"]]
         result[node] = val
         if accessor.has_key("unit"):
             if accessor["unit"] == "size":
@@ -278,85 +278,96 @@ NodeCapsule = [
             "name": "availableMemory",
             "description": "Available Memory (RAM)",
             "code": "NodeSizing",
-            "category": "memory",
+            "countergroup": "memory",
             "counter": "free",
-            "unit" : "size",
+            "unit": "size",
+            "category": "Memory",
         },
         {
             "name": "availableDisk",
             "description": "Available Disk space",
             "code": "NodeSizing",
-            "category": "StorageInfo",
+            "countergroup": "StorageInfo",
             "counter": "hdd",
             "suffix": "free",
             "unit" : "size",
+            "category": "Disk",
         },
         {
             "name": "availableSwap",
             "description": "Available Swap space",
             "code": "NodeSizing",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": ["swap_total", "swap_used"],
             "unit" : "size",
+            "category": "Memory",
         },
         {
             "name": "currSwap",
             "description": "Current usage of Swap space",
             "code": "NodeSizing",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": "swap_used",
             "unit" : "size",
+            "category": "Memory",
         },
         {
             "name": "currMemory",
             "description": "Current usage of Memory (RAM)",
             "code": "NodeSizing",
-            "category": "memory",
+            "countergroup": "memory",
             "counter": ["total", "free"],
             "unit" : "size",
+            "category": "Memory",
         },
         {
             "name": "currDisk",
             "description": "Current usage of Disk space",
             "code": "NodeSizing",
-            "category": "StorageInfo",
+            "countergroup": "StorageInfo",
             "counter": "hdd",
             "suffix": "used",
             "unit" : "size",
+            "category": "Disk",
         },
         {
             "name": "cpuUsage",
             "description": "Current usage of CPU",
             "code": "NodeSizing",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": "cpu_utilization_rate",
+            "category": "CPU",
         },
         {
             "name": "volumes",
             "description": "List of Volumes",
             "code": "NodeSizingNone",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": "cpu_utilization_rate",
+            "category": "CPU",
         },
         {
             "name": "dataGrowth",
             "description": "Data growth trend",
             "code": "NodeSizingNone",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": "cpu_utilization_rate",
+            "category": "CPU",
         },
         {
             "name": "memoryGrowth",
             "description": "Amount of memory growth trend",
             "code": "NodeSizingNone",
-            "category": "systemStats",
+            "countergroup": "systemStats",
             "counter": "cpu_utilization_rate",
+            "category": "Memory",
         },
         {
             "name": "cacheMissRatio",
             "description": "Cachemiss ratio growth",
             "code": "NodeSizingCacheMissRatio",
             "counter": "ep_cache_miss_rate",
+            "category": "Memory",
         },
      ],
      "sizing": True,

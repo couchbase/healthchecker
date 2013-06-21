@@ -72,7 +72,7 @@ class StatsAnalyzer:
 
         for node in stats_buffer.nodes.iterkeys():
             node_list[node] = {}
-            sizing_symptoms[node] = []
+            sizing_symptoms[node] = {}
 
         for capsule, package_name, capsule_name in capsules:
             for pill in capsule:
@@ -163,7 +163,12 @@ class StatsAnalyzer:
                         if pill.has_key("sizing") and pill["sizing"]:
                             if result:
                                 for node, value in result.iteritems():
-                                    sizing_symptoms[node].append({"description": counter["description"], "value": value})
+                                    if not sizing_symptoms[node].has_key(counter["category"]):
+                                        sizing_symptoms[node][counter["category"]] = []
+                                    sizing_symptoms[node][counter["category"]].append(
+                                                                 {"description": counter["description"], 
+                                                                  "value": value,
+                                                                  "category": counter["category"]})
 
                         if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
                             for bucket,values in result.iteritems():
