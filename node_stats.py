@@ -52,7 +52,7 @@ class NodeSizingNone:
         result = {}
         return result
 
-class NodeSizingCacheMissRatio:
+class TrendSizing:
     def run(self, accessor, scale, threshold=None):
         result = {}
         for bucket, stats_info in stats_buffer.buckets.iteritems():
@@ -69,6 +69,23 @@ class NodeSizingCacheMissRatio:
                     result[node].append((bucket, trend))
                 else:
                     result[node] = [(bucket, trend)]
+        return result
+
+class AverageSizing:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            values = stats_info[scale][accessor["counter"]]
+            timestamps = values["timestamp"]
+            timestamps = [x - timestamps[0] for x in timestamps]
+            nodeStats = values["nodeStats"]
+            for node, vals in nodeStats.iteritems():
+                if len(vals):
+                    avg = sum(vals) / len(vals)
+                if result.has_key(node):
+                    result[node].append((bucket, util.pretty_float(avg)))
+                else:
+                    result[node] = [(bucket, util.pretty_float(avg))]
         return result
 
 class BucketList:
@@ -198,6 +215,7 @@ class NodePerformanceStats:
 class AvgDocSize:
     def run(self, accessor, scale, threshold=None):
         result = {}
+        sizing = {}
         if threshold.has_key(accessor["name"]):
             threshold_val = threshold[accessor["name"]]
         elif accessor.has_key("threshold"):
@@ -207,8 +225,11 @@ class AvgDocSize:
         for bucket, bucket_stats in stats_buffer.node_stats.iteritems():
             stats = []
             for node, stats_info in bucket_stats.iteritems():
+                if not sizing.has_key(node):
+                    sizing[node] = []
                 if accessor["counter"][0] not in stats_info.keys():
                     stats.append((node, "N/A"))
+                    sizing[node].append((bucket, "N/A"))
                     continue
                 for key, value in stats_info.iteritems():
                     if isinstance(value, dict):
@@ -226,11 +247,14 @@ class AvgDocSize:
                         if accessor.has_key("unit"):
                             if accessor["unit"] == "time":
                                 stats.append((node, util.time_label(value)))
+                                sizing[node].append((bucket, util.time_label(value)))
                             elif accessor["unit"] == "size":
                                 stats.append((node, util.size_label(int(value))))
+                                sizing[node].append((bucket, util.size_label(int(value))))
                         else:
                             stats.append((node, (key,value)))
             result[bucket] = stats
+        result["_sizing"] = sizing
         return result
 
 NodeCapsule = [
@@ -365,9 +389,16 @@ NodeCapsule = [
         {
             "name": "cacheMissRatio",
             "description": "Cachemiss ratio growth",
-            "code": "NodeSizingCacheMissRatio",
+            "code": "TrendSizing",
             "counter": "ep_cache_miss_rate",
             "category": "Memory",
+        },
+        {
+            "name": "diskWriteQueueLength",
+            "description": "Average Disk write queue length",
+            "code": "AverageSizing",
+            "counter": "disk_write_queue",
+            "category": "Disk IO",
         },
      ],
      "sizing": True,
@@ -454,10 +485,12 @@ NodeCapsule = [
             "counter" : ["ep_value_size", "curr_items_tot", "ep_num_non_resident"],
             "code" : "AvgDocSize",
             "unit" : "size",
+            "category": "Disk IO",
             "formula" : "ep_kv_size",
         },
      ],
      "perBucket" : True,
+     "sizing": True,
     },
     {"name" : "MemoryUsage",
      "ingredients" : [

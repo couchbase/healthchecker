@@ -1,54 +1,56 @@
 Sizing report for cbhealthchecker tool
 =======================================
 
-We will organize related factors into five categories when sizing a couchbase cluster.
+We will characterize sizing related factors into five categories for a couchbase cluster.
 
- - RAM
+ - Memory
  - Disk size
  - Disk IO
  - CPU
  - Data distribution
 
-RAM
+Memory
 ---
 
  1. Available Memory (RAM) > 2GB reserved for erlang process
  2. Current usage of Memory (RAM)
- 3. Amount of memory grown for past 3 months, 6 months, 9 months.
+ 3. *Amount of memory grown for past 3 months, 6 months, 9 months.
  4. Active/Replica resident ratio for doc data, index data,
  5. Cache-miss ratio increased by X%
+ 6. Available swap space
+ 7. Current usage of swap space
 
 Disk size
 ---------
 
  1. Available Disk space  2~3 times of total data size
  2. Current usage of Disk space
- 3. Amount of data grown for past 3 months, 6 months, 9 months.
- 4. doc size / view size
- 5. List of Volumes [HDD/SSD/EC2 or different Volumes]
- 6. data path / index path / install path
- 7. number of items
+ 3. *Amount of data grown for past 3 months, 6 months, 9 months.
+ 4. *doc size / view size
+ 5. *List of Volumes [HDD/SSD/EC2 or different Volumes]
+ 6. *data path / index path / install path
+ 7. *number of items
 
 Disk IO performance
 -------
 
   1. read/write/delete ops, ratio to categorize application type (read extensive or write extensive)
-  2.  avg value size  r/w/d in mb/s
+  2. avg value size  r/w/d in mb/s
   3. write queue length
-  4. DGM
+  4. *DGM
 
 CPU
 ---
 
- 1. Available CPU
+ 1. *Available CPU
  2. Current usage of CPU
- 3. number of cpu cores, >=4 (# of xdcr streams + # design docs ) * # of buckets
+ 3. *number of cpu cores, >=4 (# of xdcr streams + # design docs ) * # of buckets
 
 
 Data distribution
 ----
 
- 1. Failover capacity : #node - # replica
+ 1. *Failover capacity : #node - # replica
 
 
 Sizing presentation in report

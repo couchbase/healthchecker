@@ -116,7 +116,20 @@
                 <tr>
                    <td/>
                    <td>$sizing["description"]</td>
+      #if $util.islist($sizing["value"])
+                   <td>
+                     <table id="embeded">
+        #for $element in $sizing["value"]
+                        <tr>
+                            <td>$element[0]</td>
+                            <td>$element[1]</td>
+                        </tr>
+        #end for
+                     </table>
+                   </td>
+      #else
                    <td>$sizing["value"]</td>
+      #end if
                 </tr>
     #end for
   #end for

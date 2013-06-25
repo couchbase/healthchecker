@@ -47,6 +47,9 @@ class UtilTool:
     def isdict(self, obj):
         return isinstance(obj, dict)
 
+    def islist(self, obj):
+        return isinstance(obj, list)
+
     def statsClass(self, status, hasOkStatus=True):
         if status == "Error":
             return ["status-error", "Immediate action needed"]
@@ -97,7 +100,7 @@ class StatsAnalyzer:
                                 cluster_symptoms[counter["name"]]["formula"] = "N/A"
                         if pill.has_key("perBucket") and pill["perBucket"] :
                             for bucket, values in result.iteritems():
-                                if bucket == "cluster":
+                                if bucket == "cluster" or bucket == "_sizing":
                                     continue
                                 bucket_status = "OK"
                                 node_error = []
@@ -162,7 +165,11 @@ class StatsAnalyzer:
                                 node_list[node] = {"description": counter["description"], "value": values}
                         if pill.has_key("sizing") and pill["sizing"]:
                             if result:
-                                for node, value in result.iteritems():
+                                if result.has_key("_sizing"):
+                                    sizing_result = result["_sizing"]
+                                else:
+                                    sizing_result = result
+                                for node, value in sizing_result.iteritems():
                                     if not sizing_symptoms[node].has_key(counter["category"]):
                                         sizing_symptoms[node][counter["category"]] = []
                                     sizing_symptoms[node][counter["category"]].append(
@@ -172,7 +179,7 @@ class StatsAnalyzer:
 
                         if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
                             for bucket,values in result.iteritems():
-                                if bucket == "cluster":
+                                if bucket == "cluster" or bucket == "_sizing":
                                     continue
                                 for val in values:
                                     if val[0] == "total":
@@ -194,7 +201,7 @@ class StatsAnalyzer:
                                             if indicator_error.has_key(counter["name"]) == False:
                                                 indicator_error[counter["name"]] = []
                                             if counter.has_key("formula"):
-                                                indicator_error[counter["name"]].append({"description" : counter["description"], 
+                                                indicator_error[counter["name"]].append({"description" : counter["description"],
                                                                             "bucket": bucket, 
                                                                             "value":values["error"], 
                                                                             "cause" : cause,
