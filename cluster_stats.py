@@ -73,9 +73,10 @@ class SyndromeDetector:
 
 class DGMRatio:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         hdd_total = 0
         ram_total = 0
+        sizing = {}
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["status"] != "healthy":
                 continue
@@ -83,12 +84,19 @@ class DGMRatio:
                 hdd_total += nodeinfo['StorageInfo']['hdd']['usedByData']
             if nodeinfo["StorageInfo"].has_key("ram"):
                 ram_total += nodeinfo['StorageInfo']['ram']['usedByData']
+            if nodeinfo['StorageInfo']['ram']['usedByData']:
+                ratio = nodeinfo['StorageInfo']['hdd']['usedByData'] * 100.0 / nodeinfo['StorageInfo']['ram']['usedByData']
+                sizing[node] = util.pretty_float(ratio) + "%"
+            else:
+                sizing[node] = 0
         if ram_total > 0:
             ratio = hdd_total * 100.0 / ram_total
         else:
             ratio = 0
-        return {"value" : util.pretty_float(ratio) + "%",
-                "raw" : (hdd_total, ram_total)}
+        result["cluster"] = {"value" : util.pretty_float(ratio) + "%",
+                             "raw" : (hdd_total, ram_total)}
+        result["_sizing"] = sizing
+        return result
 
 class RAMLimit:
     def run(self, accessor, scale, threshold=None):
@@ -978,11 +986,13 @@ ClusterCapsule = [
             "description" : "Disk to memory ratio",
             "code" : "DGMRatio",
             "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
+            "category": "Disk IO",
         },
      ],
      "clusterwise" : True,
      "perNode" : False,
      "perBucket" : False,
+     "sizing": True,
     },
     {"name" : "MinimumLimit",
      "ingredients" : [

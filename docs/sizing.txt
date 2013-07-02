@@ -26,10 +26,10 @@ Disk size
  1. Available Disk space  2~3 times of total data size
  2. Current usage of Disk space
  3. *Amount of data grown for past 3 months, 6 months, 9 months.
- 4. *doc size / view size
+ 4. doc size / view size
  5. *List of Volumes [HDD/SSD/EC2 or different Volumes]
- 6. *data path / index path / install path
- 7. *number of items
+ 6. data path / index path / install path
+ 7. number of items
 
 Disk IO performance
 -------

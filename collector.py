@@ -51,19 +51,28 @@ class StatsCollector:
 
         #storageInfo
         nodeStats['StorageInfo'] = {}
-        if nodeInfo['storageTotals'] is not None:
+        if nodeInfo['storageTotals'] and nodeInfo['storage']:
 
             #print nodeInfo
             hdd = nodeInfo['storageTotals']['hdd']
-            if hdd is not None:
+            if hdd:
                 nodeStats['StorageInfo']['hdd'] = {}
                 nodeStats['StorageInfo']['hdd']['free'] = hdd['free']
                 nodeStats['StorageInfo']['hdd']['quotaTotal'] = hdd['quotaTotal']
                 nodeStats['StorageInfo']['hdd']['total'] = hdd['total']
                 nodeStats['StorageInfo']['hdd']['used'] = hdd['used']
                 nodeStats['StorageInfo']['hdd']['usedByData'] = hdd['usedByData']
+                if nodeInfo['storage']['hdd']:
+                    nodeStats['StorageInfo']['type'] = 'hdd'
+                    nodeStats['StorageInfo']['storage'] = copy.deepcopy(nodeInfo['storage']['hdd'])
+                elif nodeinfo['storage']['ssd']:
+                    nodeStats['StorageInfo']['type'] = 'ssd'
+                    nodeStats['StorageInfo']['storage'] = copy.deepcopy(nodeInfo['storage']['ssd'])
+                else:
+                    nodeStats['StorageInfo']['type'] = None
+                    nodeStats['StorageInfo']['storage'] = {}
             ram = nodeInfo['storageTotals']['ram']
-            if ram is not None:
+            if ram:
                 nodeStats['StorageInfo']['ram'] = {}
                 nodeStats['StorageInfo']['ram']['quotaTotal'] = ram['quotaTotal']
                 nodeStats['StorageInfo']['ram']['total'] = ram['total']
@@ -83,7 +92,7 @@ class StatsCollector:
         curr_items = 0
         curr_items_tot = 0
         vb_rep_curr_items = 0
-        if nodeInfo['interestingStats'] is not None:
+        if nodeInfo['interestingStats']:
             if nodeInfo['interestingStats'].has_key('curr_items'):
                 curr_items = nodeInfo['interestingStats']['curr_items']
             else:

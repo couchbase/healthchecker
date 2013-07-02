@@ -47,6 +47,17 @@ class NodeSizing:
                 result[node] = util.size_label(val)
         return result
 
+class DiskSizing:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for node, values in stats_buffer.nodes.iteritems():
+            if values["status"] != "healthy":
+                continue
+            result[node] = []
+            for val in values["StorageInfo"]["storage"]:
+                result[node].append((values['StorageInfo']['type'], val[accessor["counter"]]))
+        return result
+
 class NodeSizingNone:
     def run(self, accessor, scale, threshold=None):
         result = {}
@@ -86,6 +97,32 @@ class AverageSizing:
                     result[node].append((bucket, util.pretty_float(avg)))
                 else:
                     result[node] = [(bucket, util.pretty_float(avg))]
+        return result
+
+class LatestSizing:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            values = stats_info[scale][accessor["counter"]]
+            timestamps = values["timestamp"]
+            timestamps = [x - timestamps[0] for x in timestamps]
+            nodeStats = values["nodeStats"]
+            for node, vals in nodeStats.iteritems():
+                if len(vals):
+                    avg = vals[-1]
+                if accessor.has_key("unit"):
+                    if accessor["unit"] == "size":
+                        avg = util.size_label(avg)
+                    elif accessor["unit"] == "number":
+                        avg = util.number_label(avg)
+                    elif accessor["unit"] == "time":
+                        avg = util.time_label(avg)
+                    else:
+                        avg = util.pretty_float(avg)
+                if result.has_key(node):
+                    result[node].append((bucket, avg))
+                else:
+                    result[node] = [(bucket, avg)]
         return result
 
 class BucketList:
@@ -400,6 +437,45 @@ NodeCapsule = [
             "counter": "disk_write_queue",
             "category": "Disk IO",
         },
+        {
+            "name": "dataDiskSize",
+            "description": "Current document size on disk",
+            "code": "LatestSizing",
+            "counter": "couch_docs_actual_disk_size",
+            "category": "Disk IO",
+            "unit": "size"
+        },
+        {
+            "name": "numItem",
+            "description": "Current number of active items",
+            "code": "LatestSizing",
+            "counter": "curr_items",
+            "category": "Disk",
+            "unit": "number",
+        },
+        {
+            "name": "viewDiskSize",
+            "description": "Current index size on disk",
+            "code": "LatestSizing",
+            "counter": "couch_views_actual_disk_size",
+            "category": "Disk IO",
+            "unit": "size",
+        },
+        {
+            "name": "dataPath",
+            "description": "Data path on disk",
+            "code": "DiskSizing",
+            "counter": "path",
+            "category": "Disk",
+        },
+        {
+            "name": "indexPath",
+            "description": "Index data path on disk",
+            "code": "DiskSizing",
+            "counter": "index_path",
+            "category": "Disk",
+        },
+
      ],
      "sizing": True,
     },
