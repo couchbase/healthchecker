@@ -84,13 +84,15 @@
 #end for
     </table>
     <h3>Node list</h3>
-    <table class="t1", id="report">
-      <tr>
-        <th>Node IP</th>
-        <th>Couchbase Server Version</th>
-        <th>Cluster Status</th>
-        <th>Sizing</th>
-      </tr>
+    <table class="t1" id="report">
+      <thead>
+        <tr>
+          <th>Node IP</th>
+          <th>Couchbase Server Version</th>
+          <th>Cluster Status</th>
+          <th>Sizing</th>
+        </tr>
+      </thead>
 #for $node_key in sorted($node_list.keys())
   #set $node = $node_list[$node_key]["value"]
   #set $node_status_class = 'status-' + $node["status"].lower()
@@ -118,14 +120,13 @@
                    <td>$sizing["description"]</td>
       #if $util.islist($sizing["value"])
                    <td>
-                     <table id="embeded">
+                     <ul>
         #for $element in $sizing["value"]
-                        <tr>
-                            <td>$element[0]</td>
-                            <td>$element[1]</td>
-                        </tr>
+                        <li>
+                            $element[0] : $element[1]
+                        </li>
         #end for
-                     </table>
+                     </ul>
                    </td>
       #else
                    <td>$sizing["value"]</td>
@@ -195,39 +196,58 @@
   #end for
       </table>
   #if $verbose
+      <h3>Nodes under the bucket</h3>
+      <table class="t1" id="report">
+        <thead>
+          <tr>
+            <th>Node IP</th>
+            <th>Status</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
     #for $node in sorted($bucket_node_symptoms[$bucket])
       #set $node_values = $bucket_node_symptoms[$bucket][$node]
-        <a name="node_${bucket}_${node}"/>
-        <p class="node"><strong>Node: </strong> $node &ndash;
+        <tr>
+          <td>$node</td>
       #if $bucket_node_status[$bucket].has_key($node)
         #set $node_status = $util.statsClass($bucket_node_status[$bucket][$node])
-            <span class="$node_status[0]">$node_status[1]</span>
+          <td class="$node_status[0]">$node_status[1]</td>
       #else
-          <span class="status-ok">OK</span>
+          <td class="status-ok">OK</td>
       #end if
-        </p>
-        <table class="t1">
+          <td><div class="arrow"></div></td>
+        </tr>
+        <tr>
+          <td colspan="3">
+            <table id="embeded">
+              <tr>
+                <th>Counter</th>
+                <th>Value</th>
+              </tr>
       #for $node_value in sorted($node_values)
-          <tr>
+              <tr>
         #if $debug
-            <td title="$node_value["formula"]">$node_value["description"]</td>
+                <td title="$node_value["formula"]">$node_value["description"]</td>
         #else
-            <td>$node_value["description"]</td>
+                <td>$node_value["description"]</td>
         #end if
         #set $statusClass = $util.statsClass($node_value["status"], False)[0]
         #if $util.isdict($node_value["value"])
           #if $debug
-            <td class="$statusClass" title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
+                <td class="$statusClass" title="$node_value["value"]["raw"]">$node_value["value"]["value"]</td>
           #else
-            <td class=$statusClass>$node_value["value"]["value"]</td>
+                <td class=$statusClass>$node_value["value"]["value"]</td>
           #end if
         #else
-            <td class=$statusClass>$node_value["value"]</td>
+                <td class=$statusClass>$node_value["value"]</td>
         #end if
-          </tr>
+              </tr>
       #end for
-        </table>
+            </table>
+          <td>
+        </tr>
     #end for
+      </table>
   #end if
 #end for
   </article>
