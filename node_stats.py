@@ -1,4 +1,3 @@
-
 import stats_buffer
 import util_cli as util
 
@@ -444,6 +443,14 @@ NodeCapsule = [
             "counter": "couch_docs_actual_disk_size",
             "category": "Disk IO",
             "unit": "size"
+        },
+        {
+            "name": "diskCommitTime",
+            "description": "Disk commit time",
+            "code": "LatestSizing",
+            "counter": "avg_disk_commit_time",
+            "category": "Disk IO",
+            "unit": "time"
         },
         {
             "name": "numItem",

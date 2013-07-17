@@ -49,4 +49,5 @@ counters = {
         'vb_replica_resident_items_ratio' : {},
         'vb_replica_queue_drain' : {},
         'xdc_ops' : {},
+        'avg_disk_commit_time' : {},
 }
