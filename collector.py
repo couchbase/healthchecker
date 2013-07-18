@@ -49,6 +49,9 @@ class StatsCollector:
         nodeStats['memory']['quota'] = nodeInfo['memoryQuota']
         nodeStats['memory']['total'] = nodeInfo['memoryTotal']
 
+        #availableStorage
+        nodeStats['availableStorage'] = copy.deepcopy(nodeInfo['availableStorage'])
+
         #storageInfo
         nodeStats['StorageInfo'] = {}
         if nodeInfo['storageTotals'] and nodeInfo['storage']:

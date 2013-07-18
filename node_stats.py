@@ -46,6 +46,17 @@ class NodeSizing:
                 result[node] = util.size_label(val)
         return result
 
+class DiskInfo:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        for node, values in stats_buffer.nodes.iteritems():
+            if values["status"] != "healthy":
+                continue
+            result[node] = []
+            for key, val in values["availableStorage"].iteritems():
+                result[node].append((key, val))
+        return result
+
 class DiskSizing:
     def run(self, accessor, scale, threshold=None):
         result = {}
@@ -482,7 +493,12 @@ NodeCapsule = [
             "counter": "index_path",
             "category": "Disk",
         },
-
+        {
+            "name": "volumeInfo",
+            "description": "Available volumes",
+            "code": "DiskInfo",
+            "category": "Disk",
+        },
      ],
      "sizing": True,
     },
