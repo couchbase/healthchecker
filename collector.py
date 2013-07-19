@@ -154,11 +154,6 @@ class StatsCollector:
                         if bucket['bucketType'] != "memcached":
                             self.log.error("vBucketServerMap doesn't exist from bucket info")
                             self.log.error(bucket)
-                        
-                    bucketStats = bucket['basicStats']
-                    bucketinfo['bucketStats'] = {}
-                    for key in bucketStats.iterkeys():
-                        bucketinfo['bucketStats'][key] = bucketStats[key]
 
                     bucketinfo['numDdoc'], bucketinfo['numView'] = \
                         self.number_bucketddocs(server, port, user, password, bucket_name, opts)
