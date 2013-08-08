@@ -1,32 +1,63 @@
 <!doctype html>
-<html>
+<html, lang="en">
   <head>
     <title>Couchbase Cluster Health Check Report</title>
-    <link rel="stylesheet" media="all" href="css/all.css" />
-    <link rel="stylesheet" media="print" href="css/print.css" />
-    <link rel="stylesheet" media="screen" href="css/screen.css" />
+    <link rel="stylesheet" media="screen" href="../css/bootstrap.min.css" />
+    <link rel="stylesheet" media="screen" href="../css/nv.d3.css"  />
+    <link rel="stylesheet" media="screen" href="../css/docs.css"  />
+    <link rel="stylesheet" media="all" href="../css/all.css" />
+    <link rel="stylesheet" media="print" href="../css/print.css" />
+    <link rel="stylesheet" media="screen" href="../css/screen.css" />
+    <script src="../js/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="../js/d3.v2.min.js" type="text/javascript"></script>
+    <script src="../js/nv.d3.js" type="text/javascript"></script>
+    <script src="../js/utils.js" type="text/javascript"></script>
+    <script type="text/javascript">
+function newPopup(url) {
+    popupWindow = window.open(
+       url,'popUpWindow','height=700,width=1200,left=10,top=10,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no')
+}
+</script>
 </head>
 
 <body>
-<nav id="reports">
-  <a id="prev">&laquo;</a>
-  <a id="next">&raquo;</a>
-</nav>
-<section id="main">
-  <img src="image/couchbase.png" alt="Couchbase" class="logo" />
-  <img src="image/couchbase.png" alt="Couchbase" class="logo-for-print" />
-  <h1>Cluster Health Check Report</h1>
-  <div class="tool-version">Tool Version: $globals['versions']</div>
-  <p class="p0"><span class="ft1">Stats Scale: $scale</span></p>
-  <p class="p0"><span class="ft1">Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</span></p>
-  <p>
-    <strong>Overall cluster health:</strong>
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <img src="../image/couchbase.png" alt="couchbase">
+      <div class="nav-collapse collapse">
+        <ul class="nav">
+      #for $scale in sorted($scale_set)
+          <li class=$util.activeTab($scale)>
+            <a href="./${scale}.html">$scale</a>
+          </li>
+      #end for
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container">
+<div class="row">
+  <div class="span3 bs-docs-sidebar">
+    <ul class="nav nav-list bs-docs-sidenav affix">
+      <li><a href="#errors"> <i class="icon-chevron-right"></i> Errors </a></li>
+      <li><a href="#cluster-overview"> <i class="icon-chevron-right"></i> Cluster overview </a></li>
+      <li><a href="#bucket-stats"> <i class="icon-chevron-right"></i> Bucket stats </a></li>
+      <li><a href="#warnings"> <i class="icon-chevron-right"></i> Warnings </a></li>
+    </ul>
+  </div>
+  <div class="span9">
+  <section id="overview">
+    <p>
+      <strong>Overall cluster health:</strong>
 #set $cluster_status = $util.statsClass($globals.cluster_health)
-    <span class="$cluster_status[0]">$cluster_status[1]</span>
-  </p>
-
+      <span class="$cluster_status[0]">$cluster_status[1]</span>
+    </p>
+  </section>
 #if $indicator_error_exist
-  <article>
+  <section id="errors">
     <h2>Couchbase &#8211; Alerts</h2>
   #for $counter in sorted($indicator_error.keys())
     #set $error_list = $indicator_error[$counter]
@@ -56,10 +87,10 @@
       </ul>
     #end for
   #end for
-  </article>
+  </section>
 #end if
 
-  <article>
+  <section id="cluster-overview">
     <h2>Couchbase Cluster Overview</h2>
     <h3>Bucket list</h3>
     <table class="t1">
@@ -117,19 +148,25 @@
     #for $sizing in sorted($sizing_symptoms[$node_key][$category])
                 <tr>
                    <td/>
+      #if $sizing["chart"]
+        #set $chart_id = $sizing["chart_id"]
                    <td>$sizing["description"]</td>
-      #if $util.islist($sizing["value"])
+                   <td><a href="JavaScript:newPopup('${chart_id}.html');">Chart</a>
+      #else
+                   <td>$sizing["description"]</td>
+        #if $util.islist($sizing["value"])
                    <td>
                      <ul>
-        #for $element in $sizing["value"]
+          #for $element in $sizing["value"]
                         <li>
                             $element[0] : $element[1]
                         </li>
-        #end for
+          #end for
                      </ul>
                    </td>
-      #else
+        #else
                    <td>$sizing["value"]</td>
+        #end if
       #end if
                 </tr>
     #end for
@@ -165,7 +202,8 @@
       </tr>
 #end for
     </table>
-
+  </section>
+  <section id="bucket-stats">
     <h3>Bucket metrics</h3>
 #for $bucket in sorted($bucket_list.keys())
   #if $bucket_list[$bucket]["type"] == "memcached"
@@ -250,9 +288,9 @@
       </table>
   #end if
 #end for
-  </article>
+  </section>
 #if $indicator_warn_exist
-  <article>
+  <section id="warnings">
     <h2>Couchbase &#8211; Warning Indicators</h2>
     <h3>Cluster-wide metrics</h3>
   #for $counter in sorted($indicator_warn)
@@ -283,13 +321,21 @@
       </ul>
     #end for
   #end for
-  </article>
+  </section>
 #end if
-</section>
-<script src="js/jquery-2.0.2.min.js" type="text/javascript"></script>
-<script src="js/zepto.min.js" type="text/javascript"></script>
-<script src="js/underscore.min.js" type="text/javascript"></script>
-<script src="js/app.js" type="text/javascript"></script>
-<script src="js/expandtable.js" type="text/javascript"></script>
+  </div>
+</div>
+</div>
+<footer class="footer">
+<div class="container">
+  <p>This report is generated by Couchbase. All rights are reserved.</p>
+  <p>Tool Version: $globals['versions']</p>
+  <p>Execution Time: $globals['report_time'].strftime("%Y-%m-%d %H:%M:%S")</p>
+</div>
+</footer>
+<script src="../js/zepto.min.js" type="text/javascript"></script>
+<script src="../js/underscore.min.js" type="text/javascript"></script>
+<script src="../js/app.js" type="text/javascript"></script>
+<script src="../js/expandtable.js" type="text/javascript"></script>
 </body>
 </html>

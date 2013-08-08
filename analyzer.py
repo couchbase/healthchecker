@@ -1,6 +1,7 @@
 import datetime
 import fnmatch
 import logging
+import re
 import string
 import shutil
 import traceback
@@ -27,9 +28,11 @@ globals = {
     "versions" : "1.0",
     "report_time" : datetime.datetime.now(),
     "cluster_health" : "ok",
+    "scale" : "all",
 }
 
 TEMPLATE_FILE = "template.tmpl"
+CHART_FILE = "chart.tmpl"
 
 node_list = {}
 bucket_list = {}
@@ -60,12 +63,18 @@ class UtilTool:
                 return ["status-ok", "OK"]
             else:
                 return ["", "OK"]
+
+    def activeTab(self, tab):
+        if tab == globals["scale"]:
+            return "active"
+        else:
+            return ""
+
 class StatsAnalyzer:
     def __init__(self, log):
         self.log = log
 
-    def run_analysis(self, scale):
-
+    def init(self):
         for bucket in stats_buffer.buckets.iterkeys():
             bucket_type =  stats_buffer.bucket_info[bucket]['bucketType']
             bucket_list[bucket] = {"status":"OK", "type":bucket_type, "anchor":None}
@@ -76,6 +85,9 @@ class StatsAnalyzer:
         for node in stats_buffer.nodes.iterkeys():
             node_list[node] = {}
             sizing_symptoms[node] = {}
+ 
+    def run_analysis(self, scale):
+        self.init()
 
         for capsule, package_name, capsule_name in capsules:
             for pill in capsule:
@@ -172,10 +184,18 @@ class StatsAnalyzer:
                                 for node, value in sizing_result.iteritems():
                                     if not sizing_symptoms[node].has_key(counter["category"]):
                                         sizing_symptoms[node][counter["category"]] = []
+                                    withchart = False
+                                    if counter.has_key("chart"):
+                                        withchart = counter["chart"]
+                                    chart_id = "c_%s_%s" % (counter["name"], node)
                                     sizing_symptoms[node][counter["category"]].append(
-                                                                 {"description": counter["description"], 
+                                                                 {"description": counter["description"],
+                                                                  "unit": counter["unit"],
                                                                   "value": value,
-                                                                  "category": counter["category"]})
+                                                                  "category": counter["category"],
+                                                                  "chart": withchart,
+                                                                  "chart_id": re.sub('[.:]', '_', chart_id),
+                                                                  })
 
                         if pill.has_key("nodeDisparate") and pill["nodeDisparate"] :
                             for bucket,values in result.iteritems():
@@ -319,10 +339,10 @@ class StatsAnalyzer:
         else:
             globals["cluster_health"] = "OK"
 
-    def run_report(self, txtfile, htmlfile, verbose, scale, debug, output_dir):
+    def run_report(self, verbose, scale_set, scale, debug, output_dir):
         reports_dir = os.path.join(os.path.dirname(sys.argv[0]), 'reports')
-        txtfile = os.path.join(output_dir, txtfile)
-        htmlfile = os.path.join(output_dir, htmlfile)
+        txtfile = os.path.join(output_dir, scale + ".txt")
+        htmlfile = os.path.join(output_dir, scale + ".html")
 
         dict = {
             "util": UtilTool(),
@@ -340,9 +360,11 @@ class StatsAnalyzer:
             "indicator_error" : indicator_error,
             "indicator_error_exist" : len(indicator_error) > 0,
             "verbose" : verbose,
-            "scale" : scale,
+            "scale_set" : scale_set,
             "debug" : debug,
+            "sizing": None,
         }
+        globals["scale"] = scale
 
         # read the current version number
         for fname in [os.path.join(os.path.dirname(sys.argv[0]), '..', '..', 'VERSION.txt'), \
@@ -358,17 +380,12 @@ class StatsAnalyzer:
         f = open(txtfile, 'w')
         report = {}
         report["Report Time"] = globals["report_time"].strftime("%Y-%m-%d %H:%M:%S")
-        
         report["Nodelist Overview"] = node_list
-            
+        report["Sizing Report"] = sizing_symptoms
         report["Cluster Overview"] = cluster_symptoms
-        
         report["Bucket Metrics"] = bucket_symptoms
-
         report["Bucket Node Metrics"] = bucket_node_symptoms
-        
         report["Key indicators"] = (indicator_error, indicator_warn)
-        
         report["Node disparate"] = node_disparate
 
         print >> f, util.pretty_print(report)
@@ -380,6 +397,17 @@ class StatsAnalyzer:
         print >> f, Template(file=os.path.join(reports_dir, TEMPLATE_FILE), searchList=[dict])
         f.close()
 
+        #generate  charts if any
+        for node in node_list:
+            for category, values in sizing_symptoms[node].iteritems():
+                for sizing in values:   
+                    if sizing["chart"]:
+                        dict["sizing"] = sizing
+                        htmlfile = os.path.join(output_dir, sizing["chart_id"] + ".html")
+                        f = open(htmlfile, "w")
+                        print >> f, Template(file=os.path.join(reports_dir,  CHART_FILE), searchList=[dict])
+                        f.close()
+
         # generate array/list of available reports for use via AJAX
         available_reports = [os.path.splitext(n)[0]
                              for n in fnmatch.filter(os.listdir('./reports/'),
@@ -390,7 +418,7 @@ class StatsAnalyzer:
 
         #Need to copy support files for final report
         normalize_report_dir = os.path.normpath(reports_dir)
-        normalize_output_dir = os.path.normpath(output_dir)
+        normalize_output_dir = os.path.normpath(os.path.dirname(output_dir))
         if normalize_output_dir != normalize_report_dir:
             for item in os.listdir(normalize_report_dir):
                 if item != TEMPLATE_FILE:
@@ -401,3 +429,6 @@ class StatsAnalyzer:
                             shutil.copy2(s, d)
                         except Exception:
                             pass
+
+        sys.stderr.write("\nThe run finished successfully. \nPlease find html output at '%s' and text output at '%s'.\n" % \
+            (htmlfile, txtfile))

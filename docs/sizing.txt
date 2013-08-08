@@ -14,7 +14,7 @@ Memory
 
  1. Available Memory (RAM) > 2GB reserved for erlang process
  2. Current usage of Memory (RAM)
- 3. *Amount of memory grown for past 3 months, 6 months, 9 months.
+ 3. Amount of memory grown for past 3 months, 6 months, 9 months. mem_used
  4. Active/Replica resident ratio for doc data, index data,
  5. Cache-miss ratio increased by X%
  6. Available swap space
@@ -25,7 +25,7 @@ Disk size
 
  1. Available Disk space  2~3 times of total data size
  2. Current usage of Disk space
- 3. *Amount of data grown for past 3 months, 6 months, 9 months.
+ 3. Amount of data grown for past 3 months, 6 months, 9 months.  couch_total_disk_size
  4. doc size / view size
  5. *List of Volumes [HDD/SSD/EC2 or different Volumes]
  6. data path / index path / install path

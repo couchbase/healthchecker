@@ -103,6 +103,8 @@ class AverageSizing:
             for node, vals in nodeStats.iteritems():
                 if len(vals):
                     avg = sum(vals) / len(vals)
+                else:
+                    avg = 0
                 if result.has_key(node):
                     result[node].append((bucket, util.pretty_float(avg)))
                 else:
@@ -120,6 +122,8 @@ class LatestSizing:
             for node, vals in nodeStats.iteritems():
                 if len(vals):
                     avg = vals[-1]
+                else:
+                    avg = 0
                 if accessor.has_key("unit"):
                     if accessor["unit"] == "size":
                         avg = util.size_label(avg)
@@ -302,6 +306,37 @@ class AvgDocSize:
                             stats.append((node, (key,value)))
             result[bucket] = stats
         result["_sizing"] = sizing
+        return result
+
+class GrowthChartData:
+    def run(self, accessor, scale, threshold=None):
+        result = {}
+        if scale != accessor["scale"]:
+            return result
+        for bucket, stats_info in stats_buffer.buckets.iteritems():
+            if not stats_info[scale].has_key(accessor["counter"]):
+                continue
+            values = stats_info[scale][accessor["counter"]]
+            if values is None:
+                continue
+            timestamps = values["timestamp"]
+            nodeStats = values["nodeStats"]
+            trend = []
+            for node, vals in nodeStats.iteritems():
+                samplesCount = len(vals)
+                start = int(samplesCount * accessor["period"])
+                for t,v in zip(timestamps[-start:], vals[-start:]):
+                    t = str(t)
+                    if accessor.has_key("unit"):
+                        trend.append(list((t,util.size_convert(v, accessor["unit"]))))
+                    else:
+                        trend.append(list((t, str(v))))
+
+            if result.has_key(node):
+                result[node].append((bucket, trend))
+            else:
+                result[node] = [(bucket, trend)]
+
         return result
 
 NodeCapsule = [
@@ -589,6 +624,82 @@ NodeCapsule = [
         },
      ],
      "perBucket" : True,
+     "sizing": True,
+    },
+    {"name" : "memoryGrowth",
+     "ingredients" : [
+        {
+            "name" : "threeMonthMemoryGrowth",
+            "description" : "3 month memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": .25,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
+            "name" : "sixMonthMemoryGrowth",
+            "description" : "6 month memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": .5,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
+            "name" : "nineMonthMemoryGrowth",
+            "description" : "9 month memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": .75,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+     ],
+     "sizing": True,
+    },
+    {"name" : "diskSizeGrowth",
+     "ingredients" : [
+        {
+            "name" : "threeMonthDiskSizeGrowth",
+            "description" : "3 month disk usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": .25,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+        {
+            "name" : "sixMonthDiskSizeGrowth",
+            "description" : "6 month disk usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": .5,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+        {
+            "name" : "nineMonthDiskSizeGrowth",
+            "description" : "9 month disk usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": .75,
+            "scale": "year",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+     ],
      "sizing": True,
     },
     {"name" : "MemoryUsage",

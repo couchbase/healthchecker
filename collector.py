@@ -302,7 +302,13 @@ class StatsCollector:
                             pass
                 sys.stderr.write('\n')
 
-    def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale, opts, output_dir):
+    def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale_val, opts, output_dir):
+        scale_set = []
+        if scale_val == 'all':
+            scale_set = ['minute', 'hour', 'day', 'week', 'month', 'year']
+        else:
+            scale_set = [scale_val]
+
         if not inputfile:
             server, port = util.hostport(cluster)
 
@@ -318,13 +324,15 @@ class StatsCollector:
             #get stats from ep-engine
             self.get_mc_stats(server, bucketlist, nodes, bucketname)
             self.log.debug(util.pretty_print(stats_buffer.node_stats))
-        
-            #get stats from ns-server
-            self.get_ns_stats(bucketlist, server, port, user, password, bucketname, scale, opts)
-            self.log.debug(util.pretty_print(stats_buffer.buckets))
 
             collected_data = {}
-            collected_data["scale"] = scale
+            for scale in scale_set:
+                #get stats from ns-server
+                self.get_ns_stats(bucketlist, server, port, user, password, bucketname, scale, opts)
+
+            self.log.debug(util.pretty_print(stats_buffer.buckets))
+
+            collected_data["scale"] = scale_val
             collected_data["nodes"] = stats_buffer.nodes
             collected_data["bucket_info"] = stats_buffer.bucket_info
             collected_data["buckets_summary"] = stats_buffer.buckets_summary
@@ -343,5 +351,5 @@ class StatsCollector:
                                        collected_data["buckets"],
                                        collected_data["nodes"])
             stats_buffer.buckets = collected_data["buckets"]
-            scale = collected_data["scale"]
-        return scale
+            scale_val = collected_data["scale"]
+        return scale_val

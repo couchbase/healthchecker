@@ -135,7 +135,7 @@ class CPUCoreLimit:
                 #TODO:  nodeinfo["num_processor"]
                 node_processor = getattr(nodeinfo, "num_processor", 1)
                 if total_core_required > node_processor:
-                    symptom = accessor["symptom"] % (total_core_required, node_processor)
+                    symptom = accessor["symptom"] % (node_processor, total_core_required)
                     result[node] = symptom
         return result
 
@@ -1008,7 +1008,6 @@ ClusterCapsule = [
             "description" : "Minimum CPU core number required",
             "code" : "CPUCoreLimit",
             "symptom" : "Number of CPU processors '%s' doesn't meet the minimum requirement '%s' to run Couchbase Server effectively",
-            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
      ],
      "clusterwise" : True,
