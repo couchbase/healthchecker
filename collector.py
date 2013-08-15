@@ -156,7 +156,8 @@ class StatsCollector:
                             self.log.error(bucket)
 
                     bucketinfo['numDdoc'], bucketinfo['numView'] = \
-                        self.number_bucketddocs(server, port, user, password, bucket_name, opts)
+                        self.number_bucketddocs(server, port, user, password, bucket_name, \
+                                                bucket['bucketType'], opts)
 
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
 
@@ -169,26 +170,29 @@ class StatsCollector:
             traceback.print_exc()
             sys.exit(1)
 
-    def number_bucketddocs(self, server, port, user, password, bucketname, opts):
-        try:
-            opts_tmp = opts
-            opts_tmp.append(('-b', bucketname))
-            docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts_tmp)
-            total_ddocs = 0
-            total_view = 0
-            if docs:
-                for row in docs["rows"]:
-                    if row["doc"]["meta"]["id"].find("_design/dev_") >= 0:
-                        continue
-                    total_ddocs += 1
-                    total_view += len(row["doc"]["json"]["views"])
-            
-            if total_ddocs:
-                total_view /= total_ddocs
-            return (total_ddocs, total_view)
-        except Exception, err:
-            traceback.print_exc()
-            sys.exit(1)
+    def number_bucketddocs(self, server, port, user, password, bucketname, buckettype, opts):
+        if buckettype == 'memcached':
+            return (0, 0)
+        else:
+            try:
+                opts_tmp = opts
+                opts_tmp.append(('-b', bucketname))
+                docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts_tmp)
+                total_ddocs = 0
+                total_view = 0
+                if docs:
+                    for row in docs["rows"]:
+                        if row["doc"]["meta"]["id"].find("_design/dev_") >= 0:
+                            continue
+                        total_ddocs += 1
+                        total_view += len(row["doc"]["json"]["views"])
+
+                if total_ddocs:
+                    total_view /= total_ddocs
+                return (total_ddocs, total_view)
+            except Exception, err:
+                traceback.print_exc()
+                sys.exit(1)
 
     def process_histogram_data(self, histogram_data):
         vals = sorted([self.seg(*kv) for kv in histogram_data.items()])
