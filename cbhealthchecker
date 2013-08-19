@@ -89,7 +89,7 @@ OPTIONS:
   -o FILENAME, --output=FILENAME     Default output filename is 'health_report.html'
   -h --help                          Show this help message and exit
   -s SCALE, --scale=SCALE            Specify stats scale, i.e. minute, hour, day, week, month and year
-                                     Default scale is 'day'
+                                     Default scale is to collect all scale data
   -j --jsononly                      Colllect data only but no analysis report generated
 """
     sys.exit(2)

@@ -188,9 +188,13 @@ class StatsAnalyzer:
                                     if counter.has_key("chart"):
                                         withchart = counter["chart"]
                                     chart_id = "c_%s_%s" % (counter["name"], node)
+                                    if counter.has_key("unit"):
+                                        unit = counter["unit"]
+                                    else:
+                                        unit = ""
                                     sizing_symptoms[node][counter["category"]].append(
                                                                  {"description": counter["description"],
-                                                                  "unit": counter["unit"],
+                                                                  "unit": unit,
                                                                   "value": value,
                                                                   "category": counter["category"],
                                                                   "chart": withchart,
