@@ -217,7 +217,7 @@ class ARRatio:
                                       "raw" : (active_total, replica_total)}))
                 delta = abs(100 - ratio)
                 if delta > threshold_val:
-                    symptom = accessor["symptom"] % (util.pretty_float(ratio), util.pretty_float(100 + threshold_val))
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), util.pretty_float(threshold_val))
                     num_error.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -1024,7 +1024,7 @@ ClusterCapsule = [
             "code" : "ARRatio",
             "threshold" : 5,
             "category": "Memory",
-            "symptom" : "Active to replica resident ratio '%s%%' is bigger than '%s%%'",
+            "symptom" : "Active to replica resident ratio '%s%%' deviates from scope limit '%s%%'",
             "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
         },
      ],
