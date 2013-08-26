@@ -40,10 +40,10 @@ class NodeSizing:
                     val = values[accessor["countergroup"]][accessor["counter"]][accessor["suffix"]]
                 else:
                     val = values[accessor["countergroup"]][accessor["counter"]]
-        result[node] = val
-        if accessor.has_key("unit"):
-            if accessor["unit"] == "size":
-                result[node] = util.size_label(val)
+            result[node] = val
+            if accessor.has_key("unit"):
+                if accessor["unit"] == "size":
+                    result[node] = util.size_label(val)
         return result
 
 class DiskInfo:
@@ -332,10 +332,10 @@ class GrowthChartData:
                     else:
                         trend.append(list((t, str(v))))
 
-            if result.has_key(node):
-                result[node].append((bucket, trend))
-            else:
-                result[node] = [(bucket, trend)]
+                if result.has_key(node):
+                    result[node].append((bucket, trend))
+                else:
+                    result[node] = [(bucket, trend)]
 
         return result
 
@@ -629,6 +629,50 @@ NodeCapsule = [
     {"name" : "memoryGrowth",
      "ingredients" : [
         {
+            "name" : "oneHourMemoryGrowth",
+            "description" : "one hour memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "hour",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
+            "name" : "oneDayMemoryGrowth",
+            "description" : "one day memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "day",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
+            "name" : "oneWeekMemoryGrowth",
+            "description" : "one day memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "week",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
+            "name" : "oneMonthMemoryGrowth",
+            "description" : "one day memory usage growth",
+            "counter" : "mem_used",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "month",
+            "unit" : "MB",
+            "category": "Memory",
+            "chart" : True,
+        },
+        {
             "name" : "threeMonthMemoryGrowth",
             "description" : "3 month memory usage growth",
             "counter" : "mem_used",
@@ -666,6 +710,50 @@ NodeCapsule = [
     },
     {"name" : "diskSizeGrowth",
      "ingredients" : [
+        {
+            "name" : "oneHourDiskSizeGrowth",
+            "description" : "one hour disk size usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "hour",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+        {
+            "name" : "oneDayDiskSizeGrowth",
+            "description" : "one day disk size usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "day",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+        {
+            "name" : "oneWeekDiskSizeGrowth",
+            "description" : "one week disk size usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "week",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
+        {
+            "name" : "oneMonthDiskSizeGrowth",
+            "description" : "one month disk size usage growth",
+            "counter" : "couch_total_disk_size",
+            "code" : "GrowthChartData",
+            "period": 1.0,
+            "scale": "month",
+            "unit" : "MB",
+            "category": "Disk",
+            "chart" : True,
+        },
         {
             "name" : "threeMonthDiskSizeGrowth",
             "description" : "3 month disk usage growth",
