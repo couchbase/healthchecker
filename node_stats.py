@@ -33,6 +33,7 @@ class NodeSizing:
         for node, values in stats_buffer.nodes.iteritems():
             if values["status"] != "healthy":
                 continue
+            val = None
             if isinstance(accessor["counter"], list):
                 val = values[accessor["countergroup"]][accessor["counter"][0]] - values[accessor["countergroup"]][accessor["counter"][1]]
             else:
@@ -40,10 +41,11 @@ class NodeSizing:
                     val = values[accessor["countergroup"]][accessor["counter"]][accessor["suffix"]]
                 else:
                     val = values[accessor["countergroup"]][accessor["counter"]]
-            result[node] = val
-            if accessor.has_key("unit"):
-                if accessor["unit"] == "size":
-                    result[node] = util.size_label(val)
+            if val:
+                result[node] = val
+                if accessor.has_key("unit"):
+                    if accessor["unit"] == "size":
+                        result[node] = util.size_label(val)
         return result
 
 class DiskInfo:
