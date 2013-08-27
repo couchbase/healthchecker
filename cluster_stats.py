@@ -167,6 +167,7 @@ class ARRatio:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
                 continue
+            numReplica = bucketinfo['numReplica']
             item_avg = {
                 "curr_items": [],
                 "vb_replica_curr_items": [],
@@ -196,7 +197,7 @@ class ARRatio:
                     res.append((active[0], ratio))
                     sizing[active[0]].append((bucket, ratio))
                 else:
-                    ratio = 100.0 * active[1] / replica[1]
+                    ratio = 100.0 * active[1] * numReplica / replica[1]
                     res.append((active[0], {"value" : util.pretty_float(ratio) + "%", 
                                             "raw" : (active[1],replica[1]),
                                            }))
@@ -1024,8 +1025,8 @@ ClusterCapsule = [
             "code" : "ARRatio",
             "threshold" : 5,
             "category": "Memory",
-            "symptom" : "Active to replica resident ratio '%s%%' deviates from scope limit '%s%%'",
-            "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
+            "symptom" : "Active to replica resident ratio '%s%%' bigger than '%s%%'",
+            "formula" : "Avg(curr_items) * numReplica / Avg(vb_replica_curr_items)",
         },
      ],
      "clusterwise" : True,
