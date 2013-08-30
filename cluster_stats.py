@@ -73,9 +73,10 @@ class SyndromeDetector:
 
 class DGMRatio:
     def run(self, accessor, scale, threshold=None):
-        result = []
+        result = {}
         hdd_total = 0
         ram_total = 0
+        sizing = {}
         for node, nodeinfo in stats_buffer.nodes.iteritems():
             if nodeinfo["status"] != "healthy":
                 continue
@@ -83,12 +84,19 @@ class DGMRatio:
                 hdd_total += nodeinfo['StorageInfo']['hdd']['usedByData']
             if nodeinfo["StorageInfo"].has_key("ram"):
                 ram_total += nodeinfo['StorageInfo']['ram']['usedByData']
+            if nodeinfo['StorageInfo']['ram']['usedByData']:
+                ratio = nodeinfo['StorageInfo']['hdd']['usedByData'] * 100.0 / nodeinfo['StorageInfo']['ram']['usedByData']
+                sizing[node] = util.pretty_float(ratio) + "%"
+            else:
+                sizing[node] = 0
         if ram_total > 0:
             ratio = hdd_total * 100.0 / ram_total
         else:
             ratio = 0
-        return {"value" : util.pretty_float(ratio) + "%",
-                "raw" : (hdd_total, ram_total)}
+        result["cluster"] = {"value" : util.pretty_float(ratio) + "%",
+                             "raw" : (hdd_total, ram_total)}
+        result["_sizing"] = sizing
+        return result
 
 class RAMLimit:
     def run(self, accessor, scale, threshold=None):
@@ -127,7 +135,7 @@ class CPUCoreLimit:
                 #TODO:  nodeinfo["num_processor"]
                 node_processor = getattr(nodeinfo, "num_processor", 1)
                 if total_core_required > node_processor:
-                    symptom = accessor["symptom"] % (total_core_required, node_processor)
+                    symptom = accessor["symptom"] % (node_processor, total_core_required)
                     result[node] = symptom
         return result
 
@@ -151,6 +159,7 @@ class ARRatio:
     def run(self, accessor, scale, threshold=None):
         result = {}
         cluster = []
+        sizing = {}
         if threshold.has_key("ActiveReplicaResidentRatio"):
             threshold_val = threshold["ActiveReplicaResidentRatio"]["activeReplicaResidentRatio"]
         else:
@@ -158,6 +167,7 @@ class ARRatio:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
                 continue
+            numReplica = stats_buffer.bucket_info[bucket]['numReplica']
             item_avg = {
                 "curr_items": [],
                 "vb_replica_curr_items": [],
@@ -173,20 +183,25 @@ class ARRatio:
                     else:
                         avg = 0
                     item_avg[counter].append((node, avg))
+                    if not sizing.has_key(node):
+                        sizing[node] = []
 
             res = []
             active_total = replica_total = 0
             for active, replica in zip(item_avg['curr_items'], item_avg['vb_replica_curr_items']):
                 if replica[1] == 0:
                     if active[1] == 0:
-                        res.append((active[0], "No active items"))
+                        ratio = "No active items"
                     else:
-                        res.append((active[0], "No replica"))
+                        ratio = "No replica"
+                    res.append((active[0], ratio))
+                    sizing[active[0]].append((bucket, ratio))
                 else:
-                    ratio = 100.0 * active[1] / replica[1]
+                    ratio = 100.0 * active[1] * numReplica / replica[1]
                     res.append((active[0], {"value" : util.pretty_float(ratio) + "%", 
                                             "raw" : (active[1],replica[1]),
                                            }))
+                    sizing[active[0]].append((bucket, util.pretty_float(ratio)))
                 active_total += active[1]
                 replica_total += replica[1]
             if active_total == 0:
@@ -203,7 +218,7 @@ class ARRatio:
                                       "raw" : (active_total, replica_total)}))
                 delta = abs(100 - ratio)
                 if delta > threshold_val:
-                    symptom = accessor["symptom"] % (util.pretty_float(ratio), util.pretty_float(100 + threshold_val))
+                    symptom = accessor["symptom"] % (util.pretty_float(ratio), util.pretty_float(threshold_val))
                     num_error.append({"node":"total", "value": symptom})
             if len(num_error) > 0:
                 res.append(("error", num_error))
@@ -211,6 +226,7 @@ class ARRatio:
         if len(cluster) > 0:
             result["cluster"] = {"value" : util.pretty_float(sum(cluster) / len(cluster)) + "%",
                                  "raw" : cluster}
+        result["_sizing"] = sizing
         return result
 
 class OpsRatio:
@@ -222,6 +238,7 @@ class OpsRatio:
         read_stats = []
         write_stats = []
         del_stats = []
+        sizing = {}
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
                 continue
@@ -240,12 +257,16 @@ class OpsRatio:
                     else:
                         avg = 0
                     ops_avg[counter].append((node, avg))
+                    if not sizing.has_key(node):
+                        sizing[node] = []
             res = []
             read_total = write_total = del_total = 0
             for read, write, delete in zip(ops_avg['cmd_get'], ops_avg['cmd_set'], ops_avg['delete_hits']):
                 count = read[1] + write[1] + delete[1]
                 if count == 0:
-                    res.append((read[0], "0% reads : 0% writes : 0% deletes"))
+                    ratio = "0% reads : 0% writes : 0% deletes"
+                    res.append((read[0], ratio))
+                    sizing[node].append((bucket, ratio))
                 else:
                     read_ratio = read[1] *100.0 / count
                     read_total += read_ratio
@@ -253,9 +274,11 @@ class OpsRatio:
                     write_total += write_ratio
                     del_ratio = delete[1] * 100.0 / count
                     del_total += del_ratio
-                    res.append((read[0], {"value":"%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5)),
+                    ratio = "%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio+.5), int(write_ratio+.5), int(del_ratio+.5))
+                    res.append((read[0], {"value":ratio,
                                           "raw":(read[1], write[1], delete[1]),
                                          }))
+                    sizing[node].append((bucket, ratio))
                     read_cluster.append(read[1])
                     write_cluster.append(write[1])
                     del_cluster.append(delete[1])
@@ -289,6 +312,7 @@ class OpsRatio:
             del_ratio = sum(del_cluster) * 100 / count + .5
         result["cluster"] = {"value" : "%s%% reads : %s%% writes : %s%% deletes" % (int(read_ratio), int(write_ratio), int(del_ratio)),
                              "raw" : (read_stats, write_stats, del_stats)}
+        result["_sizing"] = sizing
         return result
 
 class CacheMissRatio:
@@ -963,11 +987,13 @@ ClusterCapsule = [
             "description" : "Disk to memory ratio",
             "code" : "DGMRatio",
             "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
+            "category": "Disk IO",
         },
      ],
      "clusterwise" : True,
      "perNode" : False,
      "perBucket" : False,
+     "sizing": True,
     },
     {"name" : "MinimumLimit",
      "ingredients" : [
@@ -983,7 +1009,6 @@ ClusterCapsule = [
             "description" : "Minimum CPU core number required",
             "code" : "CPUCoreLimit",
             "symptom" : "Number of CPU processors '%s' doesn't meet the minimum requirement '%s' to run Couchbase Server effectively",
-            "formula" : "Total(Storage['hdd']['usedByData']) / Total(Storage['ram']['usedByData'])",
         },
      ],
      "clusterwise" : True,
@@ -999,14 +1024,16 @@ ClusterCapsule = [
             "scale" : "minute",
             "code" : "ARRatio",
             "threshold" : 5,
-            "symptom" : "Active to replica resident ratio '%s%%' is bigger than '%s%%'",
-            "formula" : "Avg(curr_items) / Avg(vb_replica_curr_items)",
+            "category": "Memory",
+            "symptom" : "Active to replica resident ratio '%s%%' bigger than '%s%%'",
+            "formula" : "Avg(curr_items) * numReplica / Avg(vb_replica_curr_items)",
         },
      ],
      "clusterwise" : True,
      "perNode" : True,
      "perBucket" : True,
      "indicator" : True,
+     "sizing": True,
     },
     {"name" : "ResidentRatio",
      "ingredients" : [
@@ -1044,11 +1071,13 @@ ClusterCapsule = [
             "scale" : "week",
             "counter" : ["cmd_get", "cmd_set", "delete_hits"],
             "code" : "OpsRatio",
+            "category": "Disk IO",
             "formula" : "Avg(cmd_get) : Avg(cmd_set) : Avg(delete_hits)",
         },
      ],
      "perBucket" : True,
      "clusterwise" : True,
+     "sizing": True,
     },
     {"name" : "GrowthRate",
      "ingredients" : [

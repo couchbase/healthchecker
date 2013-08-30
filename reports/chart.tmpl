@@ -1,0 +1,103 @@
+<!doctype html>
+<html, lang="en">
+  <head>
+    <title>Couchbase Cluster Health Check Report</title>
+    <link rel="stylesheet" media="screen" href="../css/bootstrap.min.css" />
+    <link rel="stylesheet" media="screen" href="../css/nv.d3.css"  />
+    <link rel="stylesheet" media="screen" href="../css/docs.css"  />
+    <link rel="stylesheet" media="all" href="../css/all.css" />
+    <link rel="stylesheet" media="screen" href="../css/screen.css" />
+    <script src="../js/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="../js/d3.v2.min.js" type="text/javascript"></script>
+    <script src="../js/nv.d3.js" type="text/javascript"></script>
+    <script src="../js/utils.js" type="text/javascript"></script>
+    <script src="../js/line.js" type="text/javascript"></script>
+    <script src="../js/lineChart.js" type="text/javascript"></script>
+</head>
+
+<link href="../css/nv.d3.css" rel="stylesheet" type="text/css">
+
+<style>
+body {
+  overflow-y:scroll;
+}
+
+svg {
+  display: block;
+  height: 500px;
+  min-width: 100px;
+  min-height: 100px;
+}
+</style>
+<body>
+#set debug = $debug
+#set $chart_id=$sizing["chart_id"]
+<div class="container">
+  <div class="text-center">
+    <h2>$sizing["description"]</h2>
+  </div>
+  <div id="$chart_id">
+    <svg></svg>
+  </div>
+</div>
+<script>
+var data = [
+#if $util.islist($sizing["value"])
+  #for $element in $sizing["value"]:
+   {
+      "key" : "${element[0]}",
+      "values" : $element[1]
+   },
+  #end for
+#else
+   {
+      "key" : "${sizing['description']}",
+      "values" : $sizing["value"]
+   }
+#end if
+].map(function(series) {
+  series.values = series.values.map(function(d) { return {x: parseInt(d[0], 10), y: parseFloat(d[1])}});
+  return series;
+});
+
+var chart;
+
+nv.addGraph(function() {
+  chart = nv.models.lineChart();
+
+  chart
+      .x(function(d,i) { return i })
+      .margin({left: 100})
+      .color(d3.scale.category10().range());
+
+  chart.xAxis
+       .tickFormat(function(d) {
+      var dx = data[0].values[d] && data[0].values[d].x || 0;
+      return dx ? d3.time.format('%x')(new Date(dx)) : '';
+      })
+      .showMaxMin(false);
+
+  chart.yAxis
+      .axisLabel("(${sizing['unit']})")
+      .tickFormat(d3.format(',.2f'));
+
+  chart.showXAxis(true);
+
+  d3.select('#$chart_id svg')
+      //.datum([]) //for testing noData
+      .datum(data)
+    .transition().duration(500)
+      .call(chart);
+
+  //TODO: Figure out a good way to do this automatically
+  nv.utils.windowResize(chart.update);
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+
+  return chart;
+});
+
+</script>
+</body>
+</html>

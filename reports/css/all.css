@@ -6,6 +6,7 @@ ul ul {list-style: none}
 a:link {text-decoration: none;}
 a:hover {text-decoration:none; }
 a:visited {text-decoration: none; }
+img { float:left;}
 /** Couchbase sepcific styles **/
 .status-error, .status-warning, .status-ok {padding:3px 5px}
 .status-error {background: #f00;color:#fff;}
@@ -19,5 +20,5 @@ strong.status-ok {background:inherit;color: #0f0}
 
 .tool-version {float:right;color:#aaa}
 
-.bucket {background: url("icons.png") no-repeat -22px -105px;margin-bottom: 0;margin-top: 3px;padding:15px 50px 23px;}
-.node {background: url("icons.png") no-repeat -22px 0;margin-bottom: 0;margin-top: 3px;padding:15px 50px 20px;}
+.bucket {background: url("../image/icons.png") no-repeat -22px -105px;margin-bottom: 0;margin-top: 3px;padding:15px 50px 23px;}
+.node {background: url("../image/icons.png") no-repeat -22px 0;margin-bottom: 0;margin-top: 3px;padding:15px 50px 20px;}

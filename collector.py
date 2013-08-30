@@ -49,21 +49,33 @@ class StatsCollector:
         nodeStats['memory']['quota'] = nodeInfo['memoryQuota']
         nodeStats['memory']['total'] = nodeInfo['memoryTotal']
 
+        #availableStorage
+        nodeStats['availableStorage'] = copy.deepcopy(nodeInfo['availableStorage'])
+
         #storageInfo
         nodeStats['StorageInfo'] = {}
-        if nodeInfo['storageTotals'] is not None:
+        if nodeInfo['storageTotals'] and nodeInfo['storage']:
 
             #print nodeInfo
             hdd = nodeInfo['storageTotals']['hdd']
-            if hdd is not None:
+            if hdd:
                 nodeStats['StorageInfo']['hdd'] = {}
                 nodeStats['StorageInfo']['hdd']['free'] = hdd['free']
                 nodeStats['StorageInfo']['hdd']['quotaTotal'] = hdd['quotaTotal']
                 nodeStats['StorageInfo']['hdd']['total'] = hdd['total']
                 nodeStats['StorageInfo']['hdd']['used'] = hdd['used']
                 nodeStats['StorageInfo']['hdd']['usedByData'] = hdd['usedByData']
+                if nodeInfo['storage']['hdd']:
+                    nodeStats['StorageInfo']['type'] = 'hdd'
+                    nodeStats['StorageInfo']['storage'] = copy.deepcopy(nodeInfo['storage']['hdd'])
+                elif nodeinfo['storage']['ssd']:
+                    nodeStats['StorageInfo']['type'] = 'ssd'
+                    nodeStats['StorageInfo']['storage'] = copy.deepcopy(nodeInfo['storage']['ssd'])
+                else:
+                    nodeStats['StorageInfo']['type'] = None
+                    nodeStats['StorageInfo']['storage'] = {}
             ram = nodeInfo['storageTotals']['ram']
-            if ram is not None:
+            if ram:
                 nodeStats['StorageInfo']['ram'] = {}
                 nodeStats['StorageInfo']['ram']['quotaTotal'] = ram['quotaTotal']
                 nodeStats['StorageInfo']['ram']['total'] = ram['total']
@@ -83,7 +95,7 @@ class StatsCollector:
         curr_items = 0
         curr_items_tot = 0
         vb_rep_curr_items = 0
-        if nodeInfo['interestingStats'] is not None:
+        if nodeInfo['interestingStats']:
             if nodeInfo['interestingStats'].has_key('curr_items'):
                 curr_items = nodeInfo['interestingStats']['curr_items']
             else:
@@ -142,14 +154,10 @@ class StatsCollector:
                         if bucket['bucketType'] != "memcached":
                             self.log.error("vBucketServerMap doesn't exist from bucket info")
                             self.log.error(bucket)
-                        
-                    bucketStats = bucket['basicStats']
-                    bucketinfo['bucketStats'] = {}
-                    for key in bucketStats.iterkeys():
-                        bucketinfo['bucketStats'][key] = bucketStats[key]
 
                     bucketinfo['numDdoc'], bucketinfo['numView'] = \
-                        self.number_bucketddocs(server, port, user, password, bucket_name, opts)
+                        self.number_bucketddocs(server, port, user, password, bucket_name, \
+                                                bucket['bucketType'], opts)
 
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
 
@@ -162,26 +170,29 @@ class StatsCollector:
             traceback.print_exc()
             sys.exit(1)
 
-    def number_bucketddocs(self, server, port, user, password, bucketname, opts):
-        try:
-            opts_tmp = opts
-            opts_tmp.append(('-b', bucketname))
-            docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts_tmp)
-            total_ddocs = 0
-            total_view = 0
-            if docs:
-                for row in docs["rows"]:
-                    if row["doc"]["meta"]["id"].find("_design/dev_") >= 0:
-                        continue
-                    total_ddocs += 1
-                    total_view += len(row["doc"]["json"]["views"])
-            
-            if total_ddocs:
-                total_view /= total_ddocs
-            return (total_ddocs, total_view)
-        except Exception, err:
-            traceback.print_exc()
-            sys.exit(1)
+    def number_bucketddocs(self, server, port, user, password, bucketname, buckettype, opts):
+        if buckettype == 'memcached':
+            return (0, 0)
+        else:
+            try:
+                opts_tmp = opts
+                opts_tmp.append(('-b', bucketname))
+                docs = buckets.Buckets().runCmd('bucket-ddocs', server, port, user, password, opts_tmp)
+                total_ddocs = 0
+                total_view = 0
+                if docs:
+                    for row in docs["rows"]:
+                        if row["doc"]["meta"]["id"].find("_design/dev_") >= 0:
+                            continue
+                        total_ddocs += 1
+                        total_view += len(row["doc"]["json"]["views"])
+
+                if total_ddocs:
+                    total_view /= total_ddocs
+                return (total_ddocs, total_view)
+            except Exception, err:
+                traceback.print_exc()
+                sys.exit(1)
 
     def process_histogram_data(self, histogram_data):
         vals = sorted([self.seg(*kv) for kv in histogram_data.items()])
@@ -295,7 +306,13 @@ class StatsCollector:
                             pass
                 sys.stderr.write('\n')
 
-    def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale, opts, output_dir):
+    def collect_data(self, bucketname, cluster, user, password, inputfile, statsfile, scale_val, opts, output_dir):
+        scale_set = []
+        if scale_val == 'all':
+            scale_set = ['minute', 'hour', 'day', 'week', 'month', 'year']
+        else:
+            scale_set = [scale_val]
+
         if not inputfile:
             server, port = util.hostport(cluster)
 
@@ -311,13 +328,15 @@ class StatsCollector:
             #get stats from ep-engine
             self.get_mc_stats(server, bucketlist, nodes, bucketname)
             self.log.debug(util.pretty_print(stats_buffer.node_stats))
-        
-            #get stats from ns-server
-            self.get_ns_stats(bucketlist, server, port, user, password, bucketname, scale, opts)
-            self.log.debug(util.pretty_print(stats_buffer.buckets))
 
             collected_data = {}
-            collected_data["scale"] = scale
+            for scale in scale_set:
+                #get stats from ns-server
+                self.get_ns_stats(bucketlist, server, port, user, password, bucketname, scale, opts)
+
+            self.log.debug(util.pretty_print(stats_buffer.buckets))
+
+            collected_data["scale"] = scale_val
             collected_data["nodes"] = stats_buffer.nodes
             collected_data["bucket_info"] = stats_buffer.bucket_info
             collected_data["buckets_summary"] = stats_buffer.buckets_summary
@@ -336,5 +355,5 @@ class StatsCollector:
                                        collected_data["buckets"],
                                        collected_data["nodes"])
             stats_buffer.buckets = collected_data["buckets"]
-            scale = collected_data["scale"]
-        return scale
+            scale_val = collected_data["scale"]
+        return scale_val
