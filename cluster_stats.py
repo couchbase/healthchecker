@@ -167,7 +167,7 @@ class ARRatio:
         for bucket, stats_info in stats_buffer.buckets.iteritems():
             if stats_buffer.bucket_info[bucket]["bucketType"] == 'memcached':
                 continue
-            numReplica = bucketinfo['numReplica']
+            numReplica = stats_buffer.bucket_info[bucket]['numReplica']
             item_avg = {
                 "curr_items": [],
                 "vb_replica_curr_items": [],
