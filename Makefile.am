@@ -17,6 +17,8 @@ CLI_PYTHON_LIB = $(COUCHBASE_CLI)/buckets.py \
                  $(COUCHBASE_CLI)/util_cli.py
 default:
 
+bindir=$(DESTDIR)$(localbindir)
+
 pythonlibdir=$(libdir)/python
 pythonlib_DATA = \
     analyzer.py \
@@ -49,6 +51,7 @@ clean-local:
 
 install-data-hook:
 	cp -rf $(CHEETAH_LIB) reports $(CLI_PYTHON_LIB) $(pythonlibdir)
+	cp -rf reports $(bindir)
 
 bdist:
 	test -d $(TMP_DIR) || mkdir $(TMP_DIR)
