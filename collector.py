@@ -160,11 +160,6 @@ class StatsCollector:
                                                 bucket['bucketType'], opts)
 
                     stats_buffer.bucket_info[bucket_name] = bucketinfo
-
-                    # get bucket related stats
-                    c = buckets.BucketStats(bucket_name)
-                    json = c.runCmd('bucket-stats', server, port, user, password, opts)
-                    stats_buffer.buckets_summary[bucket_name] = json
             return bucketlist
         except Exception, err:
             traceback.print_exc()
@@ -299,6 +294,11 @@ class StatsCollector:
                             self.log.debug("retrieve: %s" % stat)
                             c = buckets.BucketNodeStats(bucket_name, stat, scale)
                             json = c.runCmd('bucket-node-stats', server, port, user, password, opts)
+                            for node, vals in json["nodeStats"].iteritems():
+                                for i, val in enumerate(vals):
+                                    if isinstance(val, basestring):
+                                        vals[i] = 0
+
                             stats_buffer.buckets[bucket_name][scale][stat] = json
                         except Exception, err:
                             self.log.debug("%s doesn't exist from ns stats" % stat)
