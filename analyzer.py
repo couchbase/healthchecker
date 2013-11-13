@@ -425,14 +425,16 @@ class StatsAnalyzer:
         normalize_output_dir = os.path.normpath(os.path.dirname(output_dir))
         if normalize_output_dir != normalize_report_dir:
             for item in os.listdir(normalize_report_dir):
-                if item != TEMPLATE_FILE:
+                if not item in [TEMPLATE_FILE, CHART_FILE]:
                     s = os.path.join(normalize_report_dir, item)
                     d = os.path.join(normalize_output_dir, item)
-                    if os.path.isfile(s):
-                        try:
+                    try:
+                        if os.path.isfile(s):
                             shutil.copy2(s, d)
-                        except Exception:
-                            pass
+                        else:
+                            shutil.copytree(s, d)
+                    except Exception:
+                        pass
 
         sys.stderr.write("\nThe run finished successfully. \nPlease find html output at '%s' and text output at '%s'.\n" % \
             (htmlfile, txtfile))
