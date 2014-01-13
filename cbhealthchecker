@@ -4,10 +4,10 @@
 import getopt
 import sys
 import os
-import traceback
 import copy
 import logging
 import time
+import traceback
 
 import collector
 import analyzer
