@@ -1,3 +1,6 @@
+PROJECT(HealthChecker)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
 # Generate the python wrappers
 CONFIGURE_FILE (${CMAKE_CURRENT_SOURCE_DIR}/wrapper/wrapper.in
                 ${CMAKE_CURRENT_BINARY_DIR}/wrapper/cbhealthchecker)
