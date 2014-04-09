@@ -6,7 +6,6 @@ reports/*.txt
 reports/*.json
 /Makefile
 /wrapper/cbhealthchecker
-/wrapper/wrapper
 /CMakeFiles/
 /CTestTestfile.cmake
 /cmake_install.cmake
